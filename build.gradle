@@ -75,27 +75,12 @@ sourceSets.main.java {
 
 repositories {
     mavenLocal()
-    // Bind tooling/test groups exclusively to Maven Central. The moddev plugin injects
-    // maven.neoforged.net at higher priority than this repositories block, and when that
-    // mirror has a hiccup (it 502'd on pmd-java twice now), Gradle was falling through to
-    // it for non-Forge artifacts. exclusiveContent forces every dependency in these groups
-    // to resolve through Maven Central or fail loudly — no silent fall-through to a
-    // mirror that doesn't authoritatively host the artifact.
-    exclusiveContent {
-        forRepository {
-            mavenCentral()
-        }
-        filter {
-            includeGroup 'net.sourceforge.pmd'
-            includeGroupByRegex 'org\\.junit.*'
-            includeGroup 'org.mockito'
-            includeGroup 'org.opentest4j'
-            includeGroup 'org.apiguardian'
-        }
-    }
-    // Maven Central also for anything else that may land here (e.g. transitive deps not
-    // listed above); declared after the exclusiveContent so the targeted groups go through
-    // that route first.
+    // Canonical home for JUnit, Mockito, PMD, Spotless's Eclipse JDT deps — anything that
+    // isn't authoritatively hosted on the Forge-flavoured mirrors below. We previously used
+    // an exclusiveContent block to pin specific groups here, but that constrained Spotless's
+    // own classpath in a way that made it fail to resolve dev.equo.ide/org.eclipse.* at
+    // runtime; the retry loop in .github/workflows/ci.yml handles transient mirror flakes
+    // adequately on its own without that extra constraint.
     mavenCentral()
     maven { url = 'https://maven.blamejared.com' } // JEI, Patchouli, etc.
     maven { url = 'https://maven.tterrag.com/' }
