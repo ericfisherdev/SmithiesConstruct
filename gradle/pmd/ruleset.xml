@@ -41,6 +41,17 @@
         <exclude name="MissingSerialVersionUID"/>
         <!-- @GameTest holder classes look like JUnit classes to PMD but use a different framework. -->
         <exclude name="TestClassWithoutTestCases"/>
+        <!-- Re-included below with allowCommentedBlocks=true so an explanatory comment in a
+             deliberate empty catch satisfies the rule. -->
+        <exclude name="EmptyCatchBlock"/>
+    </rule>
+
+    <!-- A commented-only catch is the canonical way to mark "I considered this exception and
+         chose to absorb it"; bare empty catches are still flagged. -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+        <properties>
+            <property name="allowCommentedBlocks" value="true"/>
+        </properties>
     </rule>
 
     <rule ref="category/java/multithreading.xml">
