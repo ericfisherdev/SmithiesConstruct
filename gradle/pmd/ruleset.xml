@@ -22,6 +22,11 @@
         <!-- Tests routinely verify multiple related facts per method (e.g. Mockito verify() pairs);
              enforcing 1-assert-per-test fragments cohesive scenarios and lowers signal. -->
         <exclude name="UnitTestContainsTooManyAsserts"/>
+        <!-- Table-style assertAll(...) tests where each row is a self-documenting comparison
+             (e.g. registry-key equality) don't gain readability from forced messages on every
+             assertEquals; meaningful messages are added by hand where the failure context is
+             non-obvious. -->
+        <exclude name="UnitTestAssertionsShouldIncludeMessage"/>
         <!-- Many of our interfaces (e.g. Pulse) intentionally expose one abstract method plus
              several defaults but are *not* meant as lambda targets — they describe a contract
              for named subsystem classes. Marking them @FunctionalInterface would mislead
