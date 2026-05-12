@@ -79,6 +79,13 @@ repositories {
 dependencies {
     // TODO: pin a 1.21.1-compatible Mantle once available.
     // implementation "slimeknights.mantle:Mantle:1.21.1-x.y.z"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 tasks.withType(ProcessResources).configureEach {
