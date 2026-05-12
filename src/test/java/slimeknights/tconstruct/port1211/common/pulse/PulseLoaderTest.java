@@ -27,6 +27,9 @@ class PulseLoaderTest {
 
         verify(enabled).register(bus);
         verify(disabled, never()).register(any());
+        // Exactly two listeners — the enabled pulse's setup + clientSetup. None from the
+        // disabled pulse, even though it was in the input list.
+        verify(bus, times(2)).addListener(any(Consumer.class));
     }
 
     @Test
