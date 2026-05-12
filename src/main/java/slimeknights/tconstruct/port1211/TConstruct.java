@@ -18,6 +18,7 @@ import com.mojang.logging.LogUtils;
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 import slimeknights.tconstruct.port1211.common.config.Config;
 import slimeknights.tconstruct.port1211.common.data.TinkerDataComponents;
+import slimeknights.tconstruct.port1211.common.pulse.Pulse;
 import slimeknights.tconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 
@@ -60,11 +61,12 @@ public final class TConstruct {
 
         // Boot the pulse loader with an empty pulse list — Phase 1 ships no pulses yet, but
         // wiring the call now means Phase 2+ tickets that add the first Pulse implementation
-        // only have to append to the list, not change the constructor shape. Gating is bound
+        // only have to append to this list, not change the constructor shape. Gating is bound
         // to Config.pulseGate() so the COMMON config TOML's [pulses] table actually controls
         // registration the moment any pulse is added.
-        PulseLoader.boot(modBus, List.of(), Config.pulseGate());
-        LOGGER.info("TConstruct 1.21.1 port: foundation infrastructure wired (0 pulses)");
+        List<Pulse> pulses = List.of();
+        PulseLoader.boot(modBus, pulses, Config.pulseGate());
+        LOGGER.info("TConstruct 1.21.1 port: foundation infrastructure wired ({} pulses)", pulses.size());
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
