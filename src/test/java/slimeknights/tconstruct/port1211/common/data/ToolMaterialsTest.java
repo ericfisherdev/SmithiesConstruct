@@ -42,10 +42,15 @@ class ToolMaterialsTest {
     void roundTripsThroughStreamCodec() {
         ToolMaterials original = new ToolMaterials(List.of(IRON, WOOD));
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        ToolMaterials.STREAM_CODEC.encode(buf, original);
-        ToolMaterials decoded = ToolMaterials.STREAM_CODEC.decode(buf);
-        assertEquals(original, decoded, "binary stream round-trip must preserve the parts list");
-        assertEquals(0, buf.readableBytes(), "decoder should consume every byte written by the encoder");
+        try {
+            ToolMaterials.STREAM_CODEC.encode(buf, original);
+            ToolMaterials decoded = ToolMaterials.STREAM_CODEC.decode(buf);
+            assertEquals(original, decoded, "binary stream round-trip must preserve the parts list");
+            assertEquals(0, buf.readableBytes(), "decoder should consume every byte written by the encoder");
+        }
+        finally {
+            buf.release();
+        }
     }
 
     @Test
@@ -55,8 +60,13 @@ class ToolMaterialsTest {
         assertEquals(empty, ToolMaterials.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow());
 
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        ToolMaterials.STREAM_CODEC.encode(buf, empty);
-        assertEquals(empty, ToolMaterials.STREAM_CODEC.decode(buf));
+        try {
+            ToolMaterials.STREAM_CODEC.encode(buf, empty);
+            assertEquals(empty, ToolMaterials.STREAM_CODEC.decode(buf));
+        }
+        finally {
+            buf.release();
+        }
     }
 
     @Test
