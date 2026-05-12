@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'pmd'
     id 'net.neoforged.moddev' version '2.0.78'
 }
 
@@ -124,6 +125,57 @@ tasks.named('jar', Jar).configure {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+pmd {
+    toolVersion = '7.7.0'
+    ruleSetFiles = files('gradle/pmd/ruleset.xml')
+    ruleSets = []
+    consoleOutput = false
+    ignoreFailures = true
+}
+
+tasks.named('pmdMain', Pmd) {
+    source = fileTree(dir: 'src/main/java/slimeknights/tconstruct/port1211', include: '**/*.java')
+    reports {
+        xml.required = true
+        html.required = false
+    }
+}
+
+tasks.named('pmdTest', Pmd) {
+    source = fileTree(dir: 'src/test/java', include: '**/*.java')
+    reports {
+        xml.required = true
+        html.required = false
+    }
+}
+
+tasks.register('installGitHooks') {
+    group = 'verification'
+    description = 'Points git core.hooksPath at scripts/git-hooks (mirrors CI lint + tests). Works across worktrees.'
+
+    def hookDir = file('scripts/git-hooks')
+    def hookFile = file('scripts/git-hooks/pre-commit')
+
+    doLast {
+        if (!hookFile.exists()) {
+            throw new GradleException("Missing hook source: ${hookFile}")
+        }
+        hookFile.setExecutable(true, false)
+
+        def result = providers.exec {
+            commandLine 'git', 'config', 'core.hooksPath', hookDir.path
+        }
+        result.result.get().assertNormalExitValue()
+
+        def verify = providers.exec {
+            commandLine 'git', 'config', '--get', 'core.hooksPath'
+        }
+        def configured = verify.standardOutput.asText.get().trim()
+        logger.lifecycle("git core.hooksPath = ${configured}")
+        logger.lifecycle("Pre-commit hook active at ${hookFile}")
+    }
 }
 
 publishing {

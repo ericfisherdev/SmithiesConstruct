@@ -1,0 +1,72 @@
+# Path-based PR labels for SmithiesConstruct port-1.21.1.
+# Schema: actions/labeler@v5 — each label maps to a list of match rules.
+
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'build.gradle'
+          - 'settings.gradle'
+          - 'gradle.properties'
+          - 'gradle/**'
+          - 'gradlew'
+          - 'gradlew.bat'
+          - '.github/workflows/**'
+
+gradle:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'build.gradle'
+          - 'settings.gradle'
+          - 'gradle.properties'
+          - 'gradle/**'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/labeler.yml'
+          - 'gradle/pmd/**'
+
+resources:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/resources/**'
+          - 'src/generated/resources/**'
+          - 'resources/**'
+
+test:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/test/**'
+          - 'src/main/java/slimeknights/tconstruct/port1211/gametest/**'
+          - 'src/main/resources/data/tconstruct/structure/**'
+
+# Every PR against 1.21.1 is a port PR by definition.
+port-1.21.1:
+  - base-branch: ['1.21.1']
+
+# Phase-0 = build/infrastructure scaffolding. Heuristic: changes that don't touch
+# game logic packages other than the bootstrap stubs.
+phase-0:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - 'build.gradle'
+              - 'gradle.properties'
+              - 'gradle/**'
+              - '.github/**'
+              - 'gradle/pmd/**'
+              - 'src/main/resources/pack.mcmeta'
+              - 'src/main/resources/META-INF/**'
+              - 'src/main/java/slimeknights/tconstruct/port1211/TConstruct.java'
+              - 'src/main/java/slimeknights/tconstruct/port1211/data/**'
+              - 'src/main/java/slimeknights/tconstruct/port1211/gametest/**'
+              - 'src/test/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'CONTRIBUTING.md'
+          - 'README.md'
+          - 'CLAUDE.md'

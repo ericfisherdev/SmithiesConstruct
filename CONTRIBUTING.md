@@ -31,3 +31,20 @@ If you want a better place to discuss ideas, consider joining [the SlimeKnights 
 Always talk to the developers first before working on pull requests, such as on [the SlimeKnights Discord](https://discord.gg/njGrvuh). Pull requests will only be accepted if they contribute something meaningful and do not hinder maintainability. Furthermore pull requests must be tested and ensure to not break anything.
 
 An exception to this rule is translation pull requests, which we generally allow without previous discussion. Please do not translate using an automatic translator such as Google Translate as those translations tend to be filled with errors or use the wrong context.
+
+# Local development (port-1.21.1)
+
+The 1.21.1 port targets Java 21 with the NeoForge `moddev` Gradle plugin. After cloning, run the one-time setup:
+
+```
+./gradlew installGitHooks
+```
+
+That points `core.hooksPath` at `scripts/git-hooks/`, so commits trigger the same checks CI runs on every PR:
+
+- **PMD** scans `src/main/java/slimeknights/tconstruct/port1211/**` and `src/test/java/**` against `config/pmd/ruleset.xml`. The pre-commit hook filters findings to staged-diff lines via [reviewdog](https://github.com/reviewdog/reviewdog) (install it locally for the same UX as CI; if missing, the hook prints a warning and CI still gates).
+- **JUnit** suite (`./gradlew test`).
+
+CI (`.github/workflows/ci.yml`) runs the same `pmdMain`/`pmdTest`/`test` tasks on every PR and push to `1.21.1`, plus auto-labels PRs by changed paths (`.github/labeler.yml`). The PMD gate in CI fails *only* on findings on lines added or modified by the PR — pre-existing findings under `port1211/**` are reported but don't block. Use `git commit --no-verify` to bypass the local hook in emergencies; CI is the source of truth.
+
+Legacy 1.12 sources outside `slimeknights/tconstruct/port1211/**` are excluded from compilation, PMD, and (soon) Spotless — they live on disk for reference until ported.

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="SmithiesConstruct port-1.21.1"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+             https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Lightweight PMD ruleset for the 1.21.1 port. Spotless owns formatting (SMTCON-189);
+        this ruleset focuses on correctness and code-smell rules that catch real defects.
+        Rules that fight Minecraft modding idioms (capability/registry singletons, Mojang
+        mappings, public static event handlers) are excluded.
+    </description>
+
+    <rule ref="category/java/bestpractices.xml">
+        <exclude name="AvoidReassigningParameters"/>
+        <exclude name="GuardLogStatement"/>
+        <exclude name="JUnit5TestShouldBePackagePrivate"/>
+        <!-- NeoForge event handlers must keep their event parameter even if unused. -->
+        <exclude name="UnusedFormalParameter"/>
+        <exclude name="UnusedAssignment"/>
+    </rule>
+
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <exclude name="AvoidFieldNameMatchingTypeName"/>
+        <exclude name="MissingSerialVersionUID"/>
+        <!-- @GameTest holder classes look like JUnit classes to PMD but use a different framework. -->
+        <exclude name="TestClassWithoutTestCases"/>
+    </rule>
+
+    <rule ref="category/java/multithreading.xml">
+        <exclude name="UseConcurrentHashMap"/>
+        <exclude name="DoNotUseThreads"/>
+    </rule>
+
+    <rule ref="category/java/performance.xml">
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+    </rule>
+
+    <rule ref="category/java/security.xml"/>
+
+</ruleset>
