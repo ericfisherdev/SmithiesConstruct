@@ -15,9 +15,9 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  * component lives in one file with consistent persistence/network-sync wiring — the legacy 1.12
  * port had a per-component capability boilerplate that's now collapsed into this hub.
  *
- * <p>Phase 1 ships only {@link #TOOL_MATERIALS} here (SMTCON-18); SMTCON-19 through SMTCON-21
- * will append the remaining four components ({@code ToolModifiers}, {@code ToolStats},
- * {@code ToolPersistentData}, {@code ToolBroken}) alongside it.
+ * <p>Phase 1 ships {@link #TOOL_MATERIALS} (SMTCON-18) and {@link #TOOL_MODIFIERS}
+ * (SMTCON-19); SMTCON-20 through SMTCON-21 will append the remaining three components
+ * ({@code ToolStats}, {@code ToolPersistentData}, {@code ToolBroken}) alongside them.
  */
 public final class TinkerDataComponents {
 
@@ -28,6 +28,14 @@ public final class TinkerDataComponents {
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolMaterials>> TOOL_MATERIALS = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolmaterials",
             builder -> builder.persistent(ToolMaterials.CODEC).networkSynchronized(ToolMaterials.STREAM_CODEC));
+
+    /**
+     * Insertion-ordered map of modifier id → level. Iteration order is fixed at construction
+     * time and survives every codec round-trip and {@link ToolModifiers#with} call so tooltip
+     * rendering and modifier resolution are deterministic.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolModifiers>> TOOL_MODIFIERS = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolmodifiers",
+            builder -> builder.persistent(ToolModifiers.CODEC).networkSynchronized(ToolModifiers.STREAM_CODEC));
 
     private TinkerDataComponents() {
     }
