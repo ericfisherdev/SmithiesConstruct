@@ -42,6 +42,7 @@ public final class PulseLoader {
         Objects.requireNonNull(gate, "gate");
 
         for (Pulse pulse : pulses) {
+            Objects.requireNonNull(pulse, "pulses contains a null entry");
             if (!gate.isEnabled(pulse.id(), pulse.defaultEnabled())) {
                 continue;
             }
