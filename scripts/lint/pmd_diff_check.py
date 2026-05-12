@@ -129,11 +129,29 @@ def relativise(path: str, repo_root: Path) -> str:
         return Path(path).as_posix()
 
 
+def _gha_escape(value: str) -> str:
+    """Escape control characters per GitHub Actions workflow-command rules.
+
+    The runner unescapes ``%25`` → ``%``, ``%0D`` → ``\\r``, and ``%0A`` → ``\\n``
+    in command values; if we emit those characters raw, a PMD message containing
+    ``%`` or a newline would either lose data or, worse, look like a second
+    workflow command and let untrusted content forge directives.
+    """
+    return (
+        (value or "")
+        .replace("%", "%25")
+        .replace("\r", "%0D")
+        .replace("\n", "%0A")
+    )
+
+
 def emit_github_annotation(f: dict, relative_path: str) -> None:
-    summary = f["message"].replace("\n", " ").strip()
+    summary = _gha_escape((f["message"] or "").strip())
+    rule = _gha_escape(f["rule"])
+    rel = _gha_escape(relative_path)
     sys.stdout.write(
-        f"::error file={relative_path},line={f['line']},col={f['col']},"
-        f"title=PMD {f['rule']}::{summary}\n"
+        f"::error file={rel},line={f['line']},col={f['col']},"
+        f"title=PMD {rule}::{summary}\n"
     )
 
 
