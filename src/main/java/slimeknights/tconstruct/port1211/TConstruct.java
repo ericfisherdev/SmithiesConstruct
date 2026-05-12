@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 import slimeknights.tconstruct.port1211.common.config.Config;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 
@@ -34,13 +35,16 @@ public final class TConstruct {
         // common setup sees the resolved values rather than the declared defaults.
         container.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 
+        // Attach every DeferredRegister the mod owns to the bus before any pulse runs — pulses
+        // pull from these and need them to have already subscribed their registry listeners.
+        TinkerRegistries.registerAll(modBus);
+
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
         NeoForge.EVENT_BUS.register(this);
 
-        // TODO(port): wire DeferredRegisters here.
-        //   - Items, Blocks, BlockEntities, Fluids, Entities, Recipes, DataComponents, etc.
-        //   - Replace the legacy Pulse system (TinkerPulseManager) with config-gated init calls.
+        // TODO(port): replace the legacy Pulse system (TinkerPulseManager) with PulseLoader.boot
+        // once the Phase 1 pulses (shared, world, tools, smeltery, gadgets, debug) are ported.
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
