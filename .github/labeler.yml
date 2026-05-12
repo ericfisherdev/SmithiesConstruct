@@ -48,25 +48,20 @@ port-1.21.1:
 # Phase-0 = build/infrastructure scaffolding. Heuristic: changes that don't touch
 # game logic packages other than the bootstrap stubs.
 phase-0:
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              - 'build.gradle'
-              - 'gradle.properties'
-              - 'gradle/**'
-              - '.github/**'
-              - 'gradle/pmd/**'
-              - 'src/main/resources/pack.mcmeta'
-              - 'src/main/resources/META-INF/**'
-              - 'src/main/java/slimeknights/tconstruct/port1211/TConstruct.java'
-              - 'src/main/java/slimeknights/tconstruct/port1211/data/**'
-              - 'src/main/java/slimeknights/tconstruct/port1211/gametest/**'
-              - 'src/test/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'build.gradle'
+          - 'gradle.properties'
+          - 'gradle/**'
+          - '.github/**'
+          - 'src/main/resources/pack.mcmeta'
+          - 'src/main/resources/META-INF/**'
+          - 'src/main/java/slimeknights/tconstruct/port1211/TConstruct.java'
+          - 'src/main/java/slimeknights/tconstruct/port1211/data/**'
+          - 'src/main/java/slimeknights/tconstruct/port1211/gametest/**'
+          - 'src/test/**'
 
 documentation:
   - changed-files:
       - any-glob-to-any-file:
           - '**/*.md'
-          - 'CONTRIBUTING.md'
-          - 'README.md'
-          - 'CLAUDE.md'
