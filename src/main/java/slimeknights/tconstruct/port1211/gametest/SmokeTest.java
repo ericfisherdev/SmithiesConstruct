@@ -17,7 +17,8 @@ public final class SmokeTest {
 
     static final String NAMESPACE = "tconstruct";
 
-    private SmokeTest() {}
+    private SmokeTest() {
+    }
 
     @GameTest(template = "smoke_test")
     public static void smokeTest(GameTestHelper helper) {

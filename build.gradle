@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'pmd'
+    id 'com.diffplug.spotless' version '7.0.4'
     id 'net.neoforged.moddev' version '2.0.78'
 }
 
@@ -149,6 +150,22 @@ tasks.named('pmdTest', Pmd) {
         xml.required = true
         html.required = false
     }
+}
+
+spotless {
+    java {
+        target 'src/main/java/slimeknights/tconstruct/port1211/**/*.java',
+               'src/test/java/**/*.java'
+        eclipse().configFile('eclipse_formatter.xml')
+        importOrder 'java', 'javax', 'net', 'org', 'com', 'slimeknights'
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck'
 }
 
 tasks.register('installGitHooks') {
