@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook for SmithiesConstruct port-1.21.1.
+# Mirrors the CI gates defined in .github/workflows/ci.yml:
+#   1. PMD on src/main/java/.../port1211/** and src/test/java/**, filtered to
+#      staged-diff lines via reviewdog (matches CI's filter-mode=added).
+#   2. JUnit suite via ./gradlew test.
+#
+# Install with:  ./gradlew installGitHooks
+#
+# Skip with:     git commit --no-verify   (CI will still catch regressions)
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+YELLOW=$'\033[33m'
+RED=$'\033[31m'
+GREEN=$'\033[32m'
+RESET=$'\033[0m'
+
+info()  { printf '%spre-commit:%s %s\n' "$GREEN" "$RESET" "$*"; }
+warn()  { printf '%spre-commit:%s %s\n' "$YELLOW" "$RESET" "$*" >&2; }
+fail()  { printf '%spre-commit:%s %s\n' "$RED"    "$RESET" "$*" >&2; }
+
+mapfile -t STAGED_JAVA < <(
+    git diff --cached --name-only --diff-filter=ACMR -- \
+        'src/main/java/slimeknights/tconstruct/port1211/*.java' \
+        'src/main/java/slimeknights/tconstruct/port1211/**/*.java' \
+        'src/test/java/**/*.java' || true
+)
+
+if [[ ${#STAGED_JAVA[@]} -gt 0 ]]; then
+    info "Running PMD on ${#STAGED_JAVA[@]} staged Java file(s)…"
+    if ! ./gradlew pmdMain pmdTest --quiet --console=plain; then
+        fail "PMD task failed to run. Fix the Gradle error before retrying."
+        exit 1
+    fi
+
+    if command -v reviewdog >/dev/null 2>&1; then
+        info "Filtering PMD findings to staged-diff lines via reviewdog…"
+        FOUND=0
+        for report in build/reports/pmd/main.xml build/reports/pmd/test.xml; do
+            [[ -s "$report" ]] || continue
+            if ! git diff --cached -U0 \
+                | reviewdog -f=pmd -name=pmd -reporter=local -filter-mode=added \
+                    -fail-on-error=true -diff="git diff --cached -U0" \
+                    < "$report"; then
+                FOUND=1
+            fi
+        done
+        if [[ $FOUND -ne 0 ]]; then
+            fail "PMD found new findings on staged lines. Fix them or commit with --no-verify."
+            exit 1
+        fi
+    else
+        warn "reviewdog not on PATH — skipping diff-filtered PMD locally."
+        warn "Install: https://github.com/reviewdog/reviewdog#installation"
+        warn "CI will still run the diff-aware lint gate against your PR."
+    fi
+else
+    info "No staged Java files under port1211/** or src/test/** — skipping PMD."
+fi
+
+info "Running JUnit suite (./gradlew test)…"
+if ! ./gradlew test --quiet --console=plain; then
+    fail "Unit tests failed. Fix or commit with --no-verify."
+    exit 1
+fi
+
+info "All checks passed."
+exit 0
