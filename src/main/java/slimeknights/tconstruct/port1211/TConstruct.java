@@ -2,7 +2,9 @@ package slimeknights.tconstruct.port1211;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import slimeknights.tconstruct.port1211.common.config.Config;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 
 /**
@@ -25,7 +28,12 @@ public final class TConstruct {
     public static final String MOD_ID = "tconstruct";
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public TConstruct(IEventBus modBus) {
+    public TConstruct(IEventBus modBus, ModContainer container) {
+        // Register the COMMON spec before any subsystem reads its flags. NeoForge guarantees the
+        // TOML is loaded before FMLCommonSetupEvent fires, so a PulseLoader.boot called during
+        // common setup sees the resolved values rather than the declared defaults.
+        container.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
         NeoForge.EVENT_BUS.register(this);
