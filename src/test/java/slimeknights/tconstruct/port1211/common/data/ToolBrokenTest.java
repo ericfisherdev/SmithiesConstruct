@@ -59,6 +59,7 @@ class ToolBrokenTest {
         try {
             ToolBroken.STREAM_CODEC.encode(buf, intact);
             assertEquals(intact, ToolBroken.STREAM_CODEC.decode(buf));
+            assertEquals(0, buf.readableBytes(), "decoder should consume every byte");
         }
         finally {
             buf.release();
