@@ -75,6 +75,10 @@ sourceSets.main.java {
 
 repositories {
     mavenLocal()
+    // Canonical home for JUnit, Mockito, PMD, defusedxml... — declared first so Gradle
+    // never falls back to the NeoForged Maven mirror for non-Forge artifacts (the
+    // mirror has flaked with 502s mid-PR before).
+    mavenCentral()
     maven { url = 'https://maven.blamejared.com' } // JEI, Patchouli, etc.
     maven { url = 'https://maven.tterrag.com/' }
     maven { url = 'https://modmaven.dev' }
