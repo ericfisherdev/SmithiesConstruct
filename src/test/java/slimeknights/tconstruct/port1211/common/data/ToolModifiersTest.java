@@ -11,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
@@ -48,6 +50,18 @@ class ToolModifiersTest {
         ToolModifiers decoded = ToolModifiers.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow();
         assertEquals(original, decoded, "JSON round-trip must preserve the map verbatim");
         assertIterableEquals(List.of(SHARPNESS, HASTE, REINFORCED), decoded.levels().keySet(), "Insertion order must survive the JSON round-trip");
+    }
+
+    @Test
+    void roundTripsThroughNbtOpsPreservesInsertionOrder() {
+        // This is the codec path the DataComponentType actually exercises in production —
+        // ItemStack persistence goes through NbtOps, and Minecraft's CompoundTag is
+        // contractually unordered (HashMap-backed). The list-shaped CODEC must compensate.
+        ToolModifiers original = fixture();
+        Tag encoded = ToolModifiers.CODEC.encodeStart(NbtOps.INSTANCE, original).getOrThrow();
+        ToolModifiers decoded = ToolModifiers.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        assertEquals(original, decoded, "NBT round-trip must preserve the map verbatim");
+        assertIterableEquals(List.of(SHARPNESS, HASTE, REINFORCED), decoded.levels().keySet(), "Insertion order must survive the NBT round-trip (the actual production save path)");
     }
 
     @Test

@@ -2,13 +2,16 @@ package slimeknights.tconstruct.port1211.common.data;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import io.netty.buffer.ByteBuf;
 
@@ -31,8 +34,18 @@ import io.netty.buffer.ByteBuf;
  */
 public record ToolModifiers(Map<ResourceLocation, Integer> levels) {
 
-    /** JSON / NBT round-trip codec. Used by {@code DataComponentType.Builder#persistent}. */
-    public static final Codec<ToolModifiers> CODEC = Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).xmap(ToolModifiers::new, ToolModifiers::levels);
+    /**
+     * Persistence codec. Used by {@code DataComponentType.Builder#persistent}, which serialises
+     * via {@code NbtOps} for ItemStack disk storage.
+     *
+     * <p>Encoded as a list of {@code {id, level}} records rather than as a free-form
+     * {@code Codec.unboundedMap} because Minecraft's {@code CompoundTag} is contractually
+     * unordered (HashMap-backed in vanilla); a map-shaped codec drops insertion order through
+     * the NBT round-trip even though the JSON round-trip would preserve it. A list shape is
+     * ordered on every {@code DynamicOps} including {@code NbtOps}, so this round-trips through
+     * the save format without losing the order semantics this component exists to guarantee.
+     */
+    public static final Codec<ToolModifiers> CODEC = Entry.CODEC.listOf().xmap(ToolModifiers::fromEntries, ToolModifiers::toEntries);
 
     /**
      * Network codec. {@link ByteBufCodecs#map} writes entries in iteration order and reconstructs
@@ -75,5 +88,27 @@ public record ToolModifiers(Map<ResourceLocation, Integer> levels) {
         Map<ResourceLocation, Integer> copy = new LinkedHashMap<>(levels);
         copy.put(id, level);
         return new ToolModifiers(copy);
+    }
+
+    private static ToolModifiers fromEntries(List<Entry> entries) {
+        Map<ResourceLocation, Integer> assembled = new LinkedHashMap<>();
+        for (Entry entry : entries) {
+            assembled.put(entry.id(), entry.level());
+        }
+        return new ToolModifiers(assembled);
+    }
+
+    private static List<Entry> toEntries(ToolModifiers modifiers) {
+        return modifiers.levels().entrySet().stream().map(e -> new Entry(e.getKey(), e.getValue())).collect(Collectors.toUnmodifiableList());
+    }
+
+    /**
+     * Wire shape for a single modifier entry inside {@link #CODEC}. Encoded as a JSON/NBT
+     * object {@code {"id": "<resource-location>", "level": N}}; the surrounding list ordering
+     * is the property we depend on for stable per-entry placement.
+     */
+    private record Entry(ResourceLocation id, int level) {
+        static final Codec<Entry> CODEC = RecordCodecBuilder
+                .create(instance -> instance.group(ResourceLocation.CODEC.fieldOf("id").forGetter(Entry::id), Codec.INT.fieldOf("level").forGetter(Entry::level)).apply(instance, Entry::new));
     }
 }
