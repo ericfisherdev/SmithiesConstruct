@@ -75,6 +75,21 @@ class ConfigTest {
                 () -> assertFalse(gate.isEnabled("unknown", false), "Empty resolver → fall back to declared-false"));
     }
 
+    @Test
+    void testablePulseGateRejectsNullResolver() {
+        // Fail fast at factory time rather than on the first isEnabled() call with a less-clear NPE.
+        assertThrows(NullPointerException.class, () -> Config.pulseGate(null));
+    }
+
+    @Test
+    void testablePulseGateRejectsResolverReturningNull() {
+        // A misbehaving resolver that returns raw null instead of Optional.empty() should fail
+        // loudly at isEnabled() time with a message that names the offending id.
+        PulseGate gate = Config.pulseGate(id -> null);
+        NullPointerException npe = assertThrows(NullPointerException.class, () -> gate.isEnabled("tools", true));
+        assertTrue(npe.getMessage() != null && npe.getMessage().contains("tools"), "Error message should name the pulse id whose resolver returned null");
+    }
+
     private static boolean defaultOf(String pulseId) {
         ModConfigSpec.BooleanValue value = Config.PULSE_FLAGS.get(pulseId);
         assertNotNull(value, "Pulse '" + pulseId + "' should be registered in the spec");
