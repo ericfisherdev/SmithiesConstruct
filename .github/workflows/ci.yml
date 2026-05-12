@@ -75,27 +75,14 @@ jobs:
       - name: Run PMD
         run: ./gradlew pmdMain pmdTest
 
-      - name: Install reviewdog
-        uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
-        with:
-          reviewdog_version: v0.20.2
-
-      - name: Report new PMD findings on PR diff
+      - name: Fail on new PMD findings on PR diff
         if: github.event_name == 'pull_request'
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          for report in build/reports/pmd/main.xml build/reports/pmd/test.xml; do
-            [ -s "$report" ] || continue
-            python3 scripts/ci/pmd_to_checkstyle.py "$report" \
-              | reviewdog \
-                  -f=checkstyle \
-                  -name="pmd" \
-                  -reporter=github-pr-check \
-                  -filter-mode=added \
-                  -fail-on-error=true
-          done
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          git diff "origin/${{ github.base_ref }}...HEAD" -U0 \
+            | python3 scripts/lint/pmd_diff_check.py \
+                build/reports/pmd/main.xml build/reports/pmd/test.xml
 
   label:
     name: Auto-label PR
