@@ -28,6 +28,29 @@ import io.netty.buffer.ByteBuf;
  */
 public record ToolStats(int maxDurability, float attackDamage, float attackSpeed, float miningSpeed, int harvestLevel, int freeModifiers, float drawSpeed, float bowRange, float projectileBonus) {
 
+    /**
+     * Compact constructor — guards against non-finite floats and negative counts. Every creation
+     * path (direct {@code new}, decoded from {@link #CODEC}, decoded from {@link #STREAM_CODEC})
+     * hits this validation, so a malformed save file or a hostile network payload cannot inject
+     * a {@code NaN} damage value that would poison every arithmetic / comparison downstream.
+     *
+     * <p>The float fields all model magnitudes — damage, speed, range, etc. — where NaN and
+     * infinities have no physical meaning and would corrupt cached stat math. The two int count
+     * fields ({@code maxDurability}, {@code freeModifiers}) similarly cannot meaningfully be
+     * negative; {@code harvestLevel} is left unconstrained because it doubles as a modded
+     * "mining tier" identifier that some addons negate as a sentinel.
+     */
+    public ToolStats {
+        if (!Float.isFinite(attackDamage) || !Float.isFinite(attackSpeed) || !Float.isFinite(miningSpeed) || !Float.isFinite(drawSpeed) || !Float.isFinite(bowRange)
+                || !Float.isFinite(projectileBonus)) {
+            throw new IllegalArgumentException("ToolStats float fields must be finite; got attackDamage=" + attackDamage + ", attackSpeed=" + attackSpeed + ", miningSpeed=" + miningSpeed
+                    + ", drawSpeed=" + drawSpeed + ", bowRange=" + bowRange + ", projectileBonus=" + projectileBonus);
+        }
+        if (maxDurability < 0 || freeModifiers < 0) {
+            throw new IllegalArgumentException("ToolStats count fields must be non-negative; got maxDurability=" + maxDurability + ", freeModifiers=" + freeModifiers);
+        }
+    }
+
     /** Persistence codec. Used by {@code DataComponentType.Builder#persistent}. */
     public static final Codec<ToolStats> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.INT.fieldOf("max_durability").forGetter(ToolStats::maxDurability),
             Codec.FLOAT.fieldOf("attack_damage").forGetter(ToolStats::attackDamage), Codec.FLOAT.fieldOf("attack_speed").forGetter(ToolStats::attackSpeed),
