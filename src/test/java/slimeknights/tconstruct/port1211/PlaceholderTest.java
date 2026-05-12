@@ -1,8 +1,8 @@
 package slimeknights.tconstruct.port1211;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Placeholder verifying that JUnit 5 is wired up and src/test/java is on the test source set.
