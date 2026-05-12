@@ -41,6 +41,7 @@ public final class Lazy<T> implements Supplier<T> {
      * supplier.
      */
     @Override
+    @SuppressWarnings("PMD.AvoidSynchronizedStatement")
     public T get() {
         synchronized (lock) {
             if (!resolved) {
@@ -52,6 +53,7 @@ public final class Lazy<T> implements Supplier<T> {
     }
 
     /** Whether {@link #get} has already computed and cached a value. Mostly useful in tests. */
+    @SuppressWarnings("PMD.AvoidSynchronizedStatement")
     public boolean isResolved() {
         synchronized (lock) {
             return resolved;
