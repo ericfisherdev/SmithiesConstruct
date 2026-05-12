@@ -39,7 +39,16 @@ PMD_NS = "{http://pmd.sourceforge.net/report/2.0.0}"
 HUNK_RE = re.compile(
     r"^@@ -\d+(?:,\d+)? \+(?P<start>\d+)(?:,(?P<count>\d+))? @@"
 )
-NEW_FILE_RE = re.compile(r"^\+\+\+ b/(?P<path>.+)$")
+# Accept both default git prefixes (`+++ b/path`) and the `diff.noprefix=true` form
+# (`+++ path`) so the gate behaves identically regardless of the developer's git config.
+NEW_FILE_RE = re.compile(r"^\+\+\+ (?P<path>.+)$")
+
+
+def _strip_diff_prefix(path: str) -> str:
+    """Drop git's a/ or b/ prefix if present so paths match repo-relative form."""
+    if path.startswith(("a/", "b/")):
+        return path[2:]
+    return path
 
 
 def parse_added_lines(diff_text: str) -> dict[str, set[int]]:
@@ -49,8 +58,12 @@ def parse_added_lines(diff_text: str) -> dict[str, set[int]]:
     for line in diff_text.splitlines():
         if line.startswith("+++ "):
             m = NEW_FILE_RE.match(line)
-            current = m.group("path") if m else None
-            if current:
+            raw = m.group("path") if m else None
+            # /dev/null marks a deletion — no new lines to consider.
+            if raw in (None, "/dev/null"):
+                current = None
+            else:
+                current = _strip_diff_prefix(raw)
                 added.setdefault(current, set())
             continue
         if current and line.startswith("@@"):
@@ -91,11 +104,17 @@ def collect_findings(report_paths: list[Path]) -> list[dict]:
 
 
 def relativise(path: str, repo_root: Path) -> str:
-    """Make a PMD-reported absolute path relative to the repo root for diff lookup."""
+    """Make a PMD-reported absolute path relative to the repo root for diff lookup.
+
+    Always returns POSIX-style forward slashes so comparisons against diff paths
+    (which git always emits with forward slashes regardless of OS) match on Windows
+    and WSL hosts as reliably as on Linux/macOS.
+    """
     try:
-        return str(Path(path).resolve().relative_to(repo_root))
+        return Path(path).resolve().relative_to(repo_root).as_posix()
     except ValueError:
-        return path  # outside the repo — leave unchanged (won't match the diff anyway)
+        # Outside the repo — keep the path but still normalise the slash style.
+        return Path(path).as_posix()
 
 
 def emit_github_annotation(f: dict, relative_path: str) -> None:
