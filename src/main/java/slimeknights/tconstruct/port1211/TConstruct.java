@@ -15,6 +15,7 @@ import com.mojang.logging.LogUtils;
 
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 import slimeknights.tconstruct.port1211.common.config.Config;
+import slimeknights.tconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 
 /**
@@ -38,6 +39,13 @@ public final class TConstruct {
         // Attach every DeferredRegister the mod owns to the bus before any pulse runs — pulses
         // pull from these and need them to have already subscribed their registry listeners.
         TinkerRegistries.registerAll(modBus);
+
+        // Touch each data-component holder class so its static initialiser runs and registers
+        // its DataComponentType against TinkerRegistries.DATA_COMPONENTS. Without an explicit
+        // reference the class might never be loaded — DeferredHolder fields are normally
+        // accessed lazily by pulses, but the *register* call inside the static block has to
+        // run before the registry event fires.
+        TinkerDataComponents.init();
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
