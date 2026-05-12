@@ -1,5 +1,7 @@
 package slimeknights.tconstruct.port1211;
 
+import java.util.List;
+
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -16,13 +18,18 @@ import com.mojang.logging.LogUtils;
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 import slimeknights.tconstruct.port1211.common.config.Config;
 import slimeknights.tconstruct.port1211.common.data.TinkerDataComponents;
+import slimeknights.tconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 
 /**
- * Scaffolding entry point for the 1.21.1 port.
- * <p>
- * The legacy 1.12 code under {@code slimeknights.tconstruct.*} is excluded from the
- * source set in build.gradle and will not compile against 1.21.1 mappings. Port packages
+ * Mod entry point. Composes the Phase 1 foundation infrastructure during mod construction:
+ * registers the COMMON {@link Config} spec, attaches every {@link TinkerRegistries}
+ * DeferredRegister, forces the {@link TinkerDataComponents} static initialiser, wires the
+ * datagen hook, and boots the {@link PulseLoader} against the (currently empty) list of pulses
+ * that Phase 2+ will populate.
+ *
+ * <p>The legacy 1.12 code under {@code slimeknights.tconstruct.*} is excluded from the source
+ * set in {@code build.gradle} and will not compile against 1.21.1 mappings. Port packages
  * incrementally and widen the {@code sourceSets.main.java.include} pattern as you go.
  */
 @Mod(TConstruct.MOD_ID)
@@ -51,8 +58,13 @@ public final class TConstruct {
         modBus.addListener(DataGenerators::onGather);
         NeoForge.EVENT_BUS.register(this);
 
-        // TODO(port): replace the legacy Pulse system (TinkerPulseManager) with PulseLoader.boot
-        // once the Phase 1 pulses (shared, world, tools, smeltery, gadgets, debug) are ported.
+        // Boot the pulse loader with an empty pulse list — Phase 1 ships no pulses yet, but
+        // wiring the call now means Phase 2+ tickets that add the first Pulse implementation
+        // only have to append to the list, not change the constructor shape. Gating is bound
+        // to Config.pulseGate() so the COMMON config TOML's [pulses] table actually controls
+        // registration the moment any pulse is added.
+        PulseLoader.boot(modBus, List.of(), Config.pulseGate());
+        LOGGER.info("TConstruct 1.21.1 port: foundation infrastructure wired (0 pulses)");
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
