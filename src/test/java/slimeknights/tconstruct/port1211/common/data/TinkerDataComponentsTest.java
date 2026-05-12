@@ -64,12 +64,18 @@ class TinkerDataComponentsTest {
 
     @Test
     void toolMaterialsRoundTripsThroughStreamCodec() {
+        // Encode empty first, populated second. Decoding in the same order drains the buffer
+        // and proves the zero-length list prefix doesn't poison the populated decode that
+        // follows.
+        ToolMaterials empty = ToolMaterials.empty();
         ToolMaterials mixed = new ToolMaterials(List.of(IRON, LONG_PATH, WOOD));
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         try {
+            ToolMaterials.STREAM_CODEC.encode(buf, empty);
             ToolMaterials.STREAM_CODEC.encode(buf, mixed);
+            assertEquals(empty, ToolMaterials.STREAM_CODEC.decode(buf));
             assertEquals(mixed, ToolMaterials.STREAM_CODEC.decode(buf));
-            assertEquals(0, buf.readableBytes(), "decoder should consume every byte");
+            assertEquals(0, buf.readableBytes(), "decoder should consume every byte across both encoded values");
         }
         finally {
             buf.release();
@@ -92,13 +98,19 @@ class TinkerDataComponentsTest {
 
     @Test
     void toolModifiersRoundTripsThroughStreamCodec() {
+        // Same back-to-back pattern as the ToolMaterials stream test — empty first, populated
+        // second — so the zero-length map prefix is exercised on the wire, not just through
+        // the persistence Codec.
+        ToolModifiers empty = ToolModifiers.empty();
         ToolModifiers populated = ToolModifiers.empty().with(IRON, 1).with(LONG_PATH, Integer.MAX_VALUE);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         try {
+            ToolModifiers.STREAM_CODEC.encode(buf, empty);
             ToolModifiers.STREAM_CODEC.encode(buf, populated);
+            assertEquals(empty, ToolModifiers.STREAM_CODEC.decode(buf));
             ToolModifiers decoded = ToolModifiers.STREAM_CODEC.decode(buf);
             assertEquals(populated, decoded);
-            assertEquals(0, buf.readableBytes(), "decoder should consume every byte");
+            assertEquals(0, buf.readableBytes(), "decoder should consume every byte across both encoded values");
             assertIterableEquals(List.of(IRON, LONG_PATH), decoded.levels().keySet(), "Insertion order must survive the binary round-trip");
         }
         finally {
@@ -160,9 +172,14 @@ class TinkerDataComponentsTest {
 
     @Test
     void toolPersistentDataRoundTripsThroughStreamCodec() {
+        // Mirror the Codec test's nested-CompoundTag fixture so the binary path proves the
+        // same edge case (nested NBT survives the stream round-trip with deep-field intact).
         CompoundTag nested = new CompoundTag();
         nested.putInt("count", Integer.MAX_VALUE);
         nested.putBoolean("flag", true);
+        CompoundTag deep = new CompoundTag();
+        deep.putString("name", "alpha");
+        nested.put("inner", deep);
         ToolPersistentData populated = new ToolPersistentData(Map.of(LONG_PATH, nested));
 
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -170,6 +187,7 @@ class TinkerDataComponentsTest {
             ToolPersistentData.STREAM_CODEC.encode(buf, populated);
             ToolPersistentData decoded = ToolPersistentData.STREAM_CODEC.decode(buf);
             assertEquals(populated, decoded);
+            assertEquals("alpha", decoded.data().get(LONG_PATH).getCompound("inner").getString("name"), "Nested CompoundTag string field must survive the binary round-trip");
             assertEquals(0, buf.readableBytes(), "decoder should consume every byte");
         }
         finally {
