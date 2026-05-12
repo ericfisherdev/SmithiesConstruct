@@ -75,9 +75,27 @@ sourceSets.main.java {
 
 repositories {
     mavenLocal()
-    // Canonical home for JUnit, Mockito, PMD, defusedxml... — declared first so Gradle
-    // never falls back to the NeoForged Maven mirror for non-Forge artifacts (the
-    // mirror has flaked with 502s mid-PR before).
+    // Bind tooling/test groups exclusively to Maven Central. The moddev plugin injects
+    // maven.neoforged.net at higher priority than this repositories block, and when that
+    // mirror has a hiccup (it 502'd on pmd-java twice now), Gradle was falling through to
+    // it for non-Forge artifacts. exclusiveContent forces every dependency in these groups
+    // to resolve through Maven Central or fail loudly — no silent fall-through to a
+    // mirror that doesn't authoritatively host the artifact.
+    exclusiveContent {
+        forRepository {
+            mavenCentral()
+        }
+        filter {
+            includeGroup 'net.sourceforge.pmd'
+            includeGroupByRegex 'org\\.junit.*'
+            includeGroup 'org.mockito'
+            includeGroup 'org.opentest4j'
+            includeGroup 'org.apiguardian'
+        }
+    }
+    // Maven Central also for anything else that may land here (e.g. transitive deps not
+    // listed above); declared after the exclusiveContent so the targeted groups go through
+    // that route first.
     mavenCentral()
     maven { url = 'https://maven.blamejared.com' } // JEI, Patchouli, etc.
     maven { url = 'https://maven.tterrag.com/' }
