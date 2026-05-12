@@ -3,6 +3,7 @@ package slimeknights.tconstruct.port1211.common.data;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -81,6 +82,24 @@ class ToolStatsTest {
         ToolStats first = ToolStats.zero();
         ToolStats second = ToolStats.zero();
         assertSame(first, second, "zero() must reuse the canonical singleton instance");
+    }
+
+    @Test
+    void rejectsNonFiniteFloatStats() {
+        // Each float field gets its own assertion so that a future refactor that accidentally
+        // drops one of them from the validator surfaces here.
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, Float.NaN, 1f, 1f, 1, 0, 1f, 1f, 1f), "NaN attackDamage must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, 1f, Float.POSITIVE_INFINITY, 1f, 1, 0, 1f, 1f, 1f), "+Infinity attackSpeed must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, 1f, 1f, Float.NEGATIVE_INFINITY, 1, 0, 1f, 1f, 1f), "-Infinity miningSpeed must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, 1f, 1f, 1f, 1, 0, Float.NaN, 1f, 1f), "NaN drawSpeed must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, 1f, 1f, 1f, 1, 0, 1f, Float.POSITIVE_INFINITY, 1f), "+Infinity bowRange must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, 1f, 1f, 1f, 1, 0, 1f, 1f, Float.NaN), "NaN projectileBonus must be rejected");
+    }
+
+    @Test
+    void rejectsNegativeCountFields() {
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(-1, 1f, 1f, 1f, 1, 0, 1f, 1f, 1f), "Negative maxDurability must be rejected");
+        assertThrows(IllegalArgumentException.class, () -> new ToolStats(100, 1f, 1f, 1f, 1, -1, 1f, 1f, 1f), "Negative freeModifiers must be rejected");
     }
 
     @Test
