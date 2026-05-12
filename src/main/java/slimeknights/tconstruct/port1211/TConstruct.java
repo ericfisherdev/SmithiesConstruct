@@ -5,9 +5,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
+import slimeknights.tconstruct.port1211.data.DataGenerators;
 
 /**
  * Scaffolding entry point for the 1.21.1 port.
@@ -23,6 +25,7 @@ public final class TConstruct {
 
     public TConstruct(IEventBus modBus) {
         modBus.addListener(this::onCommonSetup);
+        modBus.addListener(DataGenerators::onGather);
         NeoForge.EVENT_BUS.register(this);
 
         // TODO(port): wire DeferredRegisters here.
