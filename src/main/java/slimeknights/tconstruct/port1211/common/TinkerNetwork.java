@@ -55,14 +55,11 @@ public final class TinkerNetwork {
      */
     static void configure(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(VERSION);
-        LOGGER.info("TConstruct: network payload registrar version {} created", VERSION);
-        // No payloads registered yet. Phase 2+ pulses will append registrar.playToClient/server
-        // calls here as their network packets come online.
-        //
-        // Reference the local so static analysis doesn't flag it as unused; the assignment
-        // itself is the AC ("registrar version being created on boot").
         if (registrar == null) {
             throw new IllegalStateException("PayloadRegistrar from RegisterPayloadHandlersEvent was null — NeoForge contract violated");
         }
+        LOGGER.info("TConstruct: network payload registrar version {} created", VERSION);
+        // No payloads registered yet. Phase 2+ pulses will append registrar.playToClient/server
+        // calls here as their network packets come online.
     }
 }
