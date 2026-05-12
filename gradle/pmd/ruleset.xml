@@ -19,6 +19,9 @@
         <!-- NeoForge event handlers must keep their event parameter even if unused. -->
         <exclude name="UnusedFormalParameter"/>
         <exclude name="UnusedAssignment"/>
+        <!-- Tests routinely verify multiple related facts per method (e.g. Mockito verify() pairs);
+             enforcing 1-assert-per-test fragments cohesive scenarios and lowers signal. -->
+        <exclude name="UnitTestContainsTooManyAsserts"/>
     </rule>
 
     <rule ref="category/java/errorprone.xml">
