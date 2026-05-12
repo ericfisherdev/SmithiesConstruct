@@ -15,9 +15,9 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  * component lives in one file with consistent persistence/network-sync wiring — the legacy 1.12
  * port had a per-component capability boilerplate that's now collapsed into this hub.
  *
- * <p>Phase 1 ships {@link #TOOL_MATERIALS} (SMTCON-18) and {@link #TOOL_MODIFIERS}
- * (SMTCON-19); SMTCON-20 through SMTCON-21 will append the remaining three components
- * ({@code ToolStats}, {@code ToolPersistentData}, {@code ToolBroken}) alongside them.
+ * <p>Phase 1 ships {@link #TOOL_MATERIALS} (SMTCON-18), {@link #TOOL_MODIFIERS}
+ * (SMTCON-19), and {@link #TOOL_STATS} (SMTCON-20); SMTCON-21 will append the remaining two
+ * components ({@code ToolPersistentData}, {@code ToolBroken}) alongside them.
  */
 public final class TinkerDataComponents {
 
@@ -36,6 +36,15 @@ public final class TinkerDataComponents {
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolModifiers>> TOOL_MODIFIERS = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolmodifiers",
             builder -> builder.persistent(ToolModifiers.CODEC).networkSynchronized(ToolModifiers.STREAM_CODEC));
+
+    /**
+     * Cached, fully-resolved stat snapshot — durability, attack, mining, harvest level, free
+     * modifier slots, ranged-tool numbers. Computed from materials + modifiers and pinned on the
+     * ItemStack so per-tick consumers (tooltips, attribute resolution, damage events) don't
+     * recompute.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolStats>> TOOL_STATS = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolstats",
+            builder -> builder.persistent(ToolStats.CODEC).networkSynchronized(ToolStats.STREAM_CODEC));
 
     private TinkerDataComponents() {
     }
