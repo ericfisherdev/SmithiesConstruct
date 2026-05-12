@@ -162,7 +162,9 @@ tasks.register('installGitHooks') {
         if (!hookFile.exists()) {
             throw new GradleException("Missing hook source: ${hookFile}")
         }
-        hookFile.setExecutable(true, false)
+        if (!hookFile.setExecutable(true, false)) {
+            throw new GradleException("Failed to mark hook executable: ${hookFile}")
+        }
 
         def result = providers.exec {
             commandLine 'git', 'config', 'core.hooksPath', hookDir.path
