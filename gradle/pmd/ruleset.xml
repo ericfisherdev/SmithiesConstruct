@@ -71,12 +71,11 @@
     <rule ref="category/java/multithreading.xml">
         <exclude name="UseConcurrentHashMap"/>
         <exclude name="DoNotUseThreads"/>
-        <!-- PMD's only acceptable concurrency form is java.util.concurrent.locks.Lock; it
-             flags both `synchronized` methods and `synchronized` blocks. For small idiomatic
-             utilities (Lazy's lazy-init guard, Pulse-like one-shot subscribers) `synchronized`
-             is the right tool and a ReentrantLock would add noise without value. -->
-        <exclude name="AvoidSynchronizedAtMethodLevel"/>
-        <exclude name="AvoidSynchronizedStatement"/>
+        <!-- AvoidSynchronizedAtMethodLevel / AvoidSynchronizedStatement intentionally NOT
+             excluded here so future synchronized usage gets caught and reviewed. The one
+             current exception (Lazy.java's lazy-init guard, where synchronized is the right
+             tool and a ReentrantLock would just add noise) is annotated with a localised
+             @SuppressWarnings on the specific block. -->
     </rule>
 
     <rule ref="category/java/performance.xml">
