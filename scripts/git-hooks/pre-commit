@@ -32,6 +32,12 @@ mapfile -t STAGED_JAVA < <(
 )
 
 if [[ ${#STAGED_JAVA[@]} -gt 0 ]]; then
+    info "Running Spotless on ${#STAGED_JAVA[@]} staged Java file(s)…"
+    if ! ./gradlew spotlessCheck --quiet --console=plain; then
+        fail "Spotless found formatting drift. Run './gradlew spotlessApply' to fix, then re-stage and commit."
+        exit 1
+    fi
+
     info "Running PMD on ${#STAGED_JAVA[@]} staged Java file(s)…"
     if ! ./gradlew pmdMain pmdTest --quiet --console=plain; then
         fail "PMD task failed to run. Fix the Gradle error before retrying."
@@ -43,10 +49,9 @@ if [[ ${#STAGED_JAVA[@]} -gt 0 ]]; then
         FOUND=0
         for report in build/reports/pmd/main.xml build/reports/pmd/test.xml; do
             [[ -s "$report" ]] || continue
-            if ! git diff --cached -U0 \
-                | reviewdog -f=pmd -name=pmd -reporter=local -filter-mode=added \
-                    -fail-on-error=true -diff="git diff --cached -U0" \
-                    < "$report"; then
+            if ! python3 scripts/ci/pmd_to_checkstyle.py "$report" \
+                | reviewdog -f=checkstyle -name=pmd -reporter=local -filter-mode=added \
+                    -fail-on-error=true -diff="git diff --cached -U0"; then
                 FOUND=1
             fi
         done
@@ -60,7 +65,7 @@ if [[ ${#STAGED_JAVA[@]} -gt 0 ]]; then
         warn "CI will still run the diff-aware lint gate against your PR."
     fi
 else
-    info "No staged Java files under port1211/** or src/test/** — skipping PMD."
+    info "No staged Java files under port1211/** or src/test/** — skipping Spotless + PMD."
 fi
 
 info "Running JUnit suite (./gradlew test)…"
