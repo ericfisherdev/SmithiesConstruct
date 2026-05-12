@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -59,7 +60,14 @@ public final class Config {
 
         Map<String, ModConfigSpec.BooleanValue> flags = new LinkedHashMap<>();
         for (PulseDeclaration decl : PULSE_DECLARATIONS) {
-            flags.put(decl.id(), builder.comment(decl.description()).define(decl.id(), decl.defaultEnabled()));
+            // putIfAbsent + null check fails class loading on a duplicate id rather than silently
+            // overwriting an earlier declaration. ModConfigSpec.Builder#define already records
+            // each call against the same path, so without this guard a typo would also produce
+            // a malformed spec at runtime.
+            ModConfigSpec.BooleanValue value = builder.comment(decl.description()).define(decl.id(), decl.defaultEnabled());
+            if (flags.putIfAbsent(decl.id(), value) != null) {
+                throw new IllegalStateException("Duplicate pulse id in Config declarations: " + decl.id());
+            }
         }
 
         builder.pop();
@@ -95,7 +103,14 @@ public final class Config {
      * {@link net.neoforged.fml.config.ModConfig}, which would require a {@code ModContainer}.
      */
     public static PulseGate pulseGate(Function<String, Optional<Boolean>> resolver) {
-        return (id, defaultEnabled) -> resolver.apply(id).orElse(defaultEnabled);
+        Objects.requireNonNull(resolver, "resolver");
+        return (id, defaultEnabled) -> {
+            Optional<Boolean> resolved = resolver.apply(id);
+            if (resolved == null) {
+                throw new NullPointerException("resolver returned null for pulse id '" + id + "'; return Optional.empty() to fall back to defaultEnabled");
+            }
+            return resolved.orElse(defaultEnabled);
+        };
     }
 
     private static Optional<Boolean> resolveFlag(String id) {
