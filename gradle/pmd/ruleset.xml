@@ -32,6 +32,20 @@
              for named subsystem classes. Marking them @FunctionalInterface would mislead
              readers. Genuine SAM types still tag themselves explicitly (e.g. PulseGate). -->
         <exclude name="ImplicitFunctionalInterface"/>
+        <!-- Re-included below with allowedTypes so Minecraft's NBT builder classes
+             (ListTag, CompoundTag) can be declared with their concrete type — their add()/put()
+             builder methods aren't on the Tag interface. -->
+        <exclude name="LooseCoupling"/>
+    </rule>
+
+    <!-- LooseCoupling generally good practice, but Minecraft's NBT API requires the concrete
+         ListTag / CompoundTag types as local variables: builder methods like .add(Tag) and
+         .put(String, Tag) live on the subclasses, not the Tag interface. -->
+    <rule ref="category/java/bestpractices.xml/LooseCoupling">
+        <properties>
+            <property name="allowedTypes"
+                      value="net.minecraft.nbt.ListTag,net.minecraft.nbt.CompoundTag"/>
+        </properties>
     </rule>
 
     <rule ref="category/java/errorprone.xml">
