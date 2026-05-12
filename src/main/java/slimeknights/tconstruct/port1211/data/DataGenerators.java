@@ -7,7 +7,8 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
  * here as later phases come online; the empty body proves wiring without producing files.
  */
 public final class DataGenerators {
-    private DataGenerators() {}
+    private DataGenerators() {
+    }
 
     public static void onGather(GatherDataEvent event) {
         // Providers added per phase via event.createProvider / addProvider / createDatapackRegistryObjects.
