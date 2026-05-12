@@ -86,9 +86,11 @@ jobs:
             if ./gradlew pmdMain pmdTest; then
               exit 0
             fi
-            echo "::warning::PMD attempt $attempt failed (likely transient repo flake); retrying in ${delay}s"
-            sleep "$delay"
-            delay=$((delay * 3))
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::PMD attempt $attempt failed (likely transient repo flake); retrying in ${delay}s"
+              sleep "$delay"
+              delay=$((delay * 3))
+            fi
           done
           echo "::error::PMD failed after 3 attempts"
           exit 1
