@@ -73,7 +73,25 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Run PMD
-        run: ./gradlew pmdMain pmdTest
+        # Retry with exponential backoff. The maven.neoforged.net mirror has flaked with 502s
+        # on tooling-artifact resolution multiple times; exclusiveContent in build.gradle binds
+        # the obvious groups (PMD/JUnit/Mockito) to Maven Central, but PMD's deep transitive
+        # graph occasionally surfaces another group that slips through. A short retry loop
+        # absorbs the transient failure without our exclusion list having to enumerate every
+        # third-party transitive.
+        run: |
+          set -uo pipefail
+          delay=5
+          for attempt in 1 2 3; do
+            if ./gradlew pmdMain pmdTest; then
+              exit 0
+            fi
+            echo "::warning::PMD attempt $attempt failed (likely transient repo flake); retrying in ${delay}s"
+            sleep "$delay"
+            delay=$((delay * 3))
+          done
+          echo "::error::PMD failed after 3 attempts"
+          exit 1
 
       - name: Install Python lint tool dependencies
         if: github.event_name == 'pull_request'
