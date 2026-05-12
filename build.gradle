@@ -67,6 +67,13 @@ repositories {
     maven { url = 'https://maven.blamejared.com' } // JEI, Patchouli, etc.
     maven { url = 'https://maven.tterrag.com/' }
     maven { url = 'https://modmaven.dev' }
+    maven {
+        name = 'CurseMaven'
+        url = 'https://www.cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
 }
 
 dependencies {
