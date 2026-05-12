@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [ '1.21.1' ]
+    branches: ['1.21.1']
   push:
-    branches: [ '1.21.1' ]
+    branches: ['1.21.1']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
