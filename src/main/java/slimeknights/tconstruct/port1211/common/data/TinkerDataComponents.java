@@ -15,9 +15,9 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  * component lives in one file with consistent persistence/network-sync wiring — the legacy 1.12
  * port had a per-component capability boilerplate that's now collapsed into this hub.
  *
- * <p>Phase 1 ships {@link #TOOL_MATERIALS} (SMTCON-18), {@link #TOOL_MODIFIERS}
- * (SMTCON-19), and {@link #TOOL_STATS} (SMTCON-20); SMTCON-21 will append the remaining two
- * components ({@code ToolPersistentData}, {@code ToolBroken}) alongside them.
+ * <p>Phase 1 ships all five tool data components here: {@link #TOOL_MATERIALS} (SMTCON-18),
+ * {@link #TOOL_MODIFIERS} (SMTCON-19), {@link #TOOL_STATS} (SMTCON-20), and finally
+ * {@link #TOOL_PERSISTENT_DATA} + {@link #TOOL_BROKEN} (SMTCON-21).
  */
 public final class TinkerDataComponents {
 
@@ -45,6 +45,22 @@ public final class TinkerDataComponents {
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolStats>> TOOL_STATS = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolstats",
             builder -> builder.persistent(ToolStats.CODEC).networkSynchronized(ToolStats.STREAM_CODEC));
+
+    /**
+     * Per-modifier persistent state — each registered modifier owns a {@code CompoundTag} slot
+     * keyed by its id. Lets modifiers carry running state (charges, absorbed-damage buffers,
+     * tick counters) on the ItemStack without spawning a {@code DataComponentType} per modifier.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolPersistentData>> TOOL_PERSISTENT_DATA = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolpersistentdata",
+            builder -> builder.persistent(ToolPersistentData.CODEC).networkSynchronized(ToolPersistentData.STREAM_CODEC));
+
+    /**
+     * Single-boolean broken-state flag. Held separately from {@link #TOOL_STATS} / {@link
+     * #TOOL_MATERIALS} so the renderer / tooltip layer can flip on the broken bit (every
+     * durability-zero hit) without re-serialising the heavier stat/material components.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolBroken>> TOOL_BROKEN = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolbroken",
+            builder -> builder.persistent(ToolBroken.CODEC).networkSynchronized(ToolBroken.STREAM_CODEC));
 
     private TinkerDataComponents() {
     }
