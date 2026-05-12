@@ -1,0 +1,11 @@
+# Runtime Python dependencies for build/CI tooling under scripts/.
+#
+# These are not required at compile/test time for the mod itself — only for the
+# Python helpers in scripts/lint (and any future scripts/ci helpers).
+
+# Hardened XML parser used by scripts/lint/pmd_diff_check.py. Guards the diff
+# filter's PMD report parsing against XXE and entity-expansion (billion laughs)
+# attacks. The script falls back to the Python stdlib parser when this is
+# absent (so the local pre-commit hook still works on a fresh clone), but CI
+# installs it to keep the remote gate hardened.
+defusedxml>=0.7.1
