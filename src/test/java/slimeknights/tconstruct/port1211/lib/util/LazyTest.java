@@ -7,9 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,7 +91,7 @@ class LazyTest {
     }
 
     @Test
-    void concurrentGettersOnlyInvokeTheSupplierOnce() throws InterruptedException {
+    void concurrentGettersOnlyInvokeTheSupplierOnce() throws Exception {
         int threadCount = 32;
         AtomicInteger calls = new AtomicInteger();
         CountDownLatch start = new CountDownLatch(1);
@@ -109,22 +112,26 @@ class LazyTest {
         // waits for the pool to drain. By that point the done latch has already counted down,
         // so close() returns immediately.
         try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+            List<Future<String>> futures = new ArrayList<>(threadCount);
             for (int i = 0; i < threadCount; i++) {
-                executor.submit(() -> {
+                futures.add(executor.submit(() -> {
                     try {
                         start.await();
-                        assertEquals("memoised", lazy.get());
-                    }
-                    catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+                        return lazy.get();
                     }
                     finally {
                         done.countDown();
                     }
-                });
+                }));
             }
             start.countDown();
             assertTrue(done.await(10, TimeUnit.SECONDS), "All threads must complete within 10s");
+            // Surface any per-worker AssertionError or exception. Without collecting futures
+            // the assertEquals inside the task would be swallowed by submit()'s return value
+            // and the test would falsely pass.
+            for (Future<String> future : futures) {
+                assertEquals("memoised", future.get(1, TimeUnit.SECONDS), "Every worker must observe the memoised value");
+            }
         }
         assertEquals(1, calls.get(), "Even with " + threadCount + " concurrent get()s, supplier must run exactly once");
     }
