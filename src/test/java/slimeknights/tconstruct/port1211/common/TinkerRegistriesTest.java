@@ -54,10 +54,18 @@ class TinkerRegistriesTest {
     void registerAllRejectsDuplicateBootstrap() {
         // DeferredRegister enforces "one event bus, ever" at the JVM level — once attached, a
         // second register() call throws IllegalStateException to prevent double-fired registry
-        // events. The moddev unitTest bootstrap already runs the @Mod constructor (so
-        // TinkerRegistries.registerAll has already been called against the production mod
-        // bus); a second invocation here must surface that single-attachment contract as a
-        // loud failure rather than silently corrupting state.
+        // events. Seed the first-call state ourselves rather than relying on whatever harness
+        // is running: in the moddev unitTest bootstrap the @Mod constructor has already
+        // attached registries to the production bus (so this first attempt throws and we
+        // ignore it); in any other test JVM the registries are still unattached (so this first
+        // attempt succeeds). Either way the *second* call below must throw, which is the
+        // contract being pinned.
+        try {
+            TinkerRegistries.registerAll(mock(IEventBus.class));
+        }
+        catch (IllegalStateException alreadyAttached) {
+            // Already attached by the bootstrap — fine, the contract is already established.
+        }
         IEventBus bus = mock(IEventBus.class);
         IllegalStateException error = assertThrows(IllegalStateException.class, () -> TinkerRegistries.registerAll(bus));
         assertNotNull(error.getMessage(), "DeferredRegister should explain why the second call failed");
