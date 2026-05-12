@@ -75,6 +75,10 @@ jobs:
       - name: Run PMD
         run: ./gradlew pmdMain pmdTest
 
+      - name: Install Python lint tool dependencies
+        if: github.event_name == 'pull_request'
+        run: python3 -m pip install --user -r requirements.txt
+
       - name: Fail on new PMD findings on PR diff
         if: github.event_name == 'pull_request'
         run: |

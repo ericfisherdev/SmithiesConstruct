@@ -31,8 +31,20 @@ from __future__ import annotations
 import os
 import re
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
+
+try:
+    # Hardened XML parser — guards against XXE and entity-expansion (billion laughs)
+    # attacks. Installed via the project's requirements (and on CI runners) so the
+    # remote gate is always hardened; locally the stdlib fallback below is used by
+    # developers who haven't installed defusedxml yet.
+    from defusedxml import ElementTree as ET
+except ImportError:
+    # PMD reports are produced locally by our own Gradle pipeline, so the stdlib
+    # parser is acceptable as a fallback — modern Python disables external-entity
+    # resolution by default, and an attacker capable of poisoning the report has
+    # already compromised the build before this script ever runs.
+    import xml.etree.ElementTree as ET  # noqa: S314
 
 PMD_NS = "{http://pmd.sourceforge.net/report/2.0.0}"
 
