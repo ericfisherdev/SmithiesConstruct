@@ -1,13 +1,16 @@
 package slimeknights.tconstruct.port1211.shared;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -17,17 +20,26 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 
 /**
- * Registers one storage block per Phase-2 metal that has a legacy precedent. The 1.12 source
- * shipped storage blocks via a single {@code BlockMetal} enum with 6 variants (cobalt, ardite,
- * manyullyn, knightslime, pigiron, alubrass); Phase 2 widens this to also cover the
- * "real-world" metals (silver, copper, tin, zinc, brass, electrum, steel) so the casting
- * pipeline in Phase 5 has full coverage. Lead and nickel are deliberately excluded — they
- * existed only as ingots/nuggets in legacy and adding storage blocks for them would invent
- * content rather than port it.
+ * Registers the blocks the shared pulse owns. Two families:
  *
- * <p>Each registration goes through {@link #metalBlock} which derives every per-metal
+ * <ul>
+ *   <li><strong>Metal storage blocks</strong> — one block per Phase-2 metal that has a legacy
+ *       precedent. The 1.12 source shipped storage blocks via a single {@code BlockMetal} enum
+ *       with 6 variants (cobalt, ardite, manyullyn, knightslime, pigiron, alubrass); Phase 2
+ *       widens this to also cover the "real-world" metals (silver, copper, tin, zinc, brass,
+ *       electrum, steel) so the casting pipeline in Phase 5 has full coverage. Lead and nickel
+ *       are deliberately excluded — they existed only as ingots/nuggets in legacy and adding
+ *       storage blocks for them would invent content rather than port it.</li>
+ *   <li><strong>Decorative blocks</strong> — three miscellaneous blocks from the legacy
+ *       shared package: {@link #GLOW} (full-bright translucent), {@link #FIREWOOD} (compressed
+ *       wood, dim glow), {@link #LAVAWOOD} (lava-soaked wood, slightly tougher than firewood).
+ *       Cutout render layer and per-direction GLOW orientation arrive in later rendering tasks.</li>
+ * </ul>
+ *
+ * <p>Each metal registration goes through {@link #metalBlock} which derives every per-metal
  * difference (id, map color, mining tier) from the {@link Metal} driver row, keeping the
- * boilerplate the legacy code paid 14 times down to a single call site.
+ * boilerplate the legacy code paid 14 times down to a single call site. Decorative blocks go
+ * through {@link #decorativeBlock} which takes an explicit name + {@link BlockBehaviour.Properties}.
  *
  * <p>{@link #init()} forces this class to load during mod construction so the
  * field-initialiser chain runs and the {@link TinkerRegistries#BLOCKS}/{@code ITEMS} entries
@@ -50,6 +62,7 @@ public final class SharedBlocks {
 
     private static final Map<String, DeferredBlock<Block>> BUILDER = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<?>> ITEM_BUILDER = new LinkedHashMap<>();
+    private static final List<DeferredItem<?>> DECOR_ITEM_BUILDER = new ArrayList<>();
 
     /** Public static field per metal, satisfying the AC's downstream-reference requirement. */
     public static final DeferredBlock<Block> COBALT = metalBlock("cobalt");
@@ -65,6 +78,30 @@ public final class SharedBlocks {
     public static final DeferredBlock<Block> ALUBRASS = metalBlock("alubrass");
     public static final DeferredBlock<Block> ELECTRUM = metalBlock("electrum");
     public static final DeferredBlock<Block> STEEL = metalBlock("steel");
+
+    /**
+     * Full-bright translucent block. Light level 15 matches legacy {@code BlockGlow}'s
+     * {@code setLightLevel(0.9375f)} (which rounded to 15 in vanilla 1.12). {@code noOcclusion}
+     * lets neighbouring blocks render their adjacent faces; the cutout render layer + per-face
+     * orientation (a {@code FACING} property in legacy) arrive in a later rendering task per AC.
+     */
+    public static final DeferredBlock<Block> GLOW = decorativeBlock("glow",
+            BlockBehaviour.Properties.of().mapColor(MapColor.SNOW).sound(SoundType.WOOL).lightLevel(state -> 15).strength(0.0F).noOcclusion());
+
+    /**
+     * Compressed wood. Hardness/resistance match legacy {@code BlockFirewood} (2.0F / 7.0F);
+     * dim self-glow (light level 8) matches legacy {@code setLightLevel(0.5f)}. Axe affinity
+     * is set via the {@code mineable/axe} tag in a later tag-provider task per AC.
+     */
+    public static final DeferredBlock<Block> FIREWOOD = decorativeBlock("firewood",
+            BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD).lightLevel(state -> 8).strength(2.0F, 7.0F));
+
+    /**
+     * Lava-soaked wood — same shape as firewood with a slightly tougher strength per AC. The
+     * 0.5F hardness bump distinguishes the two variants without inventing a tier difference.
+     */
+    public static final DeferredBlock<Block> LAVAWOOD = decorativeBlock("lavawood",
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).sound(SoundType.WOOD).lightLevel(state -> 8).strength(2.5F, 7.0F));
 
     static {
         // Freeze the registration map after every metalBlock(...) call above has populated it.
@@ -104,6 +141,7 @@ public final class SharedBlocks {
             return;
         }
         ITEM_BUILDER.values().forEach(item -> event.accept(item.get()));
+        DECOR_ITEM_BUILDER.forEach(item -> event.accept(item.get()));
     }
 
     private static DeferredBlock<Block> metalBlock(String id) {
@@ -115,6 +153,12 @@ public final class SharedBlocks {
         DeferredBlock<Block> block = TinkerRegistries.BLOCKS.registerSimpleBlock("block_" + metal.id(), properties);
         ITEM_BUILDER.put(metal.id(), TinkerRegistries.ITEMS.registerSimpleBlockItem(block));
         BUILDER.put(metal.id(), block);
+        return block;
+    }
+
+    private static DeferredBlock<Block> decorativeBlock(String name, BlockBehaviour.Properties properties) {
+        DeferredBlock<Block> block = TinkerRegistries.BLOCKS.registerSimpleBlock(name, properties);
+        DECOR_ITEM_BUILDER.add(TinkerRegistries.ITEMS.registerSimpleBlockItem(block));
         return block;
     }
 
