@@ -3,7 +3,7 @@ package slimeknights.tconstruct.port1211.data;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,9 +66,9 @@ class TinkerRecipeProviderTest {
         // The two skipped-from-blocks metals must not have block↔ingot recipes (their block
         // doesn't exist), but they DO get ingot↔nugget recipes.
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        assertAll(() -> assertTrue(cl.getResource(RECIPE_ROOT + "block_lead.json") == null, "lead has no block — must not emit block_<metal> recipe"),
-                () -> assertTrue(cl.getResource(RECIPE_ROOT + "ingot_lead_from_block.json") == null, "lead has no block — must not emit ingot_<metal>_from_block recipe"),
-                () -> assertTrue(cl.getResource(RECIPE_ROOT + "block_nickel.json") == null), () -> assertTrue(cl.getResource(RECIPE_ROOT + "ingot_nickel_from_block.json") == null),
+        assertAll(() -> assertNull(cl.getResource(RECIPE_ROOT + "block_lead.json"), "lead has no block — must not emit block_<metal> recipe"),
+                () -> assertNull(cl.getResource(RECIPE_ROOT + "ingot_lead_from_block.json"), "lead has no block — must not emit ingot_<metal>_from_block recipe"),
+                () -> assertNull(cl.getResource(RECIPE_ROOT + "block_nickel.json")), () -> assertNull(cl.getResource(RECIPE_ROOT + "ingot_nickel_from_block.json")),
                 () -> assertNotNull(cl.getResource(RECIPE_ROOT + "ingot_lead_from_nuggets.json")), () -> assertNotNull(cl.getResource(RECIPE_ROOT + "nugget_lead.json")),
                 () -> assertNotNull(cl.getResource(RECIPE_ROOT + "ingot_nickel_from_nuggets.json")), () -> assertNotNull(cl.getResource(RECIPE_ROOT + "nugget_nickel.json")));
     }
