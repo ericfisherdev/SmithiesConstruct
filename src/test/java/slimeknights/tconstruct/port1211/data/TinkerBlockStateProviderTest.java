@@ -29,21 +29,28 @@ class TinkerBlockStateProviderTest {
     private static final String MODEL_ROOT = "assets/tconstruct/models/block/";
 
     @Test
-    void metalBlockstateHasSingleVariantPointingAtModel() {
-        // The cube_all blockstate is a one-variant placeholder: empty selector "" mapped to
-        // a single model. A future refactor that adds a state property (e.g. for a "facing"
-        // variant on glow) would have to update this assertion deliberately.
-        JsonObject blockstate = load(BLOCKSTATE_ROOT + "block_cobalt.json");
-        JsonObject variants = blockstate.getAsJsonObject("variants");
-        assertAll(() -> assertEquals(1, variants.entrySet().size(), "cube_all blockstate has exactly one variant"),
-                () -> assertEquals("tconstruct:block/block_cobalt", variants.getAsJsonObject("").get("model").getAsString()));
+    void everyMetalBlockstateHasASingleVariantPointingAtMatchingModel() {
+        // Drive the structural assertion per-metal so a wrong variants[""] model on any one
+        // metal trips here instead of slipping past the two-anchor previous check. A future
+        // state property (e.g. a "facing" variant on glow) would have to update this loop
+        // deliberately.
+        assertAll(SharedBlocks.METAL_BLOCKS.keySet().stream().map(id -> () -> {
+            String blockPath = "block_" + id;
+            JsonObject blockstate = load(BLOCKSTATE_ROOT + blockPath + ".json");
+            JsonObject variants = blockstate.getAsJsonObject("variants");
+            assertEquals(1, variants.entrySet().size(), blockPath + ": cube_all blockstate has exactly one variant");
+            assertEquals("tconstruct:block/" + blockPath, variants.getAsJsonObject("").get("model").getAsString(), blockPath + ": empty-selector variant model");
+        }));
     }
 
     @Test
-    void metalModelIsCubeAllReferencingTheBlockTexture() {
-        JsonObject model = load(MODEL_ROOT + "block_steel.json");
-        assertAll(() -> assertEquals("minecraft:block/cube_all", model.get("parent").getAsString()),
-                () -> assertEquals("tconstruct:block/block_steel", model.getAsJsonObject("textures").get("all").getAsString(), "cube_all sources every face from the 'all' texture key"));
+    void everyMetalModelIsCubeAllReferencingItsBlockTexture() {
+        assertAll(SharedBlocks.METAL_BLOCKS.keySet().stream().map(id -> () -> {
+            String blockPath = "block_" + id;
+            JsonObject model = load(MODEL_ROOT + blockPath + ".json");
+            assertEquals("minecraft:block/cube_all", model.get("parent").getAsString(), blockPath + ": parent");
+            assertEquals("tconstruct:block/" + blockPath, model.getAsJsonObject("textures").get("all").getAsString(), blockPath + ": all-texture");
+        }));
     }
 
     @Test
@@ -62,19 +69,6 @@ class TinkerBlockStateProviderTest {
                 () -> assertNotNull(load(BLOCKSTATE_ROOT + "lavawood.json")), () -> assertNotNull(load(MODEL_ROOT + "lavawood.json")),
                 () -> assertEquals("minecraft:block/cube_all", load(MODEL_ROOT + "lavawood.json").get("parent").getAsString()),
                 () -> assertEquals("tconstruct:block/lavawood", load(MODEL_ROOT + "lavawood.json").getAsJsonObject("textures").get("all").getAsString()));
-    }
-
-    @Test
-    void everyMetalBlockHasBothBlockstateAndModelArtifacts() {
-        // Drive coverage from SharedBlocks.METAL_BLOCKS so the test stays sync'd with the
-        // live registry view. A future block addition that forgets to re-run runData fails
-        // these lookups before CI catches it.
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        for (String id : SharedBlocks.METAL_BLOCKS.keySet()) {
-            String blockPath = "block_" + id;
-            assertNotNull(cl.getResource(BLOCKSTATE_ROOT + blockPath + ".json"), "blockstate for " + blockPath + " missing — re-run ./gradlew runData?");
-            assertNotNull(cl.getResource(MODEL_ROOT + blockPath + ".json"), "model for " + blockPath + " missing — re-run ./gradlew runData?");
-        }
     }
 
     private static JsonObject load(String classpathResource) {
