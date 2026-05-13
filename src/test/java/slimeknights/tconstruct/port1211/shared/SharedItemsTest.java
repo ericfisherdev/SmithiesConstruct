@@ -96,6 +96,27 @@ class SharedItemsTest {
     }
 
     @Test
+    void slimeballsRegisterTheFourExpectedVariantsInOrder() {
+        // Order is the AC's "purple, blood, blue, magma". Phase-3 loot tables and Phase-6
+        // recipes iterate SLIMEBALLS — drifting the order shuffles generated artifacts.
+        List<String> expected = List.of("slimeball_purple", "slimeball_blood", "slimeball_blue", "slimeball_magma");
+        List<String> actual = SharedItems.SLIMEBALLS.stream().map(slimeball -> slimeball.getId().getPath()).collect(Collectors.toList());
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void slimeballStaticFieldsAreNonNullAndPresentInTheList() {
+        Map<String, DeferredItem<Item>> fields = Map.of("purple", SharedItems.SLIMEBALL_PURPLE, "blood", SharedItems.SLIMEBALL_BLOOD, "blue", SharedItems.SLIMEBALL_BLUE, "magma",
+                SharedItems.SLIMEBALL_MAGMA);
+        assertAll(fields.entrySet().stream().map(entry -> () -> {
+            assertNotNull(entry.getValue(), entry.getKey() + " slimeball field");
+            assertEquals("slimeball_" + entry.getKey(), entry.getValue().getId().getPath());
+            assertEquals(TConstruct.MOD_ID, entry.getValue().getId().getNamespace());
+            assertTrue(SharedItems.SLIMEBALLS.contains(entry.getValue()), entry.getKey() + " missing from SLIMEBALLS list");
+        }));
+    }
+
+    @Test
     void ingotsAndNuggetsAreParallelByIndex() {
         // 1:1 correspondence at the same index means index 0 of INGOTS and NUGGETS reference
         // the same metal. Phase-5 casting pairs them by index — keep them aligned here.
