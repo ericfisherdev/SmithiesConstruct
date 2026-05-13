@@ -21,6 +21,7 @@ import slimeknights.tconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.tconstruct.port1211.common.pulse.Pulse;
 import slimeknights.tconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
+import slimeknights.tconstruct.port1211.shared.SharedBlocks;
 
 /**
  * Mod entry point. Composes the Phase 1 foundation infrastructure during mod construction:
@@ -54,6 +55,12 @@ public final class TConstruct {
         // accessed lazily by pulses, but the *register* call inside the static block has to
         // run before the registry event fires.
         TinkerDataComponents.init();
+
+        // Touch the shared metal blocks so the DeferredBlock field initialisers run during mod
+        // construction, before the registry event fires. Subscribe the creative-tab listener on
+        // the mod bus so the registered blocks appear in BUILDING_BLOCKS.
+        SharedBlocks.init();
+        SharedBlocks.registerCreativeTabContents(modBus);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
