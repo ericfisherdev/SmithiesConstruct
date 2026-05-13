@@ -13,22 +13,27 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 
 /**
- * Registers per-metal items for every entry in {@link SharedMetals#ALL}. Two parallel
- * families are exposed:
+ * Registers the per-metal and slime-variant items the shared pulse owns. Three families are
+ * exposed:
  *
  * <ul>
- *   <li>{@link #INGOTS} — one {@code ingot_<metal>} item per metal. Unlike
- *       {@link SharedBlocks}, no metal is skipped: lead and nickel shipped as ingots in 1.12,
- *       and the casting pipeline in Phase 5 needs an output item for every fluid.</li>
+ *   <li>{@link #INGOTS} — one {@code ingot_<metal>} item per metal in {@link SharedMetals#ALL}.
+ *       Unlike {@link SharedBlocks}, no metal is skipped: lead and nickel shipped as ingots in
+ *       1.12, and the casting pipeline in Phase 5 needs an output item for every fluid.</li>
  *   <li>{@link #NUGGETS} — one {@code nugget_<metal>} item per metal, in 1:1 correspondence
  *       with {@link #INGOTS}. Vanilla treats nuggets as 1/9 of an ingot and recipes/casting
  *       depend on the pair existing for every metal.</li>
+ *   <li>{@link #SLIMEBALLS} — four coloured slimeball variants (purple, blood, blue, magma)
+ *       used as Phase-3 slime-mob drops and Phase-6 gadget reagents. Vanilla ships the green
+ *       variant already; these four extend the palette.</li>
  * </ul>
  *
- * <p>Every registration goes through {@link #metalItem} which validates the metal exists in
+ * <p>Per-metal registrations go through {@link #metalItem} which validates the metal exists in
  * the driver list, derives the registry path from the supplied prefix, and appends the result
- * to the matching family list. Items ship with default {@link Item.Properties} — sprite,
- * lang, and tag wiring arrive in separate Phase-2 tasks.
+ * to the matching family list. Slimeballs use a parallel {@link #slimeball} helper that
+ * validates against {@link #SLIMEBALL_VARIANTS} so a typo fails fast at class-load. Items ship
+ * with default {@link Item.Properties} — sprite, lang, and tag wiring arrive in separate
+ * Phase-2 tasks.
  *
  * <p>{@link #init()} forces this class to load during mod construction so the field
  * initialisers run and {@link TinkerRegistries#ITEMS} sees every entry before the registry
@@ -36,8 +41,16 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  */
 public final class SharedItems {
 
+    /**
+     * Coloured slimeball variants recognised by {@link #slimeball}. Order matches declaration
+     * order of the {@code SLIMEBALL_*} fields below; downstream providers iterate
+     * {@link #SLIMEBALLS} for deterministic output.
+     */
+    private static final List<String> SLIMEBALL_VARIANTS = List.of("purple", "blood", "blue", "magma");
+
     private static final List<DeferredItem<Item>> INGOT_BUILDER = new ArrayList<>();
     private static final List<DeferredItem<Item>> NUGGET_BUILDER = new ArrayList<>();
+    private static final List<DeferredItem<Item>> SLIMEBALL_BUILDER = new ArrayList<>();
 
     public static final DeferredItem<Item> INGOT_COBALT = ingot("cobalt");
     public static final DeferredItem<Item> INGOT_ARDITE = ingot("ardite");
@@ -71,6 +84,11 @@ public final class SharedItems {
     public static final DeferredItem<Item> NUGGET_LEAD = nugget("lead");
     public static final DeferredItem<Item> NUGGET_NICKEL = nugget("nickel");
 
+    public static final DeferredItem<Item> SLIMEBALL_PURPLE = slimeball("purple");
+    public static final DeferredItem<Item> SLIMEBALL_BLOOD = slimeball("blood");
+    public static final DeferredItem<Item> SLIMEBALL_BLUE = slimeball("blue");
+    public static final DeferredItem<Item> SLIMEBALL_MAGMA = slimeball("magma");
+
     /**
      * Immutable insertion-ordered view over every registered ingot. Downstream providers
      * (tags, recipes, lang, models) iterate this list instead of the static fields so a new
@@ -86,6 +104,13 @@ public final class SharedItems {
      */
     public static final List<DeferredItem<Item>> NUGGETS = List.copyOf(NUGGET_BUILDER);
 
+    /**
+     * Immutable insertion-ordered view over the four coloured slimeballs. Phase-3 slime-mob
+     * loot tables and Phase-6 gadget recipes iterate this list rather than reach for the
+     * static fields.
+     */
+    public static final List<DeferredItem<Item>> SLIMEBALLS = List.copyOf(SLIMEBALL_BUILDER);
+
     private SharedItems() {
     }
 
@@ -96,10 +121,10 @@ public final class SharedItems {
     }
 
     /**
-     * Subscribes ingots and nuggets to the vanilla {@code INGREDIENTS} creative tab so
-     * they're reachable without typing into the search bar. INGREDIENTS is the right vanilla
-     * bucket for crafting components — recipe outputs that aren't placeable belong here, not
-     * in BUILDING_BLOCKS.
+     * Subscribes every owned item to the vanilla {@code INGREDIENTS} creative tab so they're
+     * reachable without typing into the search bar. INGREDIENTS is the right vanilla bucket
+     * for crafting components — recipe outputs that aren't placeable belong here, not in
+     * BUILDING_BLOCKS.
      */
     public static void registerCreativeTabContents(IEventBus modBus) {
         modBus.addListener(SharedItems::onBuildCreativeTabContents);
@@ -112,6 +137,7 @@ public final class SharedItems {
         }
         INGOTS.forEach(ingot -> event.accept(ingot.get()));
         NUGGETS.forEach(nugget -> event.accept(nugget.get()));
+        SLIMEBALLS.forEach(slimeball -> event.accept(slimeball.get()));
     }
 
     private static DeferredItem<Item> ingot(String id) {
@@ -131,6 +157,18 @@ public final class SharedItems {
         }
         DeferredItem<Item> item = TinkerRegistries.ITEMS.registerSimpleItem(pathPrefix + id);
         sink.add(item);
+        return item;
+    }
+
+    private static DeferredItem<Item> slimeball(String variant) {
+        // Pin the variant against SLIMEBALL_VARIANTS so a typo (e.g. "magama") fails fast at
+        // class load rather than producing a tconstruct:slimeball_magama item the lang and
+        // tag providers will not know about.
+        if (!SLIMEBALL_VARIANTS.contains(variant)) {
+            throw new IllegalArgumentException("unknown slimeball variant '" + variant + "'; expected one of " + SLIMEBALL_VARIANTS);
+        }
+        DeferredItem<Item> item = TinkerRegistries.ITEMS.registerSimpleItem("slimeball_" + variant);
+        SLIMEBALL_BUILDER.add(item);
         return item;
     }
 }
