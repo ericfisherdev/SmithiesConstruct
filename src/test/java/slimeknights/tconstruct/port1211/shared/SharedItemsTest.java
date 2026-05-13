@@ -10,76 +10,116 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import slimeknights.tconstruct.port1211.TConstruct;
 
 /**
- * Pinned-behaviour tests for {@link SharedItems}. Coverage matches {@link SharedMetals#ALL}
- * one-to-one (unlike {@link SharedBlocks}, no metal is skipped), every entry is namespaced
- * under {@link TConstruct#MOD_ID tconstruct} with an {@code ingot_<metal>} path, and the
- * static fields agree with the exposed {@link SharedItems#INGOTS} list.
+ * Pinned-behaviour tests for {@link SharedItems}. Coverage of both item families ({@code
+ * ingot_<metal>} and {@code nugget_<metal>}) matches {@link SharedMetals#ALL} one-to-one; every
+ * entry is namespaced under {@link TConstruct#MOD_ID tconstruct} with the family prefix, and
+ * the public per-metal static fields agree with the exposed {@link SharedItems#INGOTS} and
+ * {@link SharedItems#NUGGETS} lists.
  */
 class SharedItemsTest {
 
     private static final String INGOT_PREFIX = "ingot_";
+    private static final String NUGGET_PREFIX = "nugget_";
 
-    /** Asserts the path starts with {@link #INGOT_PREFIX} and returns the metal id suffix. */
-    private static String stripIngotPrefix(DeferredItem<Item> ingot) {
-        String path = ingot.getId().getPath();
-        assertTrue(path.startsWith(INGOT_PREFIX), "expected path to start with '" + INGOT_PREFIX + "', got " + ingot.getId());
-        return path.substring(INGOT_PREFIX.length());
+    /** One row per registered item family — drives every cross-family parameterised test. */
+    private record Family(String name, String prefix, List<DeferredItem<Item>> items, Map<String, DeferredItem<Item>> staticFields) {
     }
 
-    @Test
-    void registersExactlyOneIngotPerMetal() {
-        assertEquals(SharedMetals.ALL.size(), SharedItems.INGOTS.size());
+    private static Stream<Family> families() {
+        return Stream.of(new Family("ingot", INGOT_PREFIX, SharedItems.INGOTS, ingotFields()), new Family("nugget", NUGGET_PREFIX, SharedItems.NUGGETS, nuggetFields()));
     }
 
-    @Test
-    void everyIngotPathFollowsTheIngotPrefix() {
-        // The "ingot_<metal>" path is referenced by downstream tag and recipe providers; drift
-        // would silently break casting and crafting JSON wiring.
-        assertAll(SharedItems.INGOTS.stream().map(ingot -> () -> {
-            assertEquals(TConstruct.MOD_ID, ingot.getId().getNamespace());
-            assertTrue(ingot.getId().getPath().startsWith(INGOT_PREFIX), "expected path to start with '" + INGOT_PREFIX + "', got " + ingot.getId());
+    /** Asserts the path starts with the family prefix and returns the metal id suffix. */
+    private static String stripPrefix(DeferredItem<Item> item, String prefix) {
+        String path = item.getId().getPath();
+        assertTrue(path.startsWith(prefix), "expected path to start with '" + prefix + "', got " + item.getId());
+        return path.substring(prefix.length());
+    }
+
+    @ParameterizedTest
+    @MethodSource("families")
+    void registersExactlyOneItemPerMetal(Family family) {
+        assertEquals(SharedMetals.ALL.size(), family.items().size(), family.name());
+    }
+
+    @ParameterizedTest
+    @MethodSource("families")
+    void everyPathFollowsTheFamilyPrefix(Family family) {
+        // The "<prefix><metal>" path is referenced by downstream tag and recipe providers;
+        // drift would silently break casting and crafting JSON wiring.
+        assertAll(family.items().stream().map(item -> () -> {
+            assertEquals(TConstruct.MOD_ID, item.getId().getNamespace());
+            assertTrue(item.getId().getPath().startsWith(family.prefix()), "expected path to start with '" + family.prefix() + "', got " + item.getId());
         }));
     }
 
-    @Test
-    void ingotPathsCoverEveryMetalIdExactlyOnce() {
-        Set<String> ingotMetalIds = SharedItems.INGOTS.stream().map(SharedItemsTest::stripIngotPrefix).collect(Collectors.toSet());
+    @ParameterizedTest
+    @MethodSource("families")
+    void pathsCoverEveryMetalIdExactlyOnce(Family family) {
+        Set<String> metalIds = family.items().stream().map(item -> stripPrefix(item, family.prefix())).collect(Collectors.toSet());
         Set<String> expected = SharedMetals.ALL.stream().map(Metal::id).collect(Collectors.toCollection(HashSet::new));
-        assertEquals(expected, ingotMetalIds);
+        assertEquals(expected, metalIds, family.name());
     }
 
-    @Test
-    void ingotsListPreservesDeclaredOrder() {
-        // INGOTS is built top-down by the field initialisers; downstream providers rely on
-        // insertion order for deterministic generated artifacts.
+    @ParameterizedTest
+    @MethodSource("families")
+    void listPreservesDeclaredOrder(Family family) {
+        // Each family list is built top-down by its field initialisers; downstream providers
+        // rely on insertion order for deterministic generated artifacts.
         List<String> expected = SharedMetals.ALL.stream().map(Metal::id).collect(Collectors.toList());
-        List<String> actual = SharedItems.INGOTS.stream().map(SharedItemsTest::stripIngotPrefix).collect(Collectors.toList());
-        assertEquals(expected, actual);
+        List<String> actual = family.items().stream().map(item -> stripPrefix(item, family.prefix())).collect(Collectors.toList());
+        assertEquals(expected, actual, family.name());
+    }
+
+    @ParameterizedTest
+    @MethodSource("families")
+    void everyStaticFieldIsNonNullAndPresentInTheList(Family family) {
+        // A null literal from a future refactor would technically leave the list intact, but
+        // callers that reach for SharedItems.{INGOT,NUGGET}_X would NPE — pin both shapes.
+        assertAll(family.staticFields().entrySet().stream().map(entry -> () -> {
+            assertNotNull(entry.getValue(), entry.getKey() + " " + family.name() + " field");
+            assertEquals(family.prefix() + entry.getKey(), entry.getValue().getId().getPath());
+            assertTrue(family.items().contains(entry.getValue()), entry.getKey() + " missing from " + family.name() + " list");
+        }));
     }
 
     @Test
-    void everyStaticFieldIsNonNullAndPresentInTheList() {
-        // Map of the public per-metal fields. A null literal here from a future refactor would
-        // technically still leave INGOTS intact, but callers that reach for SharedItems.INGOT_X
-        // would NPE — pin both shapes.
-        Map<String, DeferredItem<Item>> fields = Map.ofEntries(Map.entry("cobalt", SharedItems.INGOT_COBALT), Map.entry("ardite", SharedItems.INGOT_ARDITE),
-                Map.entry("manyullyn", SharedItems.INGOT_MANYULLYN), Map.entry("knightslime", SharedItems.INGOT_KNIGHTSLIME), Map.entry("pigiron", SharedItems.INGOT_PIGIRON),
-                Map.entry("silver", SharedItems.INGOT_SILVER), Map.entry("copper", SharedItems.INGOT_COPPER), Map.entry("tin", SharedItems.INGOT_TIN), Map.entry("zinc", SharedItems.INGOT_ZINC),
-                Map.entry("brass", SharedItems.INGOT_BRASS), Map.entry("alubrass", SharedItems.INGOT_ALUBRASS), Map.entry("electrum", SharedItems.INGOT_ELECTRUM),
-                Map.entry("steel", SharedItems.INGOT_STEEL), Map.entry("lead", SharedItems.INGOT_LEAD), Map.entry("nickel", SharedItems.INGOT_NICKEL));
-        assertAll(fields.entrySet().stream().map(entry -> () -> {
-            assertNotNull(entry.getValue(), entry.getKey() + " field");
-            assertEquals("ingot_" + entry.getKey(), entry.getValue().getId().getPath());
-            org.junit.jupiter.api.Assertions.assertTrue(SharedItems.INGOTS.contains(entry.getValue()), entry.getKey() + " missing from INGOTS list");
-        }));
+    void ingotsAndNuggetsAreParallelByIndex() {
+        // 1:1 correspondence at the same index means index 0 of INGOTS and NUGGETS reference
+        // the same metal. Phase-5 casting pairs them by index — keep them aligned here.
+        assertEquals(SharedItems.INGOTS.size(), SharedItems.NUGGETS.size());
+        for (int i = 0; i < SharedItems.INGOTS.size(); i++) {
+            String ingotId = stripPrefix(SharedItems.INGOTS.get(i), INGOT_PREFIX);
+            String nuggetId = stripPrefix(SharedItems.NUGGETS.get(i), NUGGET_PREFIX);
+            assertEquals(ingotId, nuggetId, "index " + i);
+        }
+    }
+
+    private static Map<String, DeferredItem<Item>> ingotFields() {
+        return Map.ofEntries(Map.entry("cobalt", SharedItems.INGOT_COBALT), Map.entry("ardite", SharedItems.INGOT_ARDITE), Map.entry("manyullyn", SharedItems.INGOT_MANYULLYN),
+                Map.entry("knightslime", SharedItems.INGOT_KNIGHTSLIME), Map.entry("pigiron", SharedItems.INGOT_PIGIRON), Map.entry("silver", SharedItems.INGOT_SILVER),
+                Map.entry("copper", SharedItems.INGOT_COPPER), Map.entry("tin", SharedItems.INGOT_TIN), Map.entry("zinc", SharedItems.INGOT_ZINC), Map.entry("brass", SharedItems.INGOT_BRASS),
+                Map.entry("alubrass", SharedItems.INGOT_ALUBRASS), Map.entry("electrum", SharedItems.INGOT_ELECTRUM), Map.entry("steel", SharedItems.INGOT_STEEL),
+                Map.entry("lead", SharedItems.INGOT_LEAD), Map.entry("nickel", SharedItems.INGOT_NICKEL));
+    }
+
+    private static Map<String, DeferredItem<Item>> nuggetFields() {
+        return Map.ofEntries(Map.entry("cobalt", SharedItems.NUGGET_COBALT), Map.entry("ardite", SharedItems.NUGGET_ARDITE), Map.entry("manyullyn", SharedItems.NUGGET_MANYULLYN),
+                Map.entry("knightslime", SharedItems.NUGGET_KNIGHTSLIME), Map.entry("pigiron", SharedItems.NUGGET_PIGIRON), Map.entry("silver", SharedItems.NUGGET_SILVER),
+                Map.entry("copper", SharedItems.NUGGET_COPPER), Map.entry("tin", SharedItems.NUGGET_TIN), Map.entry("zinc", SharedItems.NUGGET_ZINC), Map.entry("brass", SharedItems.NUGGET_BRASS),
+                Map.entry("alubrass", SharedItems.NUGGET_ALUBRASS), Map.entry("electrum", SharedItems.NUGGET_ELECTRUM), Map.entry("steel", SharedItems.NUGGET_STEEL),
+                Map.entry("lead", SharedItems.NUGGET_LEAD), Map.entry("nickel", SharedItems.NUGGET_NICKEL));
     }
 }

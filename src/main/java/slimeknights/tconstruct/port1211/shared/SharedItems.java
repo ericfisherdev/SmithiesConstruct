@@ -13,15 +13,22 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 
 /**
- * Registers one ingot item per metal in {@link SharedMetals#ALL}. Unlike {@link SharedBlocks}
- * which restricts to metals with a legacy storage-block precedent, every metal in the driver
- * list gets an ingot — lead and nickel shipped as ingots only in 1.12, and the casting pipeline
- * in Phase 5 needs an output item for every fluid it can mint.
+ * Registers per-metal items for every entry in {@link SharedMetals#ALL}. Two parallel
+ * families are exposed:
  *
- * <p>Each registration goes through {@link #ingot} which derives the registry path from the
- * metal id ({@code ingot_<id>}), keeping the boilerplate the legacy code paid per metal down
- * to a single call site. Items ship with default {@link Item.Properties} — sprite, lang, and
- * tag wiring arrive in separate Phase-2 tasks.
+ * <ul>
+ *   <li>{@link #INGOTS} — one {@code ingot_<metal>} item per metal. Unlike
+ *       {@link SharedBlocks}, no metal is skipped: lead and nickel shipped as ingots in 1.12,
+ *       and the casting pipeline in Phase 5 needs an output item for every fluid.</li>
+ *   <li>{@link #NUGGETS} — one {@code nugget_<metal>} item per metal, in 1:1 correspondence
+ *       with {@link #INGOTS}. Vanilla treats nuggets as 1/9 of an ingot and recipes/casting
+ *       depend on the pair existing for every metal.</li>
+ * </ul>
+ *
+ * <p>Every registration goes through {@link #metalItem} which validates the metal exists in
+ * the driver list, derives the registry path from the supplied prefix, and appends the result
+ * to the matching family list. Items ship with default {@link Item.Properties} — sprite,
+ * lang, and tag wiring arrive in separate Phase-2 tasks.
  *
  * <p>{@link #init()} forces this class to load during mod construction so the field
  * initialisers run and {@link TinkerRegistries#ITEMS} sees every entry before the registry
@@ -29,7 +36,8 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  */
 public final class SharedItems {
 
-    private static final List<DeferredItem<Item>> BUILDER = new ArrayList<>();
+    private static final List<DeferredItem<Item>> INGOT_BUILDER = new ArrayList<>();
+    private static final List<DeferredItem<Item>> NUGGET_BUILDER = new ArrayList<>();
 
     public static final DeferredItem<Item> INGOT_COBALT = ingot("cobalt");
     public static final DeferredItem<Item> INGOT_ARDITE = ingot("ardite");
@@ -47,13 +55,36 @@ public final class SharedItems {
     public static final DeferredItem<Item> INGOT_LEAD = ingot("lead");
     public static final DeferredItem<Item> INGOT_NICKEL = ingot("nickel");
 
+    public static final DeferredItem<Item> NUGGET_COBALT = nugget("cobalt");
+    public static final DeferredItem<Item> NUGGET_ARDITE = nugget("ardite");
+    public static final DeferredItem<Item> NUGGET_MANYULLYN = nugget("manyullyn");
+    public static final DeferredItem<Item> NUGGET_KNIGHTSLIME = nugget("knightslime");
+    public static final DeferredItem<Item> NUGGET_PIGIRON = nugget("pigiron");
+    public static final DeferredItem<Item> NUGGET_SILVER = nugget("silver");
+    public static final DeferredItem<Item> NUGGET_COPPER = nugget("copper");
+    public static final DeferredItem<Item> NUGGET_TIN = nugget("tin");
+    public static final DeferredItem<Item> NUGGET_ZINC = nugget("zinc");
+    public static final DeferredItem<Item> NUGGET_BRASS = nugget("brass");
+    public static final DeferredItem<Item> NUGGET_ALUBRASS = nugget("alubrass");
+    public static final DeferredItem<Item> NUGGET_ELECTRUM = nugget("electrum");
+    public static final DeferredItem<Item> NUGGET_STEEL = nugget("steel");
+    public static final DeferredItem<Item> NUGGET_LEAD = nugget("lead");
+    public static final DeferredItem<Item> NUGGET_NICKEL = nugget("nickel");
+
     /**
      * Immutable insertion-ordered view over every registered ingot. Downstream providers
      * (tags, recipes, lang, models) iterate this list instead of the static fields so a new
      * metal lights up every provider by appending to {@link SharedMetals#ALL} and adding one
      * field above — no provider edit required.
      */
-    public static final List<DeferredItem<Item>> INGOTS = List.copyOf(BUILDER);
+    public static final List<DeferredItem<Item>> INGOTS = List.copyOf(INGOT_BUILDER);
+
+    /**
+     * Immutable insertion-ordered view over every registered nugget. Mirrors {@link #INGOTS}
+     * one-to-one; index {@code i} of either list refers to the same metal in
+     * {@link SharedMetals#ALL}.
+     */
+    public static final List<DeferredItem<Item>> NUGGETS = List.copyOf(NUGGET_BUILDER);
 
     private SharedItems() {
     }
@@ -65,10 +96,10 @@ public final class SharedItems {
     }
 
     /**
-     * Subscribes every ingot to the vanilla {@code INGREDIENTS} creative tab so they're
-     * reachable without typing into the search bar. INGREDIENTS is the right vanilla bucket
-     * for crafting components — recipe outputs that aren't placeable belong here, not in
-     * BUILDING_BLOCKS.
+     * Subscribes ingots and nuggets to the vanilla {@code INGREDIENTS} creative tab so
+     * they're reachable without typing into the search bar. INGREDIENTS is the right vanilla
+     * bucket for crafting components — recipe outputs that aren't placeable belong here, not
+     * in BUILDING_BLOCKS.
      */
     public static void registerCreativeTabContents(IEventBus modBus) {
         modBus.addListener(SharedItems::onBuildCreativeTabContents);
@@ -80,17 +111,26 @@ public final class SharedItems {
             return;
         }
         INGOTS.forEach(ingot -> event.accept(ingot.get()));
+        NUGGETS.forEach(nugget -> event.accept(nugget.get()));
     }
 
     private static DeferredItem<Item> ingot(String id) {
+        return metalItem("ingot_", id, INGOT_BUILDER);
+    }
+
+    private static DeferredItem<Item> nugget(String id) {
+        return metalItem("nugget_", id, NUGGET_BUILDER);
+    }
+
+    private static DeferredItem<Item> metalItem(String pathPrefix, String id, List<DeferredItem<Item>> sink) {
         // Validate the metal exists in the driver list so a typo here fails fast at class
-        // load rather than producing a tconstruct:ingot_typo item that downstream providers
+        // load rather than producing a tconstruct:<prefix>_typo item that downstream providers
         // can't tag or recipe-target.
         if (SharedMetals.ALL.stream().noneMatch(metal -> metal.id().equals(id))) {
             throw new IllegalArgumentException("no metal in SharedMetals.ALL with id '" + id + "'");
         }
-        DeferredItem<Item> item = TinkerRegistries.ITEMS.registerSimpleItem("ingot_" + id);
-        BUILDER.add(item);
+        DeferredItem<Item> item = TinkerRegistries.ITEMS.registerSimpleItem(pathPrefix + id);
+        sink.add(item);
         return item;
     }
 }
