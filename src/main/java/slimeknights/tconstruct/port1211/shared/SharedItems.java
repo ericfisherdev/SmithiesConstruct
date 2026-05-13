@@ -5,12 +5,8 @@ import java.util.List;
 
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BucketItem;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
@@ -150,32 +146,6 @@ public final class SharedItems {
     public static void init() {
         // No-op — invoking this method touches the class, which triggers the field-initialiser
         // chain above. Same pattern as {@link SharedBlocks#init()}.
-    }
-
-    /**
-     * Subscribes every owned item to the correct vanilla creative tab — crafting components
-     * (ingots, nuggets, slimeballs, mudbrick) go to {@code INGREDIENTS}; edibles
-     * ({@link #BACON}) go to {@code FOOD_AND_DRINKS}. Routing to the semantically-correct tab
-     * means players don't have to scroll INGREDIENTS to find food.
-     */
-    public static void registerCreativeTabContents(IEventBus modBus) {
-        modBus.addListener(SharedItems::onBuildCreativeTabContents);
-    }
-
-    @SubscribeEvent
-    private static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (CreativeModeTabs.INGREDIENTS.equals(event.getTabKey())) {
-            INGOTS.forEach(ingot -> event.accept(ingot.get()));
-            NUGGETS.forEach(nugget -> event.accept(nugget.get()));
-            SLIMEBALLS.forEach(slimeball -> event.accept(slimeball.get()));
-            event.accept(MUDBRICK.get());
-        }
-        else if (CreativeModeTabs.FOOD_AND_DRINKS.equals(event.getTabKey())) {
-            event.accept(BACON.get());
-        }
-        else if (CreativeModeTabs.TOOLS_AND_UTILITIES.equals(event.getTabKey())) {
-            event.accept(BUCKET_BLOOD.get());
-        }
     }
 
     private static DeferredItem<Item> ingot(String id) {
