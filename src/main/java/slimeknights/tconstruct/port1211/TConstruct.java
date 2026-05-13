@@ -22,6 +22,7 @@ import slimeknights.tconstruct.port1211.common.pulse.Pulse;
 import slimeknights.tconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 import slimeknights.tconstruct.port1211.shared.SharedBlocks;
+import slimeknights.tconstruct.port1211.shared.SharedItems;
 
 /**
  * Mod entry point. Composes the Phase 1 foundation infrastructure during mod construction:
@@ -61,6 +62,8 @@ public final class TConstruct {
         // the mod bus so the registered blocks appear in BUILDING_BLOCKS.
         SharedBlocks.init();
         SharedBlocks.registerCreativeTabContents(modBus);
+        SharedItems.init();
+        SharedItems.registerCreativeTabContents(modBus);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
