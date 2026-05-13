@@ -49,7 +49,7 @@ class SharedClientFluidTypesTest {
         // than catching it during a manual runClient pass. Resources are looked up via the
         // classloader so this works whether the test runs from `build/resources/main/` or
         // from a packed jar.
-        ClassLoader cl = SharedClientFluidTypesTest.class.getClassLoader();
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         String still = "assets/tconstruct/textures/block/fluid/bloodstill.png";
         String flow = "assets/tconstruct/textures/block/fluid/bloodflow.png";
         String mcmeta = "assets/tconstruct/textures/block/fluid/bloodflow.png.mcmeta";
