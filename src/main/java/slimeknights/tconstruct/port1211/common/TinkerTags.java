@@ -24,6 +24,7 @@ import net.minecraft.world.level.material.Fluid;
  * and add a one-line comment describing the tag's intended purpose — readers should not have
  * to grep call sites to learn what membership in a tag means.
  */
+@SuppressWarnings("PMD.MissingStaticMethodInNonInstantiatableClass") // outer is a namespace; the TagKey constants live on the nested holders below
 public final class TinkerTags {
 
     private TinkerTags() {
