@@ -2,7 +2,6 @@ package slimeknights.tconstruct.port1211.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,11 +32,10 @@ class TinkerBlockTagsProviderTest {
 
     @Test
     void mineableWithPickaxeIncludesEveryMetalBlock() {
-        Set<String> values = loadValues("data/minecraft/tags/block/mineable/pickaxe.json");
-        assertEquals(13, values.size(), "all 13 metal storage blocks should be pickaxe-mineable");
-        assertTrue(values.contains("tconstruct:block_cobalt"));
-        assertTrue(values.contains("tconstruct:block_steel"));
-        assertTrue(values.contains("tconstruct:block_alubrass"));
+        Set<String> expected = Set.of("tconstruct:block_cobalt", "tconstruct:block_ardite", "tconstruct:block_manyullyn", "tconstruct:block_knightslime", "tconstruct:block_pigiron",
+                "tconstruct:block_silver", "tconstruct:block_copper", "tconstruct:block_tin", "tconstruct:block_zinc", "tconstruct:block_brass", "tconstruct:block_alubrass",
+                "tconstruct:block_electrum", "tconstruct:block_steel");
+        assertEquals(expected, loadValues("data/minecraft/tags/block/mineable/pickaxe.json"));
     }
 
     @Test
@@ -55,17 +53,13 @@ class TinkerBlockTagsProviderTest {
 
     @Test
     void needsIronToolListsEverythingExceptTheNetherTrio() {
-        // 10 iron-tier blocks: 13 total metal blocks - 3 diamond-tier.
-        Set<String> values = loadValues("data/minecraft/tags/block/needs_iron_tool.json");
-        assertEquals(10, values.size());
-        assertTrue(values.contains("tconstruct:block_steel"));
-        assertTrue(values.contains("tconstruct:block_copper"));
-        // Pin mutual exclusion with the diamond-tier set — a future refactor that double-tagged
-        // would let cobalt also satisfy NEEDS_IRON_TOOL, which is technically harmless but
-        // wastes a JSON entry and confuses tag-driven tooling code.
-        for (String diamond : List.of("tconstruct:block_cobalt", "tconstruct:block_ardite", "tconstruct:block_manyullyn")) {
-            assertTrue(!values.contains(diamond), diamond + " should not appear in needs_iron_tool");
-        }
+        // Exact set: 13 total metal blocks - 3 diamond-tier = 10 iron-tier. Pinning the full
+        // set also pins mutual exclusion with the diamond-tier set — a future refactor that
+        // double-tagged would let cobalt also satisfy NEEDS_IRON_TOOL, fail this assertion,
+        // and surface the wasted JSON entry before it shipped.
+        Set<String> expected = Set.of("tconstruct:block_knightslime", "tconstruct:block_pigiron", "tconstruct:block_silver", "tconstruct:block_copper", "tconstruct:block_tin", "tconstruct:block_zinc",
+                "tconstruct:block_brass", "tconstruct:block_alubrass", "tconstruct:block_electrum", "tconstruct:block_steel");
+        assertEquals(expected, loadValues("data/minecraft/tags/block/needs_iron_tool.json"));
     }
 
     private static Set<String> loadValues(String classpathResource) {
