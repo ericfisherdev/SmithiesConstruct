@@ -53,6 +53,15 @@ public final class TinkerItemTagsProvider extends ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
+        // Fail fast if the three driver lists fall out of step — silent mis-indexing here would
+        // generate JSONs that point ingot tags at the wrong metal's item, which the snapshot
+        // test would catch but only for the specific anchors it pins. An IllegalStateException
+        // at the top of the loop turns "subtle mis-tag" into "datagen failure with a precise
+        // message".
+        if (SharedItems.INGOTS.size() != SharedMetals.ALL.size() || SharedItems.NUGGETS.size() != SharedMetals.ALL.size()) {
+            throw new IllegalStateException(
+                    "Shared metals/items table mismatch: metals=" + SharedMetals.ALL.size() + ", ingots=" + SharedItems.INGOTS.size() + ", nuggets=" + SharedItems.NUGGETS.size());
+        }
         for (int i = 0; i < SharedMetals.ALL.size(); i++) {
             Metal metal = SharedMetals.ALL.get(i);
             String namespace = metal.realWorld() ? COMMON_NAMESPACE : TConstruct.MOD_ID;
