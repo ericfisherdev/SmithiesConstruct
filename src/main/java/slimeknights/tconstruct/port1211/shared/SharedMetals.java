@@ -28,33 +28,33 @@ public final class SharedMetals {
 
     public static final List<Metal> ALL = List.of(
             // Fictional — Nether-tier, mined as ore on the Nether tier (diamond pickaxe).
-            new Metal("cobalt", MapColor.COLOR_BLUE, true, 0x2882d4),
+            new Metal("cobalt", MapColor.COLOR_BLUE, true, 0x2882d4, false),
             // Fictional — Nether-tier counterpart to cobalt; alloys with cobalt to make manyullyn.
-            new Metal("ardite", MapColor.TERRACOTTA_ORANGE, true, 0xd14210),
+            new Metal("ardite", MapColor.TERRACOTTA_ORANGE, true, 0xd14210, false),
             // Fictional — cobalt + ardite alloy; the iconic late-game Tinkers metal.
-            new Metal("manyullyn", MapColor.COLOR_PURPLE, true, 0xa15cf8),
+            new Metal("manyullyn", MapColor.COLOR_PURPLE, true, 0xa15cf8, false),
             // Fictional — slime + iron alloy; named after the Knightslime gear set.
-            new Metal("knightslime", MapColor.COLOR_PINK, false, 0xf18ff0),
+            new Metal("knightslime", MapColor.COLOR_PINK, false, 0xf18ff0, false),
             // Fictional — blood + iron alloy; the "smelt a zombie pigman" meme metal.
-            new Metal("pigiron", MapColor.TERRACOTTA_PINK, false, 0xef9e9b),
+            new Metal("pigiron", MapColor.TERRACOTTA_PINK, false, 0xef9e9b, false),
             // Real-world — Ag, atomic number 47.
-            new Metal("silver", MapColor.SNOW, false, 0xd1ecf6),
+            new Metal("silver", MapColor.SNOW, false, 0xd1ecf6, true),
             // Real-world — Cu, atomic number 29.
-            new Metal("copper", MapColor.TERRACOTTA_ORANGE, false, 0xed9f07),
+            new Metal("copper", MapColor.TERRACOTTA_ORANGE, false, 0xed9f07, true),
             // Real-world — Sn, atomic number 50.
-            new Metal("tin", MapColor.COLOR_LIGHT_GRAY, false, 0xc1cddc),
+            new Metal("tin", MapColor.COLOR_LIGHT_GRAY, false, 0xc1cddc, true),
             // Real-world — Zn, atomic number 30.
-            new Metal("zinc", MapColor.COLOR_LIGHT_GRAY, false, 0xd3efe8),
+            new Metal("zinc", MapColor.COLOR_LIGHT_GRAY, false, 0xd3efe8, true),
             // Real-world alloy — copper + zinc.
-            new Metal("brass", MapColor.GOLD, false, 0xede38b),
+            new Metal("brass", MapColor.GOLD, false, 0xede38b, true),
             // Fictional alloy — aluminum + brass; Tinkers' canonical cast-making metal.
-            new Metal("alubrass", MapColor.GOLD, false, 0xece347),
+            new Metal("alubrass", MapColor.GOLD, false, 0xece347, false),
             // Real-world alloy — gold + silver.
-            new Metal("electrum", MapColor.GOLD, false, 0xe8db49),
+            new Metal("electrum", MapColor.GOLD, false, 0xe8db49, true),
             // Real-world alloy — iron + carbon.
-            new Metal("steel", MapColor.METAL, false, 0xa7a7a7),
+            new Metal("steel", MapColor.METAL, false, 0xa7a7a7, true),
             // Real-world — Pb, atomic number 82.
-            new Metal("lead", MapColor.COLOR_GRAY, false, 0x4d4968),
+            new Metal("lead", MapColor.COLOR_GRAY, false, 0x4d4968, true),
             // Real-world — Ni, atomic number 28.
-            new Metal("nickel", MapColor.TERRACOTTA_YELLOW, false, 0xc8d683));
+            new Metal("nickel", MapColor.TERRACOTTA_YELLOW, false, 0xc8d683, true));
 }

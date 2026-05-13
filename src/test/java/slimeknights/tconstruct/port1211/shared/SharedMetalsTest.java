@@ -29,6 +29,8 @@ class SharedMetalsTest {
 
     private static final Set<String> DIAMOND_TIER_IDS = Set.of("cobalt", "ardite", "manyullyn");
 
+    private static final Set<String> FICTIONAL_IDS = Set.of("cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "alubrass");
+
     @Test
     void containsTheExpectedFifteenMetalsInDeclaredOrder() {
         // Order matters: providers stream ALL into deterministic outputs (lang files, recipe
@@ -61,6 +63,18 @@ class SharedMetalsTest {
     }
 
     @Test
+    void realWorldFlagMatchesTheLegacyClassification() {
+        // The realWorld boolean drives the c:/tconstruct: namespace split for common item tags
+        // (SMTCON-42). Pin the per-metal classification so a future refactor that flips a
+        // fictional metal to realWorld (or vice versa) lights up this test before it ships a
+        // misleading c:ingots/manyullyn or a missed c:ingots/copper.
+        for (Metal metal : SharedMetals.ALL) {
+            boolean expected = !FICTIONAL_IDS.contains(metal.id());
+            assertEquals(expected, metal.realWorld(), metal.id() + " realWorld flag");
+        }
+    }
+
+    @Test
     void everyFieldIsPopulated() {
         // Non-null and well-formed — the record constructor enforces this for new entries, but
         // a refactor that introduces a null literal would slip past the compiler.
@@ -73,10 +87,10 @@ class SharedMetalsTest {
         // The record validates input so providers can trust the rows they iterate. Pin the
         // validations explicitly so a future refactor of the canonical constructor does not
         // silently weaken them.
-        assertAll(() -> assertThrows(NullPointerException.class, () -> new Metal(null, MapColor.METAL, false, 0x000000)),
-                () -> assertThrows(NullPointerException.class, () -> new Metal("ok", null, false, 0x000000)),
-                () -> assertThrows(IllegalArgumentException.class, () -> new Metal("", MapColor.METAL, false, 0x000000)),
-                () -> assertThrows(IllegalArgumentException.class, () -> new Metal("ok", MapColor.METAL, false, 0x1000000)),
-                () -> assertThrows(IllegalArgumentException.class, () -> new Metal("ok", MapColor.METAL, false, -1)));
+        assertAll(() -> assertThrows(NullPointerException.class, () -> new Metal(null, MapColor.METAL, false, 0x000000, true)),
+                () -> assertThrows(NullPointerException.class, () -> new Metal("ok", null, false, 0x000000, true)),
+                () -> assertThrows(IllegalArgumentException.class, () -> new Metal("", MapColor.METAL, false, 0x000000, true)),
+                () -> assertThrows(IllegalArgumentException.class, () -> new Metal("ok", MapColor.METAL, false, 0x1000000, true)),
+                () -> assertThrows(IllegalArgumentException.class, () -> new Metal("ok", MapColor.METAL, false, -1, true)));
     }
 }
