@@ -26,6 +26,7 @@ import slimeknights.tconstruct.port1211.data.DataGenerators;
 import slimeknights.tconstruct.port1211.shared.SharedBlocks;
 import slimeknights.tconstruct.port1211.shared.SharedFluids;
 import slimeknights.tconstruct.port1211.shared.SharedItems;
+import slimeknights.tconstruct.port1211.shared.SharedTabs;
 
 /**
  * Mod entry point. Composes the Phase 1 foundation infrastructure during mod construction:
@@ -60,16 +61,16 @@ public final class TConstruct {
         // run before the registry event fires.
         TinkerDataComponents.init();
 
-        // Touch the shared metal blocks so the DeferredBlock field initialisers run during mod
-        // construction, before the registry event fires. Subscribe the creative-tab listener on
-        // the mod bus so the registered blocks appear in BUILDING_BLOCKS.
+        // Touch the shared content classes so their DeferredHolder/DeferredBlock/DeferredItem
+        // field initialisers run during mod construction, before the registry events fire.
+        // Order matters: SharedFluids must load before SharedItems so SharedItems.BUCKET_BLOOD's
+        // initialiser can resolve SharedFluids.BLOOD; SharedTabs must load after the content
+        // classes so its tab population listener has every field available.
         SharedBlocks.init();
-        SharedBlocks.registerCreativeTabContents(modBus);
-        // Fluids must load before SharedItems so SharedItems.BUCKET_BLOOD's static initialiser
-        // can resolve SharedFluids.BLOOD's DeferredHolder.
         SharedFluids.init();
         SharedItems.init();
-        SharedItems.registerCreativeTabContents(modBus);
+        SharedTabs.init();
+        SharedTabs.registerCreativeTabContents(modBus);
 
         // Client-side fluid rendering metadata (textures, tint, fog) — must be guarded since the
         // class transitively references client-only types (Camera, ClientLevel) that don't exist

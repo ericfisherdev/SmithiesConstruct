@@ -1,21 +1,14 @@
 package slimeknights.tconstruct.port1211.shared;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.tconstruct.port1211.common.TinkerRegistries;
 
@@ -61,8 +54,6 @@ public final class SharedBlocks {
     public static final Map<String, DeferredBlock<Block>> METAL_BLOCKS;
 
     private static final Map<String, DeferredBlock<Block>> BUILDER = new LinkedHashMap<>();
-    private static final Map<String, DeferredItem<?>> ITEM_BUILDER = new LinkedHashMap<>();
-    private static final List<DeferredItem<?>> DECOR_ITEM_BUILDER = new ArrayList<>();
 
     /** Public static field per metal, satisfying the AC's downstream-reference requirement. */
     public static final DeferredBlock<Block> COBALT = metalBlock("cobalt");
@@ -108,12 +99,8 @@ public final class SharedBlocks {
         // From this point on adding a metal block goes through a new public static field above
         // plus an entry in SharedMetals; downstream code is read-only on the map. Wrap the
         // LinkedHashMap rather than Map.copyOf so iteration order matches declaration order —
-        // providers rely on that for deterministic generated artifacts.
+        // SharedTabs and other providers rely on that for deterministic visual grouping.
         METAL_BLOCKS = Collections.unmodifiableMap(new LinkedHashMap<>(BUILDER));
-        // BUILDER is no longer referenced from anywhere — its contents now live in the immutable
-        // copy. ITEM_BUILDER is retained only to root the DeferredItems while their backing
-        // DeferredRegister listeners remain attached; once registration fires, the entries are
-        // unreachable except through TinkerRegistries.ITEMS.
     }
 
     private SharedBlocks() {
@@ -126,24 +113,6 @@ public final class SharedBlocks {
         // accidentally add work that should live in a Pulse instead.
     }
 
-    /**
-     * Subscribes the metal blocks to the vanilla {@code BUILDING_BLOCKS} creative tab so they
-     * are reachable without typing into the search bar. Registered against the supplied mod
-     * event bus during {@code TConstruct} construction; runs once per creative-tab build.
-     */
-    public static void registerCreativeTabContents(IEventBus modBus) {
-        modBus.addListener(SharedBlocks::onBuildCreativeTabContents);
-    }
-
-    @SubscribeEvent
-    private static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (!CreativeModeTabs.BUILDING_BLOCKS.equals(event.getTabKey())) {
-            return;
-        }
-        ITEM_BUILDER.values().forEach(item -> event.accept(item.get()));
-        DECOR_ITEM_BUILDER.forEach(item -> event.accept(item.get()));
-    }
-
     private static DeferredBlock<Block> metalBlock(String id) {
         Metal metal = lookup(id);
         BlockBehaviour.Properties properties = BlockBehaviour.Properties.of().mapColor(metal.mapColor()).sound(SoundType.METAL).requiresCorrectToolForDrops()
@@ -151,14 +120,14 @@ public final class SharedBlocks {
                 // iron-tier metals match vanilla copper/gold-block strength (3.0f, 6.0f).
                 .strength(metal.needsDiamond() ? 5.0F : 3.0F, 6.0F);
         DeferredBlock<Block> block = TinkerRegistries.BLOCKS.registerSimpleBlock("block_" + metal.id(), properties);
-        ITEM_BUILDER.put(metal.id(), TinkerRegistries.ITEMS.registerSimpleBlockItem(block));
+        TinkerRegistries.ITEMS.registerSimpleBlockItem(block);
         BUILDER.put(metal.id(), block);
         return block;
     }
 
     private static DeferredBlock<Block> decorativeBlock(String name, BlockBehaviour.Properties properties) {
         DeferredBlock<Block> block = TinkerRegistries.BLOCKS.registerSimpleBlock(name, properties);
-        DECOR_ITEM_BUILDER.add(TinkerRegistries.ITEMS.registerSimpleBlockItem(block));
+        TinkerRegistries.ITEMS.registerSimpleBlockItem(block);
         return block;
     }
 
