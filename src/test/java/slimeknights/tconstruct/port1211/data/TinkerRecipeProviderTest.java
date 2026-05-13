@@ -30,6 +30,10 @@ class TinkerRecipeProviderTest {
     void blockFromIngotsIsAShaped3x3GroupedAsBuildingBlocks() {
         JsonObject recipe = loadRecipe("block_cobalt.json");
         assertAll(() -> assertEquals("minecraft:crafting_shaped", recipe.get("type").getAsString()), () -> assertEquals("building", recipe.get("category").getAsString()),
+                () -> assertEquals(3, recipe.getAsJsonArray("pattern").size(), "shaped recipe must declare 3 rows"),
+                () -> assertEquals("###", recipe.getAsJsonArray("pattern").get(0).getAsString(), "row 0 must fill the 3×3 grid"),
+                () -> assertEquals("###", recipe.getAsJsonArray("pattern").get(1).getAsString(), "row 1 must fill the 3×3 grid"),
+                () -> assertEquals("###", recipe.getAsJsonArray("pattern").get(2).getAsString(), "row 2 must fill the 3×3 grid"),
                 () -> assertEquals("tconstruct:ingot_cobalt", recipe.getAsJsonObject("key").getAsJsonObject("#").get("item").getAsString()),
                 () -> assertEquals("tconstruct:block_cobalt", recipe.getAsJsonObject("result").get("id").getAsString()),
                 () -> assertEquals(1, recipe.getAsJsonObject("result").get("count").getAsInt()));
@@ -39,6 +43,7 @@ class TinkerRecipeProviderTest {
     void ingotFromBlockIsAShapelessYieldingNine() {
         JsonObject recipe = loadRecipe("ingot_steel_from_block.json");
         assertAll(() -> assertEquals("minecraft:crafting_shapeless", recipe.get("type").getAsString()),
+                () -> assertEquals(1, recipe.getAsJsonArray("ingredients").size(), "shapeless block→ingot recipe takes exactly one input"),
                 () -> assertEquals("tconstruct:block_steel", recipe.getAsJsonArray("ingredients").get(0).getAsJsonObject().get("item").getAsString()),
                 () -> assertEquals("tconstruct:ingot_steel", recipe.getAsJsonObject("result").get("id").getAsString()),
                 () -> assertEquals(9, recipe.getAsJsonObject("result").get("count").getAsInt()));
@@ -48,6 +53,10 @@ class TinkerRecipeProviderTest {
     void ingotFromNuggetsIsAShaped3x3OfNuggets() {
         JsonObject recipe = loadRecipe("ingot_lead_from_nuggets.json");
         assertAll(() -> assertEquals("minecraft:crafting_shaped", recipe.get("type").getAsString()),
+                () -> assertEquals(3, recipe.getAsJsonArray("pattern").size(), "shaped recipe must declare 3 rows"),
+                () -> assertEquals("###", recipe.getAsJsonArray("pattern").get(0).getAsString(), "row 0 must fill the 3×3 grid"),
+                () -> assertEquals("###", recipe.getAsJsonArray("pattern").get(1).getAsString(), "row 1 must fill the 3×3 grid"),
+                () -> assertEquals("###", recipe.getAsJsonArray("pattern").get(2).getAsString(), "row 2 must fill the 3×3 grid"),
                 () -> assertEquals("tconstruct:nugget_lead", recipe.getAsJsonObject("key").getAsJsonObject("#").get("item").getAsString()),
                 () -> assertEquals("tconstruct:ingot_lead", recipe.getAsJsonObject("result").get("id").getAsString()));
     }
@@ -56,6 +65,7 @@ class TinkerRecipeProviderTest {
     void nineNuggetsFromOneIngotIsAShapeless() {
         JsonObject recipe = loadRecipe("nugget_lead.json");
         assertAll(() -> assertEquals("minecraft:crafting_shapeless", recipe.get("type").getAsString()),
+                () -> assertEquals(1, recipe.getAsJsonArray("ingredients").size(), "shapeless ingot→nuggets recipe takes exactly one input"),
                 () -> assertEquals("tconstruct:ingot_lead", recipe.getAsJsonArray("ingredients").get(0).getAsJsonObject().get("item").getAsString()),
                 () -> assertEquals("tconstruct:nugget_lead", recipe.getAsJsonObject("result").get("id").getAsString()),
                 () -> assertEquals(9, recipe.getAsJsonObject("result").get("count").getAsInt()));
