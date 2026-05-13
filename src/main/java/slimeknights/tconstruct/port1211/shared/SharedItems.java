@@ -3,6 +3,7 @@ package slimeknights.tconstruct.port1211.shared;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
@@ -26,6 +27,9 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  *   <li>{@link #SLIMEBALLS} — four coloured slimeball variants (purple, blood, blue, magma)
  *       used as Phase-3 slime-mob drops and Phase-6 gadget reagents. Vanilla ships the green
  *       variant already; these four extend the palette.</li>
+ *   <li>Miscellaneous: {@link #BACON} (a food item with the legacy nutrition/saturation values)
+ *       and {@link #MUDBRICK} (a plain crafting item used by Phase-6 gadget recipes). Neither
+ *       fits a family and they are exposed as bare static fields rather than a list.</li>
  * </ul>
  *
  * <p>Per-metal registrations go through {@link #metalItem} which validates the metal exists in
@@ -90,6 +94,19 @@ public final class SharedItems {
     public static final DeferredItem<Item> SLIMEBALL_MAGMA = slimeball("magma");
 
     /**
+     * Bacon — the meme food item from legacy. Nutrition 3 + saturation modifier 0.6 matches
+     * the 1.12 values verbatim so save-game porters get the same hunger restore.
+     */
+    public static final DeferredItem<Item> BACON = TinkerRegistries.ITEMS.registerItem("bacon",
+            props -> new Item(props.food(new FoodProperties.Builder().nutrition(3).saturationModifier(0.6f).build())));
+
+    /**
+     * Mud brick — a plain crafting item (not a block); fed into Phase-6 gadget recipes.
+     * Sprite and recipe wiring arrive in later tasks per AC.
+     */
+    public static final DeferredItem<Item> MUDBRICK = TinkerRegistries.ITEMS.registerSimpleItem("mudbrick");
+
+    /**
      * Immutable insertion-ordered view over every registered ingot. Downstream providers
      * (tags, recipes, lang, models) iterate this list instead of the static fields so a new
      * metal lights up every provider by appending to {@link SharedMetals#ALL} and adding one
@@ -121,10 +138,10 @@ public final class SharedItems {
     }
 
     /**
-     * Subscribes every owned item to the vanilla {@code INGREDIENTS} creative tab so they're
-     * reachable without typing into the search bar. INGREDIENTS is the right vanilla bucket
-     * for crafting components — recipe outputs that aren't placeable belong here, not in
-     * BUILDING_BLOCKS.
+     * Subscribes every owned item to the correct vanilla creative tab — crafting components
+     * (ingots, nuggets, slimeballs, mudbrick) go to {@code INGREDIENTS}; edibles
+     * ({@link #BACON}) go to {@code FOOD_AND_DRINKS}. Routing to the semantically-correct tab
+     * means players don't have to scroll INGREDIENTS to find food.
      */
     public static void registerCreativeTabContents(IEventBus modBus) {
         modBus.addListener(SharedItems::onBuildCreativeTabContents);
@@ -132,12 +149,15 @@ public final class SharedItems {
 
     @SubscribeEvent
     private static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (!CreativeModeTabs.INGREDIENTS.equals(event.getTabKey())) {
-            return;
+        if (CreativeModeTabs.INGREDIENTS.equals(event.getTabKey())) {
+            INGOTS.forEach(ingot -> event.accept(ingot.get()));
+            NUGGETS.forEach(nugget -> event.accept(nugget.get()));
+            SLIMEBALLS.forEach(slimeball -> event.accept(slimeball.get()));
+            event.accept(MUDBRICK.get());
         }
-        INGOTS.forEach(ingot -> event.accept(ingot.get()));
-        NUGGETS.forEach(nugget -> event.accept(nugget.get()));
-        SLIMEBALLS.forEach(slimeball -> event.accept(slimeball.get()));
+        else if (CreativeModeTabs.FOOD_AND_DRINKS.equals(event.getTabKey())) {
+            event.accept(BACON.get());
+        }
     }
 
     private static DeferredItem<Item> ingot(String id) {

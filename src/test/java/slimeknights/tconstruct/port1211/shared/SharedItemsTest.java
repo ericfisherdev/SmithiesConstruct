@@ -117,6 +117,32 @@ class SharedItemsTest {
     }
 
     @Test
+    void baconIsRegisteredWithLegacyFoodValues() {
+        // Nutrition 3 + saturation modifier 0.6 are the 1.12 values — pinning them here lets
+        // save-game porters open a bacon and see the same hunger refill they'd get in legacy.
+        assertNotNull(SharedItems.BACON);
+        assertEquals("bacon", SharedItems.BACON.getId().getPath());
+        assertEquals(TConstruct.MOD_ID, SharedItems.BACON.getId().getNamespace());
+        net.minecraft.world.food.FoodProperties food = SharedItems.BACON.get().components().get(net.minecraft.core.component.DataComponents.FOOD);
+        assertNotNull(food, "bacon should carry a FoodProperties data component");
+        assertEquals(3, food.nutrition());
+        // FoodProperties.saturation() returns the absolute value (nutrition * modifier * 2),
+        // not the raw modifier passed to the builder. 3 * 0.6 * 2 = 3.6.
+        assertEquals(3.6f, food.saturation(), 0.0001f);
+    }
+
+    @Test
+    void mudbrickIsRegisteredWithNoFoodComponent() {
+        // Mud brick is a plain crafting item — guard against a future copy/paste accidentally
+        // turning it into food.
+        assertNotNull(SharedItems.MUDBRICK);
+        assertEquals("mudbrick", SharedItems.MUDBRICK.getId().getPath());
+        assertEquals(TConstruct.MOD_ID, SharedItems.MUDBRICK.getId().getNamespace());
+        org.junit.jupiter.api.Assertions.assertNull(SharedItems.MUDBRICK.get().components().get(net.minecraft.core.component.DataComponents.FOOD),
+                "mudbrick is not food and should not carry a FoodProperties component");
+    }
+
+    @Test
     void ingotsAndNuggetsAreParallelByIndex() {
         // 1:1 correspondence at the same index means index 0 of INGOTS and NUGGETS reference
         // the same metal. Phase-5 casting pairs them by index — keep them aligned here.
