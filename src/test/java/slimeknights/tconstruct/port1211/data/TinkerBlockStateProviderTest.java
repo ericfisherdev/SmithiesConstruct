@@ -1,0 +1,81 @@
+package slimeknights.tconstruct.port1211.data;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.Test;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import slimeknights.tconstruct.port1211.shared.SharedBlocks;
+
+/**
+ * Pinned-behaviour tests for the generated blockstate + cube-all model JSONs.
+ * {@link TinkerBlockStateProvider} runs during {@code ./gradlew runData} and writes one pair
+ * (blockstate + model) per shared-pulse block under
+ * {@code src/generated/resources/assets/tconstruct/{blockstates,models/block}/}. The tests
+ * treat the JSONs as a snapshot read from the test classpath.
+ */
+class TinkerBlockStateProviderTest {
+
+    private static final Gson GSON = new Gson();
+    private static final String BLOCKSTATE_ROOT = "assets/tconstruct/blockstates/";
+    private static final String MODEL_ROOT = "assets/tconstruct/models/block/";
+
+    @Test
+    void metalBlockstateHasSingleVariantPointingAtModel() {
+        // The cube_all blockstate is a one-variant placeholder: empty selector "" mapped to
+        // a single model. A future refactor that adds a state property (e.g. for a "facing"
+        // variant on glow) would have to update this assertion deliberately.
+        JsonObject blockstate = load(BLOCKSTATE_ROOT + "block_cobalt.json");
+        JsonObject variants = blockstate.getAsJsonObject("variants");
+        assertAll(() -> assertEquals(1, variants.entrySet().size(), "cube_all blockstate has exactly one variant"),
+                () -> assertEquals("tconstruct:block/block_cobalt", variants.getAsJsonObject("").get("model").getAsString()));
+    }
+
+    @Test
+    void metalModelIsCubeAllReferencingTheBlockTexture() {
+        JsonObject model = load(MODEL_ROOT + "block_steel.json");
+        assertAll(() -> assertEquals("minecraft:block/cube_all", model.get("parent").getAsString()),
+                () -> assertEquals("tconstruct:block/block_steel", model.getAsJsonObject("textures").get("all").getAsString(), "cube_all sources every face from the 'all' texture key"));
+    }
+
+    @Test
+    void decorativeBlocksHaveBlockstateAndModelPairs() {
+        assertAll(() -> assertNotNull(load(BLOCKSTATE_ROOT + "glow.json")), () -> assertNotNull(load(MODEL_ROOT + "glow.json")),
+                () -> assertEquals("minecraft:block/cube_all", load(MODEL_ROOT + "glow.json").get("parent").getAsString()),
+                () -> assertEquals("tconstruct:block/glow", load(MODEL_ROOT + "glow.json").getAsJsonObject("textures").get("all").getAsString()),
+                () -> assertNotNull(load(BLOCKSTATE_ROOT + "firewood.json")), () -> assertNotNull(load(MODEL_ROOT + "firewood.json")), () -> assertNotNull(load(BLOCKSTATE_ROOT + "lavawood.json")),
+                () -> assertNotNull(load(MODEL_ROOT + "lavawood.json")));
+    }
+
+    @Test
+    void everyMetalBlockHasBothBlockstateAndModelArtifacts() {
+        // Drive coverage from SharedBlocks.METAL_BLOCKS so the test stays sync'd with the
+        // live registry view. A future block addition that forgets to re-run runData fails
+        // these lookups before CI catches it.
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        for (String id : SharedBlocks.METAL_BLOCKS.keySet()) {
+            String blockPath = "block_" + id;
+            assertNotNull(cl.getResource(BLOCKSTATE_ROOT + blockPath + ".json"), "blockstate for " + blockPath + " missing — re-run ./gradlew runData?");
+            assertNotNull(cl.getResource(MODEL_ROOT + blockPath + ".json"), "model for " + blockPath + " missing — re-run ./gradlew runData?");
+        }
+    }
+
+    private static JsonObject load(String classpathResource) {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        try (InputStream stream = cl.getResourceAsStream(classpathResource)) {
+            assertNotNull(stream, classpathResource + " missing from test classpath — did you re-run ./gradlew runData?");
+            return GSON.fromJson(new String(stream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
+        }
+        catch (IOException e) {
+            throw new AssertionError("failed reading " + classpathResource, e);
+        }
+    }
+}
