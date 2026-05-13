@@ -80,4 +80,39 @@ class SharedBlocksTest {
             assertEquals(SharedBlocks.METAL_BLOCKS.get(entry.getKey()), entry.getValue(), entry.getKey() + " map ↔ field consistency");
         }));
     }
+
+    @Test
+    void glowIsRegisteredAtLightLevel15() {
+        // GLOW must light its surroundings — Phase-6 gadget recipes depend on it functioning as
+        // a placeable light source. Pinning the level at the driver here catches a
+        // copy/paste that would silently turn glow into a dark block.
+        assertNotNull(SharedBlocks.GLOW);
+        assertEquals(TConstruct.MOD_ID, SharedBlocks.GLOW.getId().getNamespace());
+        assertEquals("glow", SharedBlocks.GLOW.getId().getPath());
+        assertEquals(15, SharedBlocks.GLOW.get().defaultBlockState().getLightEmission());
+    }
+
+    @Test
+    void firewoodAndLavawoodAreRegisteredWithMatchingShapeButDifferentHardness() {
+        // Two blocks that share sound + light emission but differ on hardness per AC. The
+        // tightest pin: same sound, same self-glow, lavawood strictly harder than firewood.
+        assertNotNull(SharedBlocks.FIREWOOD);
+        assertNotNull(SharedBlocks.LAVAWOOD);
+        assertEquals("firewood", SharedBlocks.FIREWOOD.getId().getPath());
+        assertEquals("lavawood", SharedBlocks.LAVAWOOD.getId().getPath());
+        assertEquals(8, SharedBlocks.FIREWOOD.get().defaultBlockState().getLightEmission());
+        assertEquals(8, SharedBlocks.LAVAWOOD.get().defaultBlockState().getLightEmission());
+        float firewoodHardness = SharedBlocks.FIREWOOD.get().defaultDestroyTime();
+        float lavawoodHardness = SharedBlocks.LAVAWOOD.get().defaultDestroyTime();
+        org.junit.jupiter.api.Assertions.assertTrue(lavawoodHardness > firewoodHardness, "lavawood (" + lavawoodHardness + ") should be harder than firewood (" + firewoodHardness + ")");
+    }
+
+    @Test
+    void decorativeBlocksAreNotInTheMetalBlocksMap() {
+        // METAL_BLOCKS is the iteration surface downstream metal providers consume. Decorative
+        // blocks must NOT leak into it or they'll get the metal-tier tag, the c:ingots/... tag
+        // search, etc.
+        assertAll(() -> assertFalse(SharedBlocks.METAL_BLOCKS.containsKey("glow")), () -> assertFalse(SharedBlocks.METAL_BLOCKS.containsKey("firewood")),
+                () -> assertFalse(SharedBlocks.METAL_BLOCKS.containsKey("lavawood")));
+    }
 }
