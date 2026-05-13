@@ -22,6 +22,7 @@ import slimeknights.tconstruct.port1211.common.pulse.Pulse;
 import slimeknights.tconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.tconstruct.port1211.data.DataGenerators;
 import slimeknights.tconstruct.port1211.shared.SharedBlocks;
+import slimeknights.tconstruct.port1211.shared.SharedFluids;
 import slimeknights.tconstruct.port1211.shared.SharedItems;
 
 /**
@@ -62,6 +63,9 @@ public final class TConstruct {
         // the mod bus so the registered blocks appear in BUILDING_BLOCKS.
         SharedBlocks.init();
         SharedBlocks.registerCreativeTabContents(modBus);
+        // Fluids must load before SharedItems so SharedItems.BUCKET_BLOOD's static initialiser
+        // can resolve SharedFluids.BLOOD's DeferredHolder.
+        SharedFluids.init();
         SharedItems.init();
         SharedItems.registerCreativeTabContents(modBus);
 
