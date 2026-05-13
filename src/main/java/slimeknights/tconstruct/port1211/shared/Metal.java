@@ -23,8 +23,16 @@ import net.minecraft.world.level.material.MapColor;
  *                      sprite; hex format {@code 0xRRGGBB}. Carried over verbatim from the
  *                      legacy {@code TinkerMaterials.mat(...)} declarations so existing
  *                      content stays color-identical post-port
+ * @param realWorld     {@code true} → an element or alloy that exists outside Minecraft
+ *                      (silver, copper, tin, steel, brass, etc.). Drives the choice of
+ *                      common-tag namespace per plan/12 open question on ore-dict/common
+ *                      tags: real-world metals get tagged under {@code c:ingots/<id>} and
+ *                      {@code c:nuggets/<id>} so other mods can interoperate; fictional
+ *                      metals ({@code cobalt}, {@code manyullyn}, etc.) stay under
+ *                      {@code tconstruct:ingots/<id>} to avoid polluting common tags with
+ *                      names other mods cannot meaningfully consume
  */
-public record Metal(String id, MapColor mapColor, boolean needsDiamond, int tintHex) {
+public record Metal(String id, MapColor mapColor, boolean needsDiamond, int tintHex, boolean realWorld) {
 
     public Metal {
         Objects.requireNonNull(id, "id");
