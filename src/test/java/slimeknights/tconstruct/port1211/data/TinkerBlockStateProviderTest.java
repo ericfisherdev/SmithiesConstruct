@@ -72,7 +72,13 @@ class TinkerBlockStateProviderTest {
     }
 
     private static JsonObject load(String classpathResource) {
+        // Gradle's test JVM always sets the thread context classloader, but fall back to the
+        // test class's own loader if the harness ever runs without one — the alternative is
+        // an NPE before our assertNotNull below can fire a useful message.
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        if (cl == null) {
+            cl = TinkerBlockStateProviderTest.class.getClassLoader();
+        }
         try (InputStream stream = cl.getResourceAsStream(classpathResource)) {
             assertNotNull(stream, classpathResource + " missing from test classpath — did you re-run ./gradlew runData?");
             return GSON.fromJson(new String(stream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
