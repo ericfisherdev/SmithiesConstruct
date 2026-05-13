@@ -49,3 +49,6 @@ options.txt
 #custom
 *.tmp
 CLAUDE.md
+# datagen cache (hashes regenerated on each runData; generated resources themselves go under
+# src/generated/resources/ and are committed once Phase 2+ produces content)
+src/generated/resources/.cache/
