@@ -6,7 +6,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.tconstruct.port1211.shared.SharedBlocks;
 
@@ -36,29 +35,35 @@ public final class SharedBlockLoot extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        // Metal storage blocks — iterate the live registry view so a new metal lights up the
-        // loot table by appending to SharedMetals.ALL alone, no edit here.
-        for (DeferredBlock<Block> blockHolder : SharedBlocks.METAL_BLOCKS.values()) {
-            dropSelf(blockHolder.get());
+        // Metal storage blocks + decoratives, sourced from the single ownedBlocks() helper so
+        // generate() and getKnownBlocks() can't drift. Metal storage drops itself (vanilla
+        // iron_block precedent); glow + firewood + lavawood drop themselves too, matching the
+        // legacy 1.12 behaviour and vanilla wood-block convention.
+        for (Block block : ownedBlocks()) {
+            dropSelf(block);
         }
-        // Decoratives. Glow drops itself; the two wood variants do too — vanilla wood blocks
-        // are the precedent, and the legacy 1.12 mod used the same drop behaviour.
-        dropSelf(SharedBlocks.GLOW.get());
-        dropSelf(SharedBlocks.FIREWOOD.get());
-        dropSelf(SharedBlocks.LAVAWOOD.get());
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
         // BlockLootSubProvider validates that #generate() produced a table for every block it
-        // claims to own. Returning the union of metal storage blocks + the three decoratives
-        // matches the dropSelf calls above; any drift trips a clear runData error rather
-        // than silently leaving a block without a loot table.
-        java.util.List<Block> known = new java.util.ArrayList<>();
-        SharedBlocks.METAL_BLOCKS.values().forEach(holder -> known.add(holder.get()));
-        known.add(SharedBlocks.GLOW.get());
-        known.add(SharedBlocks.FIREWOOD.get());
-        known.add(SharedBlocks.LAVAWOOD.get());
-        return known;
+        // claims to own. Sharing the same iterable as generate() above guarantees no block is
+        // dropped from one path without the other — any drift trips a clear runData error
+        // instead of silently leaving a block without a loot table.
+        return ownedBlocks();
+    }
+
+    /**
+     * Single source of truth for the blocks this sub-provider owns. Iterated by both
+     * {@link #generate} (to call {@code dropSelf}) and {@link #getKnownBlocks} (to satisfy
+     * the parent's validation pass).
+     */
+    private java.util.List<Block> ownedBlocks() {
+        java.util.List<Block> blocks = new java.util.ArrayList<>();
+        SharedBlocks.METAL_BLOCKS.values().forEach(holder -> blocks.add(holder.get()));
+        blocks.add(SharedBlocks.GLOW.get());
+        blocks.add(SharedBlocks.FIREWOOD.get());
+        blocks.add(SharedBlocks.LAVAWOOD.get());
+        return blocks;
     }
 }
