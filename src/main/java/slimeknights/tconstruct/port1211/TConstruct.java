@@ -2,12 +2,14 @@ package slimeknights.tconstruct.port1211;
 
 import java.util.List;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -68,6 +70,14 @@ public final class TConstruct {
         SharedFluids.init();
         SharedItems.init();
         SharedItems.registerCreativeTabContents(modBus);
+
+        // Client-side fluid rendering metadata (textures, tint, fog) — must be guarded since the
+        // class transitively references client-only types (Camera, ClientLevel) that don't exist
+        // on a dedicated server. Routing through a static factory means the server JVM never
+        // loads SharedClientFluidTypes at all.
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            slimeknights.tconstruct.port1211.shared.client.SharedClientFluidTypes.register(modBus);
+        }
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
