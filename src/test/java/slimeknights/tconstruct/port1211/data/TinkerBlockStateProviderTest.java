@@ -48,11 +48,20 @@ class TinkerBlockStateProviderTest {
 
     @Test
     void decorativeBlocksHaveBlockstateAndModelPairs() {
+        // Pin parent + all-texture for every decorative so a regression on any of them
+        // (wrong parent, missing texture key, drifted path) trips the assertion at the same
+        // strength as the glow check.
         assertAll(() -> assertNotNull(load(BLOCKSTATE_ROOT + "glow.json")), () -> assertNotNull(load(MODEL_ROOT + "glow.json")),
                 () -> assertEquals("minecraft:block/cube_all", load(MODEL_ROOT + "glow.json").get("parent").getAsString()),
                 () -> assertEquals("tconstruct:block/glow", load(MODEL_ROOT + "glow.json").getAsJsonObject("textures").get("all").getAsString()),
-                () -> assertNotNull(load(BLOCKSTATE_ROOT + "firewood.json")), () -> assertNotNull(load(MODEL_ROOT + "firewood.json")), () -> assertNotNull(load(BLOCKSTATE_ROOT + "lavawood.json")),
-                () -> assertNotNull(load(MODEL_ROOT + "lavawood.json")));
+
+                () -> assertNotNull(load(BLOCKSTATE_ROOT + "firewood.json")), () -> assertNotNull(load(MODEL_ROOT + "firewood.json")),
+                () -> assertEquals("minecraft:block/cube_all", load(MODEL_ROOT + "firewood.json").get("parent").getAsString()),
+                () -> assertEquals("tconstruct:block/firewood", load(MODEL_ROOT + "firewood.json").getAsJsonObject("textures").get("all").getAsString()),
+
+                () -> assertNotNull(load(BLOCKSTATE_ROOT + "lavawood.json")), () -> assertNotNull(load(MODEL_ROOT + "lavawood.json")),
+                () -> assertEquals("minecraft:block/cube_all", load(MODEL_ROOT + "lavawood.json").get("parent").getAsString()),
+                () -> assertEquals("tconstruct:block/lavawood", load(MODEL_ROOT + "lavawood.json").getAsJsonObject("textures").get("all").getAsString()));
     }
 
     @Test
