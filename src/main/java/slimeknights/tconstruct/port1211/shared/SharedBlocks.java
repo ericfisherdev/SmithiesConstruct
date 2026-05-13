@@ -100,7 +100,7 @@ public final class SharedBlocks {
 
     @SubscribeEvent
     private static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() != CreativeModeTabs.BUILDING_BLOCKS) {
+        if (!CreativeModeTabs.BUILDING_BLOCKS.equals(event.getTabKey())) {
             return;
         }
         ITEM_BUILDER.values().forEach(item -> event.accept(item.get()));
