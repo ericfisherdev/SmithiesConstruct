@@ -97,7 +97,12 @@ class TinkerItemTagsProviderTest {
         }
         List<Path> forgePaths = new ArrayList<>();
         try (Stream<Path> walk = Files.walk(generated)) {
-            walk.filter(p -> p.toString().contains("/data/forge/")).forEach(forgePaths::add);
+            // Inspect path segments rather than the raw string: the latter uses the platform
+            // separator and would miss forge: namespace dirs on Windows (backslash).
+            walk.filter(p -> {
+                Path relative = generated.relativize(p);
+                return relative.getNameCount() > 0 && "forge".equals(relative.getName(0).toString());
+            }).forEach(forgePaths::add);
         }
         catch (IOException e) {
             throw new AssertionError("failed walking " + generated, e);
