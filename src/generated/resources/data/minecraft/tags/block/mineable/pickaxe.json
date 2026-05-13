@@ -1,0 +1,17 @@
+{
+  "values": [
+    "tconstruct:block_cobalt",
+    "tconstruct:block_ardite",
+    "tconstruct:block_manyullyn",
+    "tconstruct:block_knightslime",
+    "tconstruct:block_pigiron",
+    "tconstruct:block_silver",
+    "tconstruct:block_copper",
+    "tconstruct:block_tin",
+    "tconstruct:block_zinc",
+    "tconstruct:block_brass",
+    "tconstruct:block_alubrass",
+    "tconstruct:block_electrum",
+    "tconstruct:block_steel"
+  ]
+}
