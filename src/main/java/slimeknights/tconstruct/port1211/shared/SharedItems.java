@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -30,6 +32,10 @@ import slimeknights.tconstruct.port1211.common.TinkerRegistries;
  *   <li>Miscellaneous: {@link #BACON} (a food item with the legacy nutrition/saturation values)
  *       and {@link #MUDBRICK} (a plain crafting item used by Phase-6 gadget recipes). Neither
  *       fits a family and they are exposed as bare static fields rather than a list.</li>
+ *   <li>Fluid buckets: {@link #BUCKET_BLOOD}. Each tconstruct fluid (see {@link SharedFluids})
+ *       ships a paired filled bucket. Lives here rather than in {@link SharedFluids} so all
+ *       per-mod {@link Item} registrations share the same {@link TinkerRegistries#ITEMS}
+ *       call-site and creative-tab listener.</li>
  * </ul>
  *
  * <p>Per-metal registrations go through {@link #metalItem} which validates the metal exists in
@@ -107,6 +113,15 @@ public final class SharedItems {
     public static final DeferredItem<Item> MUDBRICK = TinkerRegistries.ITEMS.registerSimpleItem("mudbrick");
 
     /**
+     * Blood bucket — filled bucket of {@link SharedFluids#BLOOD}. {@code craftRemainder(BUCKET)}
+     * gives the empty bucket back when a recipe consumes this one; {@code stacksTo(1)} matches
+     * the vanilla bucket convention. The Fluid reference is resolved at lambda-fire time
+     * (after FLUIDS registers but before ITEMS), so the cross-class forward reference is safe.
+     */
+    public static final DeferredItem<BucketItem> BUCKET_BLOOD = TinkerRegistries.ITEMS.registerItem("blood_bucket",
+            props -> new BucketItem(SharedFluids.BLOOD.get(), props.craftRemainder(Items.BUCKET).stacksTo(1)));
+
+    /**
      * Immutable insertion-ordered view over every registered ingot. Downstream providers
      * (tags, recipes, lang, models) iterate this list instead of the static fields so a new
      * metal lights up every provider by appending to {@link SharedMetals#ALL} and adding one
@@ -157,6 +172,9 @@ public final class SharedItems {
         }
         else if (CreativeModeTabs.FOOD_AND_DRINKS.equals(event.getTabKey())) {
             event.accept(BACON.get());
+        }
+        else if (CreativeModeTabs.TOOLS_AND_UTILITIES.equals(event.getTabKey())) {
+            event.accept(BUCKET_BLOOD.get());
         }
     }
 
