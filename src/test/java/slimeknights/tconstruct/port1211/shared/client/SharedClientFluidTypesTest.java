@@ -37,9 +37,15 @@ class SharedClientFluidTypesTest {
     void modifyFogColorReturnsDarkRedWhenSubmerged() {
         // The signature requires Camera/ClientLevel parameters we can't construct in a unit
         // test, but the implementation returns a constant Vector3f independent of them. Pass
-        // nulls and verify the constant.
-        Vector3f result = SharedClientFluidTypes.BLOOD_EXTENSIONS.modifyFogColor(null, 0f, null, 0, 0f, new Vector3f());
-        assertEquals(new Vector3f(0.4F, 0.0F, 0.0F), result);
+        // nulls and verify the constant — plus verify the defensive-copy contract by calling
+        // twice and asserting the returned instances are distinct objects. Vanilla's fog
+        // blender mutates returned vectors in place; aliasing the shared constant would let
+        // one frame's blend corrupt the next.
+        Vector3f first = SharedClientFluidTypes.BLOOD_EXTENSIONS.modifyFogColor(null, 0f, null, 0, 0f, new Vector3f());
+        Vector3f second = SharedClientFluidTypes.BLOOD_EXTENSIONS.modifyFogColor(null, 0f, null, 0, 0f, new Vector3f());
+        Vector3f expected = new Vector3f(0.4F, 0.0F, 0.0F);
+        assertAll(() -> assertEquals(expected, first), () -> assertEquals(expected, second),
+                () -> org.junit.jupiter.api.Assertions.assertNotSame(first, second, "modifyFogColor must return a fresh Vector3f per call"));
     }
 
     @Test
