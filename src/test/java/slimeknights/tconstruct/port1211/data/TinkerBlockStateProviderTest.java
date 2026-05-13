@@ -71,6 +71,7 @@ class TinkerBlockStateProviderTest {
                 () -> assertEquals("tconstruct:block/lavawood", load(MODEL_ROOT + "lavawood.json").getAsJsonObject("textures").get("all").getAsString()));
     }
 
+    @SuppressWarnings("PMD.UseProperClassLoader") // the fallback below is *itself* a fallback for when the proper context loader is null
     private static JsonObject load(String classpathResource) {
         // Gradle's test JVM always sets the thread context classloader, but fall back to the
         // test class's own loader if the harness ever runs without one — the alternative is
