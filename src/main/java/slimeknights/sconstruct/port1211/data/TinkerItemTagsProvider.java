@@ -80,6 +80,13 @@ public final class TinkerItemTagsProvider extends ItemTagsProvider {
             }
         }
 
+        // Copy the block-side slime tags (sconstruct:slimegrass, sconstruct:slimelogs) to
+        // the item registry so "any sconstruct slime log" / "any slime grass" recipes don't
+        // have to maintain a parallel item list — copy() asks vanilla to re-emit the same
+        // entry set under the matching item tag.
+        copy(TinkerTags.Blocks.SLIMEGRASS, itemTag(SConstruct.MOD_ID, "slimegrass"));
+        copy(TinkerTags.Blocks.SLIMELOGS, itemTag(SConstruct.MOD_ID, "slimelogs"));
+
         // Slimeballs: parent + 4 colour children. Parent references children via addTag so a
         // recipe input asking for "any sconstruct slimeball" only depends on the parent.
         TagKey<Item> blue = itemTag(SConstruct.MOD_ID, "slimeballs/blue");

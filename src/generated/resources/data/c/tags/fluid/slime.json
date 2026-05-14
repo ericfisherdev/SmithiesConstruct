@@ -1,0 +1,12 @@
+{
+  "values": [
+    "sconstruct:slime_blue",
+    "sconstruct:flowing_slime_blue",
+    "sconstruct:slime_purple",
+    "sconstruct:flowing_slime_purple",
+    "sconstruct:slime_magma",
+    "sconstruct:flowing_slime_magma",
+    "sconstruct:slime_blood",
+    "sconstruct:flowing_slime_blood"
+  ]
+}

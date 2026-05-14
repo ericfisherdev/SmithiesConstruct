@@ -1,0 +1,12 @@
+{
+  "values": [
+    "sconstruct:slime_blue_log",
+    "sconstruct:slime_purple_log",
+    "sconstruct:slime_magma_log",
+    "sconstruct:slime_blood_log",
+    "sconstruct:stripped_slime_blue_log",
+    "sconstruct:stripped_slime_purple_log",
+    "sconstruct:stripped_slime_magma_log",
+    "sconstruct:stripped_slime_blood_log"
+  ]
+}
