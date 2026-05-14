@@ -90,8 +90,12 @@ public final class WorldFeatures {
 
     /**
      * Write one {@link PlacedFeature} per slime colour. Trees are sapling-driven so the
-     * placement-modifier list is empty — vanilla {@code TreeGrower} pipes the configured
-     * feature through {@link Feature#TREE#place} directly without consulting placement filters.
+     * placement-modifier list is minimal — a single {@link PlacementUtils#HEIGHTMAP} modifier
+     * snaps the y-coordinate to the world's motion-blocking heightmap so the trunk roots at
+     * the surface when something else (a worldgen biome modifier, a debug command) drives the
+     * placement. The sapling-driven path bypasses placement modifiers entirely — vanilla
+     * {@code TreeGrower} pipes the configured feature through {@link Feature#TREE#place}
+     * directly without consulting the placement list.
      */
     public static void bootstrapPlaced(BootstrapContext<PlacedFeature> context) {
         HolderGetter<ConfiguredFeature<?, ?>> configured = context.lookup(Registries.CONFIGURED_FEATURE);
