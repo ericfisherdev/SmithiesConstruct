@@ -3,7 +3,7 @@ package slimeknights.sconstruct.port1211.world.block;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,7 +50,7 @@ class SlimeColorTest {
         Entity entity = mock(Entity.class);
         SlimeColor.BLUE.applyFallEffect(level, entity, 10.0F);
         SlimeColor.PURPLE.applyFallEffect(level, entity, 10.0F);
-        verify(entity, never()).hurt(any(), eq(SlimeColor.FIRE_DAMAGE_PER_BOUNCE));
+        verify(entity, never()).hurt(any(), anyFloat());
     }
 
     @Test
@@ -78,7 +78,7 @@ class SlimeColorTest {
 
         SlimeColor.MAGMA.applyFallEffect(level, entity, 10.0F);
 
-        verify(entity, never()).hurt(any(), eq(SlimeColor.FIRE_DAMAGE_PER_BOUNCE));
+        verify(entity, never()).hurt(any(), anyFloat());
     }
 
     @Test
@@ -91,7 +91,7 @@ class SlimeColorTest {
 
         SlimeColor.MAGMA.applyFallEffect(level, entity, 0.5F);
 
-        verify(entity, never()).hurt(any(), eq(SlimeColor.FIRE_DAMAGE_PER_BOUNCE));
+        verify(entity, never()).hurt(any(), anyFloat());
     }
 
     @Test
@@ -132,6 +132,6 @@ class SlimeColorTest {
 
         SlimeColor.BLOOD.applyFallEffect(level, living, 10.0F);
 
-        verify(living, never()).heal(SlimeColor.HEAL_PER_BOUNCE);
+        verify(living, never()).heal(anyFloat());
     }
 }
