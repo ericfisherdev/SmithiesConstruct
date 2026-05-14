@@ -8,9 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.registries.DeferredItem;
 
 import org.junit.jupiter.api.Test;
 
@@ -84,9 +88,14 @@ class ToolPartsTest {
     void acceptAllVisitsEveryRegisteredPartItemExactlyOnce() {
         // The BuildCreativeModeTabContentsEvent listener delegates to this helper, so verifying
         // it covers every part is the unit-level proxy for "Each visible in creative inventory".
+        // Count and distinctness alone would miss a swap that replaced one registered item with
+        // a foreign ItemLike of the same identity bucket — so also assert set-equality against
+        // the canonical PARTS values.
         List<ItemLike> visited = new ArrayList<>();
         ToolParts.acceptAll(visited::add);
+        Set<ItemLike> canonical = ToolParts.PARTS.values().stream().map(DeferredItem::get).collect(Collectors.toSet());
         assertAll(() -> assertEquals(PartType.values().length, visited.size(), "visitor must reach every part exactly once"),
-                () -> assertEquals(PartType.values().length, visited.stream().distinct().count(), "no duplicates"));
+                () -> assertEquals(PartType.values().length, visited.stream().distinct().count(), "no duplicates"),
+                () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical PARTS values — no foreign items"));
     }
 }
