@@ -2,7 +2,6 @@ package slimeknights.sconstruct.port1211.world;
 
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
 
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -120,8 +119,4 @@ public final class WorldFeatures {
         return java.util.Collections.unmodifiableMap(map);
     }
 
-    /** Visible-for-tests hook: the {@link OptionalInt} arguments StraightTrunkPlacer was built with. Lets tests pin trunk height without re-running the bootstrap. */
-    static List<Integer> trunkSpec() {
-        return List.of(TRUNK_BLOCKS, FOLIAGE_RADIUS, FOLIAGE_HEIGHT);
-    }
 }
