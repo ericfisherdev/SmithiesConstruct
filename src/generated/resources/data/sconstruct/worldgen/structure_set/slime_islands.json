@@ -1,0 +1,26 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 11331009,
+    "separation": 36,
+    "spacing": 96
+  },
+  "structures": [
+    {
+      "structure": "sconstruct:slime_island_blue",
+      "weight": 1
+    },
+    {
+      "structure": "sconstruct:slime_island_purple",
+      "weight": 1
+    },
+    {
+      "structure": "sconstruct:slime_island_magma",
+      "weight": 1
+    },
+    {
+      "structure": "sconstruct:slime_island_blood",
+      "weight": 1
+    }
+  ]
+}
