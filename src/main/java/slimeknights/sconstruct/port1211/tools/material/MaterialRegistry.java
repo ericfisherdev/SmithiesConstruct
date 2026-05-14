@@ -4,11 +4,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
@@ -31,15 +31,16 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
  *       want to round-trip through the {@code RegistryAccess} dispatch.</li>
  * </ul>
  *
- * <p>The cache is {@link Collections#unmodifiableMap}-wrapped and intentionally not exposed —
- * callers go through {@link #get(ResourceLocation)} or {@link #lookup(ResourceLocation)} so a
- * later reload swap can replace the underlying map atomically without leaking the stale
- * reference.
+ * <p>The cache uses an {@link AtomicReference} so the snapshot reference is replaced atomically
+ * on each reload without a {@code synchronized} block on the read path. Callers go through
+ * {@link #get(ResourceLocation)} or {@link #lookup(ResourceLocation)} — the cache itself is
+ * intentionally not exposed, so a later reload swap can replace the underlying map without
+ * leaking a stale reference.
  */
 public final class MaterialRegistry {
 
     /** Server-side material cache. Replaced atomically on each {@link OnDatapackSyncEvent}. */
-    private static volatile Map<ResourceLocation, Holder<Material>> cache = Map.of();
+    private static final AtomicReference<Map<ResourceLocation, Holder<Material>>> CACHE = new AtomicReference<>(Map.of());
 
     private MaterialRegistry() {
     }
@@ -65,12 +66,14 @@ public final class MaterialRegistry {
         // event fires before every client sync (per player on login + on /reload for every
         // connected player), but the underlying server registry only changes on /reload — so
         // we snapshot whenever the event fires and let later same-tick fires write the same
-        // snapshot. Cheap, idempotent, no synchronisation needed beyond the volatile field.
-        MinecraftServer server = event.getPlayerList().getServer();
-        HolderLookup.RegistryLookup<Material> lookup = server.registryAccess().lookupOrThrow(Material.REGISTRY_KEY);
+        // snapshot. Cheap, idempotent, no synchronisation needed beyond the AtomicReference.
+        // The MinecraftServer is server-owned (we do not own its lifecycle) — accessing it
+        // through the player-list shortcut keeps it readable without taking responsibility for
+        // closing it.
+        HolderLookup.RegistryLookup<Material> lookup = event.getPlayerList().getServer().registryAccess().lookupOrThrow(Material.REGISTRY_KEY);
         Map<ResourceLocation, Holder<Material>> snapshot = new HashMap<>();
         lookup.listElements().forEach(holder -> snapshot.put(holder.key().location(), holder));
-        cache = Collections.unmodifiableMap(snapshot);
+        CACHE.set(Collections.unmodifiableMap(snapshot));
     }
 
     /**
@@ -79,7 +82,7 @@ public final class MaterialRegistry {
      * {@code /reload}.
      */
     public static Optional<Holder<Material>> get(ResourceLocation id) {
-        return Optional.ofNullable(cache.get(id));
+        return Optional.ofNullable(CACHE.get().get(id));
     }
 
     /**
@@ -92,16 +95,16 @@ public final class MaterialRegistry {
 
     /** Test seam: replace the cache atomically. Visible-for-test only. */
     static void overwriteCacheForTest(Map<ResourceLocation, Holder<Material>> values) {
-        cache = Collections.unmodifiableMap(new HashMap<>(values));
+        CACHE.set(Collections.unmodifiableMap(new HashMap<>(values)));
     }
 
     /** Test seam: current size of the cache. */
     static int cacheSize() {
-        return cache.size();
+        return CACHE.get().size();
     }
 
     /** Test seam: clear the cache (simulates a server shutdown). */
     static void clearCacheForTest() {
-        cache = Map.of();
+        CACHE.set(Map.of());
     }
 }

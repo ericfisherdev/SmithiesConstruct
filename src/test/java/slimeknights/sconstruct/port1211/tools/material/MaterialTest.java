@@ -91,8 +91,8 @@ class MaterialTest {
         // Until SMTCON-69 lands the real dispatch, the placeholder codec must at least round
         // trip the singleton instance without throwing. Catches a regression that would block
         // the Material codec from carrying a stats map at all.
-        Tag encoded = MaterialStats.CODEC.encodeStart(NbtOps.INSTANCE, MaterialStats.Placeholder.INSTANCE).getOrThrow();
-        MaterialStats decoded = MaterialStats.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        Tag encoded = MaterialStats.Placeholder.CODEC.encodeStart(NbtOps.INSTANCE, MaterialStats.Placeholder.INSTANCE).getOrThrow();
+        MaterialStats decoded = MaterialStats.Placeholder.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
         assertSame(MaterialStats.Placeholder.INSTANCE, decoded);
     }
 }
