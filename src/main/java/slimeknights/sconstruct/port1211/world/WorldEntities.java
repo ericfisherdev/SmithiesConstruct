@@ -93,29 +93,25 @@ public final class WorldEntities {
         // honour slime chunks, swamps, the cap, and the lightless-spawn rule. The Heightmap
         // type matches vanilla Slime — MOTION_BLOCKING_NO_LEAVES — so a slime never spawns
         // inside a tree canopy.
-        event.register(BLUESLIME.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WorldEntities::checkSlimeSpawnRulesAsBlueslime,
+        event.register(BLUESLIME.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WorldEntities::checkSlimeSpawnRulesAdapter,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
-        event.register(HUGESLIME.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WorldEntities::checkSlimeSpawnRulesAsHugeSlime,
+        event.register(HUGESLIME.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WorldEntities::checkSlimeSpawnRulesAdapter,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
     /**
-     * Adapt {@link Slime#checkSlimeSpawnRules}'s {@code EntityType<Slime>}-typed predicate to the
-     * subclass entity type. The vanilla method body doesn't reflect on the parameter's generic
-     * argument — it just forwards to {@code checkMobSpawnRules} or evaluates the slime-chunk /
-     * swamp rules against the position — so an unchecked downcast on the entity-type argument
-     * is correct at runtime. Java's invariant generics refuse the bare method reference here
-     * because {@code EntityType<EntityBlueslime>} is not assignable to {@code EntityType<Slime>}
-     * without that cast.
+     * Adapt {@link Slime#checkSlimeSpawnRules}'s {@code EntityType<Slime>}-typed predicate to any
+     * {@link Slime} subclass entity type. The vanilla method body doesn't reflect on the
+     * parameter's generic argument — it just forwards to {@code checkMobSpawnRules} or evaluates
+     * the slime-chunk / swamp rules against the position — so an unchecked downcast on the
+     * entity-type argument is correct at runtime. Java's invariant generics refuse the bare
+     * method reference here because {@code EntityType<? extends Slime>} is not assignable to
+     * {@code EntityType<Slime>} without that cast. A single generic adapter covers every slime
+     * subclass — future additions plug into the same {@code WorldEntities::checkSlimeSpawnRulesAdapter}
+     * call site without a new wrapper per type.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static boolean checkSlimeSpawnRulesAsBlueslime(EntityType<EntityBlueslime> type, net.minecraft.world.level.ServerLevelAccessor level, net.minecraft.world.entity.MobSpawnType spawnType,
-            net.minecraft.core.BlockPos pos, net.minecraft.util.RandomSource random) {
-        return Slime.checkSlimeSpawnRules((EntityType) type, level, spawnType, pos, random);
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static boolean checkSlimeSpawnRulesAsHugeSlime(EntityType<EntityHugeSlime> type, net.minecraft.world.level.ServerLevelAccessor level, net.minecraft.world.entity.MobSpawnType spawnType,
+    private static <T extends Slime> boolean checkSlimeSpawnRulesAdapter(EntityType<T> type, net.minecraft.world.level.ServerLevelAccessor level, net.minecraft.world.entity.MobSpawnType spawnType,
             net.minecraft.core.BlockPos pos, net.minecraft.util.RandomSource random) {
         return Slime.checkSlimeSpawnRules((EntityType) type, level, spawnType, pos, random);
     }
