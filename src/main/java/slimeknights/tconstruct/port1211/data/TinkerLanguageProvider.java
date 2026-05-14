@@ -42,7 +42,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
 
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
-        for (int i = 0; i < SharedMetals.ALL.size(); i++) {
+        int metals = SharedMetals.ALL.size();
+        if (SharedItems.INGOTS.size() != metals || SharedItems.NUGGETS.size() != metals) {
+            throw new IllegalStateException(
+                    "SharedMetals.ALL / SharedItems.INGOTS / SharedItems.NUGGETS must be parallel in size");
+        }
+        for (int i = 0; i < metals; i++) {
             Metal metal = SharedMetals.ALL.get(i);
             String name = metalDisplayName(metal.id());
             if (SharedBlocks.METAL_BLOCKS.containsKey(metal.id())) {

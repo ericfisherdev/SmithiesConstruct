@@ -113,7 +113,9 @@ class TinkerLanguageProviderTest {
         }
         try (InputStream stream = cl.getResourceAsStream(LANG_FILE)) {
             assertNotNull(stream, LANG_FILE + " missing from test classpath — did you re-run ./gradlew runData?");
-            return GSON.fromJson(new String(stream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
+            JsonObject parsed = GSON.fromJson(new String(stream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
+            assertNotNull(parsed, LANG_FILE + " is not valid JSON");
+            return parsed;
         }
         catch (IOException e) {
             throw new AssertionError("failed reading " + LANG_FILE, e);
