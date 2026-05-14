@@ -47,11 +47,13 @@ public final class TinkerWorldPulse implements Pulse {
     @Override
     public void register(IEventBus modBus) {
         // Touch the content classes so their field initialisers run and TinkerRegistries.{FLUID_TYPES,
-        // FLUIDS, BLOCKS, ITEMS, ENTITY_TYPES} see every entry before their registry events fire.
+        // FLUIDS, BLOCKS, ITEMS, ENTITY_TYPES, STRUCTURE_TYPES, STRUCTURE_PIECE_TYPES} see every
+        // entry before their registry events fire.
         WorldFluids.init();
         WorldBlocks.init();
         WorldEntities.init();
         WorldEntities.register(modBus);
+        WorldStructures.init();
 
         modBus.addListener(TinkerWorldPulse::populateCreativeTab);
 
