@@ -101,6 +101,11 @@ class WorldTagsTest {
             assertNotNull(stream, resourcePath + " missing from classpath — did you re-run ./gradlew runData?");
             JsonObject json = GSON.fromJson(new String(stream.readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
             JsonArray values = json.getAsJsonArray("values");
+            // A tag JSON without a "values" array would otherwise NPE inside forEach with a
+            // stack trace that points at the helper rather than the offending file. The
+            // diagnostic message names the path so a future drift in the provider output
+            // (or a hand-edited override) lands on the right file at the first re-run.
+            assertNotNull(values, resourcePath + " is missing the 'values' array — provider output drift?");
             Set<String> result = new HashSet<>();
             values.forEach(element -> result.add(element.getAsString()));
             return result;
