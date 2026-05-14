@@ -134,4 +134,19 @@ class SlimeColorTest {
 
         verify(living, never()).heal(anyFloat());
     }
+
+    @Test
+    void bloodDoesNotHealBelowMinFallDistance() {
+        // Symmetric guard for the BLOOD path — magma already has
+        // magmaDoesNotApplyDamageBelowMinFallDistance. Without this, a regression that lowered
+        // the threshold (or dropped it entirely) would let a bouncing player heal infinitely
+        // on tiny in-place landings.
+        Level level = mock(Level.class);
+        when(level.isClientSide()).thenReturn(false);
+        LivingEntity living = mock(LivingEntity.class);
+
+        SlimeColor.BLOOD.applyFallEffect(level, living, SlimeColor.MIN_FALL_DISTANCE - 0.1F);
+
+        verify(living, never()).heal(anyFloat());
+    }
 }
