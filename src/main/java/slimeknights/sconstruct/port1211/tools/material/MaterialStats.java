@@ -15,21 +15,11 @@ import io.netty.buffer.ByteBuf;
  * and replaces the placeholder permits list with the real one.
  *
  * <p>Sealed rather than open so the codec can register a closed dispatch over the known
- * subtypes. The {@link #CODEC} placeholder rejects every value with a stable error message; the
- * actual dispatch arrives in SMTCON-69 and replaces this stub without touching {@link Material}.
+ * subtypes. The dispatch codec lives on {@link Placeholder} (PMD discourages constants on
+ * interfaces); SMTCON-69 will hoist a real dispatch codec onto the interface via a wrapper
+ * holder class.
  */
 public sealed interface MaterialStats permits MaterialStats.Placeholder {
-
-    /**
-     * Placeholder dispatch codec — fails until SMTCON-69 lands the real per-part-type subtypes.
-     * Returning a failure codec rather than throwing at class-load keeps the {@link Material}
-     * record loadable for unit tests that never carry stats values.
-     */
-    Codec<MaterialStats> CODEC = Codec.unit(Placeholder.INSTANCE).flatXmap(unit -> com.mojang.serialization.DataResult.success((MaterialStats) unit),
-            value -> com.mojang.serialization.DataResult.success(Placeholder.INSTANCE));
-
-    /** Network codec; matches the JSON codec's placeholder semantics. */
-    StreamCodec<ByteBuf, MaterialStats> STREAM_CODEC = ByteBufCodecs.BOOL.map(b -> Placeholder.INSTANCE, m -> Boolean.TRUE);
 
     /**
      * Singleton no-op stats value used while {@link MaterialStats} is a placeholder. Once
@@ -40,6 +30,16 @@ public sealed interface MaterialStats permits MaterialStats.Placeholder {
 
         /** Singleton instance; the placeholder carries no state. */
         public static final Placeholder INSTANCE = new Placeholder();
+
+        /**
+         * Placeholder dispatch codec — fails until SMTCON-69 lands the real per-part-type
+         * subtypes. Returns the singleton on every decode so the {@link Material} codec stays
+         * loadable for unit tests that never carry stats values.
+         */
+        public static final Codec<MaterialStats> CODEC = Codec.unit(INSTANCE);
+
+        /** Network codec; matches the JSON codec's placeholder semantics. */
+        public static final StreamCodec<ByteBuf, MaterialStats> STREAM_CODEC = ByteBufCodecs.BOOL.map(b -> INSTANCE, m -> Boolean.TRUE);
 
         private Placeholder() {
         }
