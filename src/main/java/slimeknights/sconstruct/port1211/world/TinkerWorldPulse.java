@@ -21,10 +21,11 @@ import slimeknights.sconstruct.port1211.world.client.WorldClientFluidTypes;
  * client or face a missing-registry-entry desync — STARTUP config flags are not network-synced
  * (see {@code Config} javadoc).
  *
- * <p>{@link #register} touches {@link WorldFluids} so its static field initialisers run before
- * the registry events fire, subscribes the creative-tab content listener so the four slime
- * buckets show up in the shared {@link SharedTabs#GENERAL} tab, and — on a physical client —
- * wires the {@link WorldClientFluidTypes} registration for per-fluid tints and fog colours.
+ * <p>{@link #register} touches {@link WorldFluids} and {@link WorldBlocks} so their static
+ * field initialisers run before the registry events fire, subscribes the creative-tab content
+ * listener so the four slime fluid buckets and four coloured slime blocks show up in the shared
+ * {@link SharedTabs#GENERAL} tab, and — on a physical client — wires the
+ * {@link WorldClientFluidTypes} registration for per-fluid tints and fog colours.
  */
 public final class TinkerWorldPulse implements Pulse {
 
@@ -40,9 +41,10 @@ public final class TinkerWorldPulse implements Pulse {
 
     @Override
     public void register(IEventBus modBus) {
-        // Touch the content class so its field initialisers run and TinkerRegistries.{FLUID_TYPES,
+        // Touch the content classes so their field initialisers run and TinkerRegistries.{FLUID_TYPES,
         // FLUIDS, BLOCKS, ITEMS} see every entry before their registry events fire.
         WorldFluids.init();
+        WorldBlocks.init();
 
         modBus.addListener(TinkerWorldPulse::populateCreativeTab);
 
@@ -64,5 +66,6 @@ public final class TinkerWorldPulse implements Pulse {
             return;
         }
         WorldFluids.acceptBuckets(event::accept);
+        WorldBlocks.acceptBlockItems(event::accept);
     }
 }

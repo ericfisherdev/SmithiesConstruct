@@ -11,6 +11,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
+import slimeknights.sconstruct.port1211.world.WorldBlocks;
 
 /**
  * Blockstate-and-model data provider. Emits one {@code variants}-style blockstate JSON and
@@ -43,6 +44,11 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         registerCubeAll(SharedBlocks.GLOW.get());
         registerCubeAll(SharedBlocks.FIREWOOD.get());
         registerCubeAll(SharedBlocks.LAVAWOOD.get());
+
+        // Phase-3 world: four coloured slime blocks. Each gets the same cube_all shape pointing
+        // at sconstruct:block/slime_<color>_block. A new colour added in WorldBlocks lights up
+        // here with no edit.
+        WorldBlocks.ALL.forEach(holder -> registerCubeAll(holder.get()));
     }
 
     /**

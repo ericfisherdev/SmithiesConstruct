@@ -42,4 +42,15 @@ class TinkerWorldPulseTest {
         assertEquals(4, WorldFluids.ALL.size(), "WorldFluids.ALL must hold all four slime fluids after register");
         assertNotNull(WorldFluids.SLIMEBLUE.source().getId(), "SLIMEBLUE source must be initialised");
     }
+
+    @Test
+    void registerTouchesWorldBlocksSoItsDeferredRegistersHaveEntries() {
+        // Same contract for WorldBlocks as for WorldFluids — register() must trigger the
+        // class load so the four slime block holders are populated before the BLOCKS / ITEMS
+        // registry events fire.
+        IEventBus bus = mock(IEventBus.class);
+        new TinkerWorldPulse().register(bus);
+        assertEquals(4, WorldBlocks.ALL.size(), "WorldBlocks.ALL must hold all four slime blocks after register");
+        assertNotNull(WorldBlocks.SLIMEBLUE.getId(), "SLIMEBLUE block must be initialised");
+    }
 }

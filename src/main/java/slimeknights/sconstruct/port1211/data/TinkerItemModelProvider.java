@@ -14,6 +14,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
+import slimeknights.sconstruct.port1211.world.WorldBlocks;
 
 /**
  * Item-model data provider. Two families:
@@ -61,6 +62,11 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         registerBlockItemFromBlockModel(SharedBlocks.GLOW);
         registerBlockItemFromBlockModel(SharedBlocks.FIREWOOD);
         registerBlockItemFromBlockModel(SharedBlocks.LAVAWOOD);
+
+        // Phase-3 world: 4 slime block items reference their block model so the inventory
+        // sprite shows the 3D cube. The block model itself is emitted by
+        // TinkerBlockStateProvider's pass above.
+        WorldBlocks.ALL.forEach(this::registerBlockItemFromBlockModel);
     }
 
     private void registerSpriteItem(DeferredItem<? extends Item> holder) {
