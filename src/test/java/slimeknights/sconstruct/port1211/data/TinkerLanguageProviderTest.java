@@ -102,8 +102,9 @@ class TinkerLanguageProviderTest {
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
-        // (block, bucket, fluid descriptionId) + 4 slime blocks = 71.
-        assertEquals(71, lang().entrySet().size());
+        // (block, bucket, fluid descriptionId) + 4 slime blocks + 4 plant sets × 4 entries
+        // each (dirt, grass, leaves, sapling) = 87.
+        assertEquals(87, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

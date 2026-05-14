@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "sconstruct:block/slime_purple_dirt"
+  }
+}

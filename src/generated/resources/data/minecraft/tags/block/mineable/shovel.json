@@ -1,0 +1,12 @@
+{
+  "values": [
+    "sconstruct:slime_blue_dirt",
+    "sconstruct:slime_blue_grass",
+    "sconstruct:slime_purple_dirt",
+    "sconstruct:slime_purple_grass",
+    "sconstruct:slime_magma_dirt",
+    "sconstruct:slime_magma_grass",
+    "sconstruct:slime_blood_dirt",
+    "sconstruct:slime_blood_grass"
+  ]
+}

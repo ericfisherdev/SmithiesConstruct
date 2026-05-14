@@ -12,6 +12,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
+import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
+import slimeknights.sconstruct.port1211.world.block.SlimeSaplingBlock;
 
 /**
  * Blockstate-and-model data provider. Emits one {@code variants}-style blockstate JSON and
@@ -49,6 +51,28 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         // at sconstruct:block/slime_<color>_block. A new colour added in WorldBlocks lights up
         // here with no edit.
         WorldBlocks.ALL.forEach(holder -> registerCubeAll(holder.get()));
+
+        // Phase-3 plant sets: dirt, grass, leaves use cubeAll; sapling uses the vanilla
+        // "cross" model (two intersecting flat planes) matching the oak sapling shape.
+        for (SlimePlantSet set : WorldBlocks.PLANT_SETS.values()) {
+            registerCubeAll(set.dirt().get());
+            registerCubeAll(set.grass().get());
+            registerCubeAll(set.leaves().get());
+            registerCross(set.sapling().get());
+        }
+    }
+
+    /**
+     * Emit a {@code cross} blockstate + model for the supplied sapling (two crossed flat
+     * planes), pre-registering the referenced sprite so {@link ExistingFileHelper} doesn't
+     * reject the model JSON. Vanilla's oak sapling uses {@code minecraft:block/cross} as the
+     * parent; we mirror that path so the sapling renders as a flat plant rather than a cube.
+     */
+    private void registerCross(SlimeSaplingBlock block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        simpleBlock(block, models().cross(blockId.getPath(), texture).renderType("cutout"));
     }
 
     /**

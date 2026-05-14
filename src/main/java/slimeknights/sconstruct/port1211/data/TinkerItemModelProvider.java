@@ -15,6 +15,7 @@ import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
+import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 
 /**
  * Item-model data provider. Two families:
@@ -67,6 +68,30 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // sprite shows the 3D cube. The block model itself is emitted by
         // TinkerBlockStateProvider's pass above.
         WorldBlocks.ALL.forEach(this::registerBlockItemFromBlockModel);
+
+        // Phase-3 plant set: dirt/grass/leaves render as 3D cubes (block-model parent), but
+        // saplings get the vanilla flat-sprite treatment in inventory (item/generated with the
+        // sapling texture as layer0) so they read as a plant — not a cube — in the hotbar.
+        for (SlimePlantSet set : WorldBlocks.PLANT_SETS.values()) {
+            registerBlockItemFromBlockModel(set.dirt());
+            registerBlockItemFromBlockModel(set.grass());
+            registerBlockItemFromBlockModel(set.leaves());
+            registerSaplingItem(set.sapling());
+        }
+    }
+
+    /**
+     * Emit a flat {@code item/generated} inventory model for the sapling, pointing
+     * {@code textures.layer0} at the block-tree sprite. Saplings sit at the same texture path
+     * as their blocks ({@code sconstruct:block/slime_<color>_sapling}) so the inventory and
+     * the in-world planting share one PNG — matching vanilla's oak/birch/etc. convention.
+     */
+    private void registerSaplingItem(DeferredBlock<? extends Block> saplingHolder) {
+        Block block = saplingHolder.get();
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        singleTexture(blockId.getPath(), ResourceLocation.parse("item/generated"), "layer0", texture);
     }
 
     private void registerSpriteItem(DeferredItem<? extends Item> holder) {
