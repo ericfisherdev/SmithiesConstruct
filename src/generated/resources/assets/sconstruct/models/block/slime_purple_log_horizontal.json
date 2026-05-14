@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_horizontal",
+  "textures": {
+    "end": "sconstruct:block/slime_purple_log_top",
+    "side": "sconstruct:block/slime_purple_log"
+  }
+}

@@ -117,6 +117,18 @@ public final class TinkerLanguageProvider extends LanguageProvider {
             add(set.leaves().get(), display + " Slime Leaves");
             add(set.sapling().get(), display + " Slime Sapling");
         }
+
+        // World pulse: four slime log blocks plus their stripped variants — 8 entries total.
+        for (Map.Entry<SlimeColor, net.neoforged.neoforge.registries.DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock>> entry : WorldBlocks.SLIME_LOGS.entrySet()) {
+            String colorId = entry.getKey().id();
+            String display = Character.toUpperCase(colorId.charAt(0)) + colorId.substring(1);
+            add(entry.getValue().get(), display + " Slime Log");
+        }
+        for (Map.Entry<SlimeColor, net.neoforged.neoforge.registries.DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock>> entry : WorldBlocks.STRIPPED_SLIME_LOGS.entrySet()) {
+            String colorId = entry.getKey().id();
+            String display = Character.toUpperCase(colorId.charAt(0)) + colorId.substring(1);
+            add(entry.getValue().get(), "Stripped " + display + " Slime Log");
+        }
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {

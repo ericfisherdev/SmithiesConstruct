@@ -1,12 +1,19 @@
 package slimeknights.sconstruct.port1211.data;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
+import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+
+import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.world.WorldFeatures;
 
 /**
  * Mod-bus listener for {@link GatherDataEvent}. Registers the Phase-1 provider stubs so the
@@ -25,10 +32,21 @@ public final class DataGenerators {
 
     public static void onGather(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
-        CompletableFuture<HolderLookup.Provider> registries = event.getLookupProvider();
+        CompletableFuture<HolderLookup.Provider> baseRegistries = event.getLookupProvider();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         boolean server = event.includeServer();
         boolean client = event.includeClient();
+
+        // Worldgen entries (ConfiguredFeature + PlacedFeature). DatapackBuiltinEntriesProvider
+        // augments the lookup provider so any later provider that needs the new entries (e.g. a
+        // future biome modifier referencing slime trees) can resolve them through the augmented
+        // provider returned by getRegistryProvider() — bind that augmented future to a fresh
+        // effectively-final local because subsequent factory lambdas capture it.
+        RegistrySetBuilder registrySetBuilder = new RegistrySetBuilder().add(Registries.CONFIGURED_FEATURE, WorldFeatures::bootstrapConfigured).add(Registries.PLACED_FEATURE,
+                WorldFeatures::bootstrapPlaced);
+        DatapackBuiltinEntriesProvider datapackProvider = new DatapackBuiltinEntriesProvider(generator.getPackOutput(), baseRegistries, registrySetBuilder, Set.of(SConstruct.MOD_ID));
+        generator.addProvider(server, datapackProvider);
+        CompletableFuture<HolderLookup.Provider> registries = datapackProvider.getRegistryProvider();
 
         DataProvider.Factory<TinkerBlockTagsProvider> blockTagsFactory = out -> new TinkerBlockTagsProvider(out, registries, existingFileHelper);
         TinkerBlockTagsProvider blockTags = generator.addProvider(server, blockTagsFactory);

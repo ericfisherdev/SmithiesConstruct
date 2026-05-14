@@ -73,6 +73,14 @@ public final class TinkerBlockTagsProvider extends BlockTagsProvider {
             tag(BlockTags.LEAVES).add(set.leaves().get());
             tag(BlockTags.SAPLINGS).add(set.sapling().get());
         }
+
+        // Phase-3 slime logs (normal + stripped): axe-mineable, feeding BlockTags.LOGS so
+        // vanilla "any log" recipes (planks crafting, etc. in a future task) pick them up.
+        for (DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> holder : WorldBlocks.ALL_LOGS) {
+            net.minecraft.world.level.block.RotatedPillarBlock log = holder.get();
+            tag(BlockTags.MINEABLE_WITH_AXE).add(log);
+            tag(BlockTags.LOGS).add(log);
+        }
     }
 
     private static Map<String, Metal> indexMetalsById() {

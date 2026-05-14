@@ -8,8 +8,10 @@ import java.util.function.Consumer;
 
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 
@@ -54,6 +56,8 @@ public final class WorldBlocks {
 
     private static final Map<SlimeColor, DeferredBlock<TinkerSlimeBlock>> SLIME_BUILDER = new LinkedHashMap<>();
     private static final Map<SlimeColor, SlimePlantSet> PLANT_BUILDER = new LinkedHashMap<>();
+    private static final Map<SlimeColor, DeferredBlock<RotatedPillarBlock>> LOG_BUILDER = new LinkedHashMap<>();
+    private static final Map<SlimeColor, DeferredBlock<RotatedPillarBlock>> STRIPPED_LOG_BUILDER = new LinkedHashMap<>();
 
     public static final DeferredBlock<TinkerSlimeBlock> SLIMEBLUE = slimeBlock(SlimeColor.BLUE);
     public static final DeferredBlock<TinkerSlimeBlock> SLIMEPURPLE = slimeBlock(SlimeColor.PURPLE);
@@ -65,11 +69,27 @@ public final class WorldBlocks {
     public static final SlimePlantSet PLANTS_MAGMA = slimePlantSet(SlimeColor.MAGMA);
     public static final SlimePlantSet PLANTS_BLOOD = slimePlantSet(SlimeColor.BLOOD);
 
+    public static final DeferredBlock<RotatedPillarBlock> LOG_BLUE = slimeLog(SlimeColor.BLUE, false);
+    public static final DeferredBlock<RotatedPillarBlock> LOG_PURPLE = slimeLog(SlimeColor.PURPLE, false);
+    public static final DeferredBlock<RotatedPillarBlock> LOG_MAGMA = slimeLog(SlimeColor.MAGMA, false);
+    public static final DeferredBlock<RotatedPillarBlock> LOG_BLOOD = slimeLog(SlimeColor.BLOOD, false);
+
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_LOG_BLUE = slimeLog(SlimeColor.BLUE, true);
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_LOG_PURPLE = slimeLog(SlimeColor.PURPLE, true);
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_LOG_MAGMA = slimeLog(SlimeColor.MAGMA, true);
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_LOG_BLOOD = slimeLog(SlimeColor.BLOOD, true);
+
     /** Immutable view over the four bouncy slime-block holders keyed by {@link SlimeColor}. */
     public static final Map<SlimeColor, DeferredBlock<TinkerSlimeBlock>> SLIME_BLOCKS;
 
     /** Immutable view over the four plant sets keyed by {@link SlimeColor}. */
     public static final Map<SlimeColor, SlimePlantSet> PLANT_SETS;
+
+    /** Immutable view over the four slime log blocks keyed by {@link SlimeColor}. */
+    public static final Map<SlimeColor, DeferredBlock<RotatedPillarBlock>> SLIME_LOGS;
+
+    /** Immutable view over the four stripped slime log blocks keyed by {@link SlimeColor}. */
+    public static final Map<SlimeColor, DeferredBlock<RotatedPillarBlock>> STRIPPED_SLIME_LOGS;
 
     /** Insertion-ordered list view of the bouncy slime blocks — matches {@link #SLIME_BLOCKS} order. */
     public static final List<DeferredBlock<TinkerSlimeBlock>> ALL;
@@ -81,6 +101,13 @@ public final class WorldBlocks {
      */
     public static final List<DeferredBlock<? extends Block>> ALL_PLANTS;
 
+    /**
+     * Insertion-ordered list view of every slime log (4 normal + 4 stripped = 8 entries).
+     * Order: blue, purple, magma, blood — first all four un-stripped, then all four stripped.
+     * Downstream providers iterate this for axis-aware blockstate/model/loot/tag emission.
+     */
+    public static final List<DeferredBlock<RotatedPillarBlock>> ALL_LOGS;
+
     static {
         SLIME_BLOCKS = Collections.unmodifiableMap(new LinkedHashMap<>(SLIME_BUILDER));
         ALL = List.copyOf(SLIME_BUILDER.values());
@@ -91,6 +118,14 @@ public final class WorldBlocks {
             plantsBuilder.addAll(set.all());
         }
         ALL_PLANTS = List.copyOf(plantsBuilder);
+
+        SLIME_LOGS = Collections.unmodifiableMap(new LinkedHashMap<>(LOG_BUILDER));
+        STRIPPED_SLIME_LOGS = Collections.unmodifiableMap(new LinkedHashMap<>(STRIPPED_LOG_BUILDER));
+
+        java.util.List<DeferredBlock<RotatedPillarBlock>> logsBuilder = new java.util.ArrayList<>();
+        logsBuilder.addAll(LOG_BUILDER.values());
+        logsBuilder.addAll(STRIPPED_LOG_BUILDER.values());
+        ALL_LOGS = List.copyOf(logsBuilder);
     }
 
     private WorldBlocks() {
@@ -158,6 +193,23 @@ public final class WorldBlocks {
         SlimePlantSet set = new SlimePlantSet(dirt, grass, leaves, sapling);
         PLANT_BUILDER.put(color, set);
         return set;
+    }
+
+    /**
+     * Register one slime log {@link RotatedPillarBlock} (normal or stripped). Properties mirror
+     * vanilla oak log: wood sound, strength {@code 2.0F}, no required tool (any tool — axe is
+     * faster, set via the MINEABLE_WITH_AXE block tag in datagen). Map colour is the slime
+     * colour for the normal log; stripped variants use {@link MapColor#WOOD} to read as bark-
+     * stripped on cartography tables, matching vanilla {@code stripped_oak_log}.
+     */
+    private static DeferredBlock<RotatedPillarBlock> slimeLog(SlimeColor color, boolean stripped) {
+        String registryPath = (stripped ? "stripped_" : "") + "slime_" + color.id() + "_log";
+        MapColor mapColor = stripped ? MapColor.WOOD : color.mapColor();
+        BlockBehaviour.Properties properties = BlockBehaviour.Properties.of().mapColor(mapColor).sound(SoundType.WOOD).strength(2.0F).ignitedByLava();
+        DeferredBlock<RotatedPillarBlock> block = TinkerRegistries.BLOCKS.register(registryPath, () -> new RotatedPillarBlock(properties));
+        TinkerRegistries.ITEMS.registerSimpleBlockItem(block);
+        (stripped ? STRIPPED_LOG_BUILDER : LOG_BUILDER).put(color, block);
+        return block;
     }
 
     /** Block-behaviour predicate: no entity is ever a valid spawn on this block. */
