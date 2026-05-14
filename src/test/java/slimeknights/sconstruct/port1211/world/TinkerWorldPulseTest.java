@@ -1,21 +1,23 @@
 package slimeknights.sconstruct.port1211.world;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 import net.neoforged.bus.api.IEventBus;
 
 import org.junit.jupiter.api.Test;
-
-import slimeknights.sconstruct.port1211.common.pulse.Pulse;
+import org.mockito.MockedStatic;
 
 /**
  * Pinned-behaviour tests for {@link TinkerWorldPulse}. Verifies the identity contract the
  * {@link slimeknights.sconstruct.port1211.common.pulse.PulseLoader} reads, and confirms that
- * {@link TinkerWorldPulse#register} populates the {@link WorldFluids} content list so the
- * pulse's DeferredRegisters fire with entries when the registry events run.
+ * {@link TinkerWorldPulse#register} actively invokes {@link WorldFluids#init()} and
+ * {@link WorldBlocks#init()} — using {@link MockedStatic} so the assertion fails if
+ * {@code register()} stops calling either method, even though touching the static state would
+ * otherwise mask the regression by triggering class-init independently.
  */
 class TinkerWorldPulseTest {
 
@@ -32,25 +34,26 @@ class TinkerWorldPulseTest {
     }
 
     @Test
-    void registerTouchesWorldFluidsSoItsDeferredRegistersHaveEntries() {
-        // Build a fresh pulse and call register() with a mock event bus. After the call,
-        // WorldFluids.ALL must be populated — failure here means register() forgot to touch
-        // the content class and its DeferredRegisters would fire empty.
+    void registerCallsWorldFluidsInitSoDeferredRegistersAreSeededBeforeTheirEvents() {
+        // MockedStatic with CALLS_REAL_METHODS lets WorldFluids.init() still run its real body
+        // (a no-op) while letting us verify the call. Reading a static field directly would
+        // pass even if register() stopped calling init() because the field access itself
+        // triggers class initialisation — the verify call below is the actual contract test.
         IEventBus bus = mock(IEventBus.class);
-        Pulse pulse = new TinkerWorldPulse();
-        pulse.register(bus);
-        assertEquals(4, WorldFluids.ALL.size(), "WorldFluids.ALL must hold all four slime fluids after register");
-        assertNotNull(WorldFluids.SLIMEBLUE.source().getId(), "SLIMEBLUE source must be initialised");
+        try (MockedStatic<WorldFluids> worldFluids = mockStatic(WorldFluids.class, CALLS_REAL_METHODS)) {
+            new TinkerWorldPulse().register(bus);
+            worldFluids.verify(WorldFluids::init);
+        }
     }
 
     @Test
-    void registerTouchesWorldBlocksSoItsDeferredRegistersHaveEntries() {
-        // Same contract for WorldBlocks as for WorldFluids — register() must trigger the
-        // class load so the four slime block holders are populated before the BLOCKS / ITEMS
-        // registry events fire.
+    void registerCallsWorldBlocksInitSoDeferredRegistersAreSeededBeforeTheirEvents() {
+        // Same MockedStatic contract for WorldBlocks — proves register() actively pumps the
+        // class load, not just that some other code path has already initialised it.
         IEventBus bus = mock(IEventBus.class);
-        new TinkerWorldPulse().register(bus);
-        assertEquals(4, WorldBlocks.ALL.size(), "WorldBlocks.ALL must hold all four slime blocks after register");
-        assertNotNull(WorldBlocks.SLIMEBLUE.getId(), "SLIMEBLUE block must be initialised");
+        try (MockedStatic<WorldBlocks> worldBlocks = mockStatic(WorldBlocks.class, CALLS_REAL_METHODS)) {
+            new TinkerWorldPulse().register(bus);
+            worldBlocks.verify(WorldBlocks::init);
+        }
     }
 }
