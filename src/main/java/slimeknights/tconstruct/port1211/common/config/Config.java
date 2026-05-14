@@ -16,12 +16,19 @@ import slimeknights.tconstruct.port1211.common.pulse.PulseLoader;
 
 /**
  * Production {@link ModConfigSpec} for the port-1.21.1 build. Holds the boolean flags that gate
- * each {@link Pulse} subsystem; loaded by NeoForge before {@code FMLCommonSetupEvent} fires, so
- * {@link PulseLoader#boot} can safely read the resolved values during mod construction.
+ * each {@link Pulse} subsystem; registered as {@code ModConfig.Type.STARTUP} so the TOML loads
+ * synchronously inside {@code registerConfig} and {@link PulseLoader#boot} can read the
+ * resolved values from the mod constructor — COMMON wouldn't be available until just before
+ * {@code FMLCommonSetupEvent}, which is too late to gate DeferredRegister attachment.
  *
- * <p>The TOML written to {@code <gameDir>/config/tconstruct-common.toml} on first launch groups
- * every pulse flag under the {@code [pulses]} category. Toggling a value there takes effect on
- * the next game launch — the loader reads each flag exactly once during boot.
+ * <p>STARTUP configs are <em>not</em> network-synced; operators must keep client and server
+ * pulse rosters identical or face desync. This is a deliberate trade-off: gating registry
+ * content at boot requires reading flags before any sync can occur, so the alternative would
+ * be to gate at a later phase, which would lose boot-time control over registry attachment.
+ *
+ * <p>The TOML written to {@code <gameDir>/config/tconstruct-startup.toml} on first launch
+ * groups every pulse flag under the {@code [pulses]} category. Toggling a value there takes
+ * effect on the next game launch — the loader reads each flag exactly once during boot.
  *
  * <p>Defaults match the legacy upstream pulse roster from Tinkers' Construct 1.12: every
  * production pulse on, the developer-only {@code debug} pulse off. Add a new pulse by appending
@@ -86,9 +93,11 @@ public final class Config {
      * is built (addon mods, dynamic loaders) so they don't blow up the gate just because they're
      * not in the config file yet.
      *
-     * <p>Callers should invoke this <em>after</em> NeoForge has loaded the COMMON config (i.e.
-     * inside or after {@code FMLCommonSetupEvent}); calling earlier returns the declared defaults
-     * but the underlying {@code BooleanValue#get()} may throw if the spec has not been bound.
+     * <p>Safe to invoke during mod construction <em>after</em> {@code container.registerConfig}
+     * has been called against this spec — the spec is registered as {@code STARTUP}, which
+     * loads synchronously inside that call. Before {@code registerConfig}, {@link #resolveFlag}
+     * detects the unloaded state via {@link ModConfigSpec#isLoaded()} and the gate falls back
+     * to each pulse's declared default.
      */
     public static PulseGate pulseGate() {
         return pulseGate(Config::resolveFlag);
