@@ -16,7 +16,7 @@ Run from the project root::
     python3 scripts/lang_to_json.py
 
 Idempotent — re-running overwrites the JSONs in place. Skips ``en_us.lang``
-and ``en_ud.lang`` (English baseline lives in ``TinkerLanguageProvider``).
+(English baseline lives in ``TinkerLanguageProvider``).
 """
 
 from __future__ import annotations
