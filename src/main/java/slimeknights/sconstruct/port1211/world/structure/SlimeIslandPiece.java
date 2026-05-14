@@ -54,7 +54,11 @@ public final class SlimeIslandPiece extends StructurePiece {
 
     public SlimeIslandPiece(StructurePieceSerializationContext context, CompoundTag tag) {
         super(WorldStructures.SLIME_ISLAND_PIECE.get(), tag);
-        this.color = SlimeColor.values()[tag.getInt(TAG_COLOR)];
+        // Read the colour via its string id rather than ordinal so a future enum reorder or
+        // constant insertion doesn't silently shift saved islands to the wrong colour. The
+        // fallback to BLUE handles corrupted/legacy tags — better to keep the island in-world
+        // with a default colour than throw and lose the StructureStart altogether.
+        this.color = SlimeColor.byId(tag.getString(TAG_COLOR)).orElse(SlimeColor.BLUE);
         this.radius = tag.getInt(TAG_RADIUS);
     }
 
@@ -70,7 +74,9 @@ public final class SlimeIslandPiece extends StructurePiece {
 
     @Override
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
-        tag.putInt(TAG_COLOR, color.ordinal());
+        // Write the colour as its serialized-name id (same string the CODEC emits) so saved
+        // pieces are robust against enum reordering. See the ctor for the matching read path.
+        tag.putString(TAG_COLOR, color.getSerializedName());
         tag.putInt(TAG_RADIUS, radius);
     }
 

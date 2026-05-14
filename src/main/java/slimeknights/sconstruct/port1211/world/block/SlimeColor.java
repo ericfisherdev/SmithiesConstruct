@@ -88,6 +88,22 @@ public enum SlimeColor implements StringRepresentable {
         return id;
     }
 
+    /**
+     * Look up the constant whose {@link #id} equals {@code id}. Returns an empty optional for
+     * an unknown id so callers can decide their own fallback policy — used by
+     * {@link slimeknights.sconstruct.port1211.world.structure.SlimeIslandPiece}'s NBT
+     * deserialiser to harden the save format against enum reordering (ordinal lookups would
+     * silently shift colours after a constant insert or rearrange).
+     */
+    public static java.util.Optional<SlimeColor> byId(String id) {
+        for (SlimeColor color : values()) {
+            if (color.id.equals(id)) {
+                return java.util.Optional.of(color);
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
     /** Map colour shown on cartography tables and cargo terminals. */
     public MapColor mapColor() {
         return mapColor;
