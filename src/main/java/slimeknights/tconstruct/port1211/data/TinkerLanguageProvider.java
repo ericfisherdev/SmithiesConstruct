@@ -44,8 +44,7 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();
         if (SharedItems.INGOTS.size() != metals || SharedItems.NUGGETS.size() != metals) {
-            throw new IllegalStateException(
-                    "SharedMetals.ALL / SharedItems.INGOTS / SharedItems.NUGGETS must be parallel in size");
+            throw new IllegalStateException("SharedMetals.ALL / SharedItems.INGOTS / SharedItems.NUGGETS must be parallel in size");
         }
         for (int i = 0; i < metals; i++) {
             Metal metal = SharedMetals.ALL.get(i);
