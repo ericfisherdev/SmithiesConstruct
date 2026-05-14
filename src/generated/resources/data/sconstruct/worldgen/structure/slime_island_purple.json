@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:slime_island",
+  "biomes": "#minecraft:is_overworld",
+  "color": "purple",
+  "radius": {
+    "type": "minecraft:uniform",
+    "max_inclusive": 24,
+    "min_inclusive": 8
+  },
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}
