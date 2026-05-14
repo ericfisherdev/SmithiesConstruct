@@ -73,13 +73,19 @@ class SharedTextureAssetsTest {
     @Test
     void slimeballsBaconMudbrickBloodBucketHaveItemTextures() {
         assertAll(
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png missing"),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png missing"),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png missing"),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png"),
+                        ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png"),
+                        ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png"),
+                        ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png"),
+                        ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png missing"),
                 () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png missing"),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png missing"),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png missing"));
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png"),
+                        ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png"),
+                        ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png missing"));
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
