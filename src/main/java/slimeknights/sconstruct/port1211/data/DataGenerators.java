@@ -13,6 +13,8 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.data.material.TinkerMaterialBootstrap;
+import slimeknights.sconstruct.port1211.tools.material.Material;
 import slimeknights.sconstruct.port1211.world.WorldFeatures;
 import slimeknights.sconstruct.port1211.world.WorldStructures;
 
@@ -46,8 +48,13 @@ public final class DataGenerators {
         RegistrySetBuilder registrySetBuilder = new RegistrySetBuilder().add(Registries.CONFIGURED_FEATURE, WorldFeatures::bootstrapConfigured)
                 .add(Registries.PLACED_FEATURE, WorldFeatures::bootstrapPlaced).add(Registries.STRUCTURE, WorldStructures::bootstrapStructures)
                 .add(Registries.STRUCTURE_SET, WorldStructures::bootstrapStructureSets)
-                .add(net.neoforged.neoforge.registries.NeoForgeRegistries.Keys.BIOME_MODIFIERS, WorldStructures::bootstrapBiomeModifiers);
-        DatapackBuiltinEntriesProvider datapackProvider = new DatapackBuiltinEntriesProvider(generator.getPackOutput(), baseRegistries, registrySetBuilder, Set.of(SConstruct.MOD_ID));
+                .add(net.neoforged.neoforge.registries.NeoForgeRegistries.Keys.BIOME_MODIFIERS, WorldStructures::bootstrapBiomeModifiers)
+                .add(Material.REGISTRY_KEY, TinkerMaterialBootstrap::bootstrap);
+        // The provider scope set lists every namespace whose entries this datagen emits.
+        // Phase-4 materials live under the {@code tconstruct} namespace for legacy-addon
+        // compatibility (see TinkerMaterialBootstrap class javadoc), so both namespaces are
+        // declared here.
+        DatapackBuiltinEntriesProvider datapackProvider = new DatapackBuiltinEntriesProvider(generator.getPackOutput(), baseRegistries, registrySetBuilder, Set.of(SConstruct.MOD_ID, "tconstruct"));
         generator.addProvider(server, datapackProvider);
         CompletableFuture<HolderLookup.Provider> registries = datapackProvider.getRegistryProvider();
 

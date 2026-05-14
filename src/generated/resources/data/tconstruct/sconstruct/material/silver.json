@@ -1,0 +1,36 @@
+{
+  "color": -2563344,
+  "id": "tconstruct:silver",
+  "repair_tag": "c:ingots/silver",
+  "stats": {
+    "arrowshaft": {
+      "type": "arrow",
+      "extra_durability": 15,
+      "weight": 1.4
+    },
+    "binding": {
+      "type": "extra",
+      "extra_durability": 28
+    },
+    "bowlimb": {
+      "type": "bow",
+      "damage_bonus": 0.5,
+      "draw_speed": 35,
+      "range_multiplier": 1.05
+    },
+    "handle": {
+      "type": "handle",
+      "attack_speed_modifier": 1.1,
+      "durability_modifier": 1.1,
+      "mining_speed_modifier": 1.0
+    },
+    "pickhead": {
+      "type": "head",
+      "attack_damage": 3.5,
+      "durability": 330,
+      "harvest_level": 3,
+      "mining_speed": 7.0
+    }
+  },
+  "tier": 3
+}

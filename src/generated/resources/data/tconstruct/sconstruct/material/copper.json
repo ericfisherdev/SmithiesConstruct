@@ -1,0 +1,36 @@
+{
+  "color": -2063539,
+  "id": "tconstruct:copper",
+  "repair_tag": "c:ingots/copper",
+  "stats": {
+    "arrowshaft": {
+      "type": "arrow",
+      "extra_durability": 8,
+      "weight": 1.3
+    },
+    "binding": {
+      "type": "extra",
+      "extra_durability": 20
+    },
+    "bowlimb": {
+      "type": "bow",
+      "damage_bonus": 0.0,
+      "draw_speed": 30,
+      "range_multiplier": 1.0
+    },
+    "handle": {
+      "type": "handle",
+      "attack_speed_modifier": 1.0,
+      "durability_modifier": 1.1,
+      "mining_speed_modifier": 1.1
+    },
+    "pickhead": {
+      "type": "head",
+      "attack_damage": 3.0,
+      "durability": 210,
+      "harvest_level": 2,
+      "mining_speed": 5.0
+    }
+  },
+  "tier": 2
+}
