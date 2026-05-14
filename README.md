@@ -1,7 +1,9 @@
-# [Tinkers' Construct](http://minecraft.curseforge.com/projects/tinkers-construct)
+# Smithies' Construct
 
-Modify all the things, then do it again!   
-Melt down any metals you find. 	 
+A 1.21.1 NeoForge port of [Tinkers' Construct](http://minecraft.curseforge.com/projects/tinkers-construct) by SlimeKnights. The legacy 1.12 codebase is preserved in-repo as frozen reference; active port code lives under `src/main/java/slimeknights/sconstruct/port1211/` (mod id `sconstruct`).
+
+Modify all the things, then do it again!
+Melt down any metals you find.
 Power the world with spinning wind!
 
 ### IMC

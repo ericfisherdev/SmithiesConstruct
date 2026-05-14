@@ -26,8 +26,8 @@ fail()  { printf '%spre-commit:%s %s\n' "$RED"    "$RESET" "$*" >&2; }
 
 mapfile -t STAGED_JAVA < <(
     git diff --cached --name-only --diff-filter=ACMR -- \
-        'src/main/java/slimeknights/tconstruct/port1211/*.java' \
-        'src/main/java/slimeknights/tconstruct/port1211/**/*.java' \
+        'src/main/java/slimeknights/sconstruct/port1211/*.java' \
+        'src/main/java/slimeknights/sconstruct/port1211/**/*.java' \
         'src/test/java/**/*.java' || true
 )
 
