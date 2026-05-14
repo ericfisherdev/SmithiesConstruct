@@ -62,6 +62,14 @@ public final class DataGenerators {
         DataProvider.Factory<TinkerFluidTagsProvider> fluidTagsFactory = out -> new TinkerFluidTagsProvider(out, registries, existingFileHelper);
         generator.addProvider(server, fluidTagsFactory);
 
+        // Phase-3 biome and entity-type tag providers — World* naming forward (the existing
+        // Tinker*TagsProvider classes keep their names per the carve-out in CLAUDE.md).
+        DataProvider.Factory<WorldBiomeTagsProvider> biomeTagsFactory = out -> new WorldBiomeTagsProvider(out, registries, existingFileHelper);
+        generator.addProvider(server, biomeTagsFactory);
+
+        DataProvider.Factory<WorldEntityTagsProvider> entityTagsFactory = out -> new WorldEntityTagsProvider(out, registries, existingFileHelper);
+        generator.addProvider(server, entityTagsFactory);
+
         DataProvider.Factory<TinkerRecipeProvider> recipeFactory = out -> new TinkerRecipeProvider(out, registries);
         generator.addProvider(server, recipeFactory);
 

@@ -75,11 +75,14 @@ public final class TinkerTags {
         public static final TagKey<Fluid> SMELTERY_FUEL = TagKey.create(Registries.FLUID, rl("smelteryfuel"));
     }
 
-    /** Entity-registry tags. Empty in Phase 1; entries arrive with the entity-owning pulses. */
+    /** Entity-registry tags. */
     public static final class Entities {
 
         private Entities() {
         }
+
+        /** All sconstruct slime mob entity types — blueslime + huge slime. Lets a future "any slime" interaction (e.g. mod tooling, achievements) target both with one tag. */
+        public static final TagKey<net.minecraft.world.entity.EntityType<?>> SLIMES = TagKey.create(Registries.ENTITY_TYPE, rl("slimes"));
     }
 
     /** Biome-registry tags. */
