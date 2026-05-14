@@ -115,7 +115,25 @@ public final class Config {
 
     private static Optional<Boolean> resolveFlag(String id) {
         ModConfigSpec.BooleanValue value = PULSE_FLAGS.get(id);
-        return value == null ? Optional.empty() : Optional.of(value.get());
+        if (value == null) {
+            return Optional.empty();
+        }
+        // PulseLoader runs during mod construction — config-load happens later in the NeoForge
+        // lifecycle, so calling value.get() now would throw "Cannot get config value before
+        // config is loaded". Swallow that exact case and return Optional.empty() so the gate
+        // falls back to the pulse's declared default. Once config has loaded (e.g. from a
+        // setup-event invocation), value.get() returns the resolved flag normally. Other
+        // IllegalStateException causes (e.g. a spec-builder bug) propagate so they're not
+        // silently masked as a fall-through-to-default.
+        try {
+            return Optional.of(value.get());
+        }
+        catch (IllegalStateException ise) {
+            if (ise.getMessage() != null && ise.getMessage().contains("Cannot get config value before config is loaded")) {
+                return Optional.empty();
+            }
+            throw ise;
+        }
     }
 
     /**
