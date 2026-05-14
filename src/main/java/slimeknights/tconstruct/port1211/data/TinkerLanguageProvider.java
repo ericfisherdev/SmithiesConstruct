@@ -94,6 +94,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         if (id.isEmpty()) {
             return id;
         }
-        return Character.toUpperCase(id.charAt(0)) + id.substring(1);
+        String[] words = id.split("_");
+        for (int i = 0; i < words.length; i++) {
+            if (!words[i].isEmpty()) {
+                words[i] = Character.toUpperCase(words[i].charAt(0)) + words[i].substring(1);
+            }
+        }
+        return String.join(" ", words);
     }
 }
