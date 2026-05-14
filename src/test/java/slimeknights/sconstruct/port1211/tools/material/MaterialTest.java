@@ -1,7 +1,6 @@
 package slimeknights.sconstruct.port1211.tools.material;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,7 +46,8 @@ class MaterialTest {
 
     @Test
     void directCodecRoundTripsAFullMaterialThroughJson() {
-        Material wood = new Material(WOOD, 1, Optional.of(PLANKS_TAG), Map.of(PartType.HANDLE, MaterialStats.Placeholder.INSTANCE, PartType.BOWLIMB, MaterialStats.Placeholder.INSTANCE),
+        Material wood = new Material(WOOD, 1, Optional.of(PLANKS_TAG),
+                Map.of(PartType.HANDLE, new HandleStats(1.0f, 1.0f, 1.0f), PartType.PICKHEAD, new HeadStats(60, 0, 2.0f, 2.0f), PartType.BOWLIMB, new BowStats(20, 1.0f, 0.5f)),
                 List.of(new MaterialTrait(ResourceLocation.fromNamespaceAndPath("tconstruct", "ecological"), 2)), 0xFF8B5A2B);
         JsonElement json = Material.DIRECT_CODEC.encodeStart(JsonOps.INSTANCE, wood).getOrThrow();
         Material decoded = Material.DIRECT_CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
@@ -71,7 +71,7 @@ class MaterialTest {
         // mutate the live state after construction. Locking the copy in stops a subtle alias
         // bug.
         java.util.Map<PartType, MaterialStats> mutableStats = new java.util.EnumMap<>(PartType.class);
-        mutableStats.put(PartType.HANDLE, MaterialStats.Placeholder.INSTANCE);
+        mutableStats.put(PartType.HANDLE, new HandleStats(1.0f, 1.0f, 1.0f));
         java.util.List<MaterialTrait> mutableTraits = new java.util.ArrayList<>();
         mutableTraits.add(new MaterialTrait(WOOD, 1));
 
@@ -82,17 +82,8 @@ class MaterialTest {
 
         assertEquals(1, material.stats().size(), "stats copy must not see post-construction mutation");
         assertEquals(1, material.traits().size(), "traits copy must not see post-construction mutation");
-        assertThrows(UnsupportedOperationException.class, () -> material.stats().put(PartType.PICKHEAD, MaterialStats.Placeholder.INSTANCE), "stats must be unmodifiable");
+        assertThrows(UnsupportedOperationException.class, () -> material.stats().put(PartType.PICKHEAD, new HeadStats(1, 0, 1.0f, 1.0f)), "stats must be unmodifiable");
         assertThrows(UnsupportedOperationException.class, () -> material.traits().add(new MaterialTrait(WOOD, 1)), "traits must be unmodifiable");
     }
 
-    @Test
-    void placeholderStatsCodecIsSymmetricalSingleton() {
-        // Until SMTCON-69 lands the real dispatch, the placeholder codec must at least round
-        // trip the singleton instance without throwing. Catches a regression that would block
-        // the Material codec from carrying a stats map at all.
-        Tag encoded = MaterialStats.Placeholder.CODEC.encodeStart(NbtOps.INSTANCE, MaterialStats.Placeholder.INSTANCE).getOrThrow();
-        MaterialStats decoded = MaterialStats.Placeholder.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
-        assertSame(MaterialStats.Placeholder.INSTANCE, decoded);
-    }
 }
