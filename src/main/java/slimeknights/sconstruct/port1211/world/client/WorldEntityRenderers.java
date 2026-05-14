@@ -7,7 +7,7 @@ import slimeknights.sconstruct.port1211.world.WorldEntities;
 
 /**
  * Client-only registrar that binds the two {@link slimeknights.sconstruct.port1211.world.WorldEntities}
- * slime mob types to their per-entity {@link TinkerSlimeRenderer} subclass. Subscribes a single
+ * slime mob types to their per-entity {@link SmithiesSlimeRenderer} subclass. Subscribes a single
  * {@link EntityRenderersEvent.RegisterRenderers} listener which fires once during client setup
  * with the active {@code EntityRendererProvider.Context}.
  *

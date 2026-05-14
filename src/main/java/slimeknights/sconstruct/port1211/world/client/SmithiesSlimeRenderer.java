@@ -24,11 +24,11 @@ import slimeknights.sconstruct.port1211.SConstruct;
  * {@code MobRenderer<EntityBlueslime, ...>} is wanted by the renderer registration API).
  *
  * <p>Subclasses pin the texture by passing the bare filename (no namespace, no path prefix)
- * to {@link #TinkerSlimeRenderer(EntityRendererProvider.Context, String)}. The base resolves
+ * to {@link #SmithiesSlimeRenderer(EntityRendererProvider.Context, String)}. The base resolves
  * it to {@code sconstruct:textures/entity/slime/<name>.png} so adding a new slime variant is
  * one new subclass plus one new PNG.
  */
-public abstract class TinkerSlimeRenderer<T extends Slime> extends MobRenderer<T, SlimeModel<T>> {
+public abstract class SmithiesSlimeRenderer<T extends Slime> extends MobRenderer<T, SlimeModel<T>> {
 
     /** Base shadow radius for a size-1 slime — vanilla {@code SlimeRenderer} ships {@code 0.25F}. */
     private static final float BASE_SHADOW_RADIUS = 0.25F;
@@ -44,7 +44,7 @@ public abstract class TinkerSlimeRenderer<T extends Slime> extends MobRenderer<T
 
     private final ResourceLocation texture;
 
-    protected TinkerSlimeRenderer(EntityRendererProvider.Context ctx, String textureName) {
+    protected SmithiesSlimeRenderer(EntityRendererProvider.Context ctx, String textureName) {
         super(ctx, new SlimeModel<>(ctx.bakeLayer(ModelLayers.SLIME)), BASE_SHADOW_RADIUS);
         this.addLayer(new SlimeOuterLayer<>(this, ctx.getModelSet()));
         this.texture = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "textures/entity/slime/" + textureName + ".png");
