@@ -1,7 +1,7 @@
 {
   "values": [
-    "tconstruct:glow",
-    "tconstruct:firewood",
-    "tconstruct:lavawood"
+    "sconstruct:glow",
+    "sconstruct:firewood",
+    "sconstruct:lavawood"
   ]
 }

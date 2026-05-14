@@ -5,9 +5,9 @@ modern ``<locale>.json`` (Minecraft 1.13+ JSON format).
 One-time migration script used by SMTCON-48. Reads every ``*.lang`` under the
 legacy ``resources/assets/tconstruct/lang/`` directory and emits one
 ``<locale>.json`` per file under
-``src/main/resources/assets/tconstruct/lang/``. Keys are preserved verbatim —
+``src/main/resources/assets/sconstruct/lang/``. Keys are preserved verbatim —
 the legacy ``tile.tconstruct.X.name`` format will not match the modern
-``block.tconstruct.X`` keys emitted by ``TinkerLanguageProvider``, but
+``block.sconstruct.X`` keys emitted by ``TinkerLanguageProvider``, but
 preserving the original translations gives future per-locale mapping passes
 the source material they need to work from.
 
@@ -26,7 +26,7 @@ from pathlib import Path
 
 
 SOURCE_DIR = Path("resources/assets/tconstruct/lang")
-DEST_DIR = Path("src/main/resources/assets/tconstruct/lang")
+DEST_DIR = Path("src/main/resources/assets/sconstruct/lang")
 # en_us is owned by TinkerLanguageProvider — skip it here.
 # en_ud (upside-down English) is a joke locale shipped by vanilla and listed in the SMTCON-48
 # AC's 12-locale set, so it stays.
