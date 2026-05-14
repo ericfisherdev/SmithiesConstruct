@@ -1,6 +1,5 @@
 package slimeknights.sconstruct.port1211.world.block;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -9,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -33,9 +31,6 @@ public final class SlimeGrassBlock extends Block implements BonemealableBlock {
 
     /** Light level (sky+block max) at which grass survives on top of dirt. Matches vanilla. */
     private static final int GRASS_LIGHT_THRESHOLD = 9;
-
-    /** Light level at which grass dies back to dirt. Matches vanilla. */
-    private static final int GRASS_DEATH_LIGHT_THRESHOLD = 4;
 
     /** Number of spread attempts per random tick. Matches vanilla {@code SpreadingSnowyDirtBlock}. */
     private static final int SPREAD_ATTEMPTS = 4;
@@ -115,18 +110,22 @@ public final class SlimeGrassBlock extends Block implements BonemealableBlock {
         }
     }
 
-    /** Whether grass can replace the dirt block at {@code pos}: needs ample light and no liquid above. */
+    /**
+     * Whether grass can replace the dirt block at {@code pos}. Mirrors vanilla
+     * {@code SpreadingSnowyDirtBlock#canPropagate}: pass the {@link #canBeGrass} block-above
+     * light-occlusion gate and confirm no water (still or flowing) sits above the target. The
+     * source's own light gating happens in {@link #randomTick} via
+     * {@code getMaxLocalRawBrightness >= GRASS_LIGHT_THRESHOLD} before this method is even
+     * called, so an extra per-target brightness threshold here would refuse spread in spots
+     * vanilla allows.
+     */
     private static boolean canPropagate(BlockState grassState, ServerLevel level, BlockPos pos) {
-        BlockPos above = pos.above();
-        FluidState aboveFluid = level.getFluidState(above);
         // Use the FluidTags.WATER tag rather than Fluids.WATER directly — the latter only
         // matches still water, so flowing water above the dirt would silently slip through and
         // let grass spread under a stream. The vanilla water tag covers both Fluids.WATER and
         // Fluids.FLOWING_WATER, plus any modded fluid that opts into "is water" semantics.
+        FluidState aboveFluid = level.getFluidState(pos.above());
         if (aboveFluid.is(FluidTags.WATER)) {
-            return false;
-        }
-        if (level.getRawBrightness(above, 0) < GRASS_DEATH_LIGHT_THRESHOLD && level.getBrightness(LightLayer.SKY, above) < GRASS_DEATH_LIGHT_THRESHOLD) {
             return false;
         }
         return canBeGrass(grassState, level, pos);
@@ -155,8 +154,4 @@ public final class SlimeGrassBlock extends Block implements BonemealableBlock {
         return matchingDirt.get();
     }
 
-    /** Test seam: snapshot the surfaces used by tests so a future redesign can rename in one place. */
-    static List<Integer> spreadConstants() {
-        return List.of(GRASS_LIGHT_THRESHOLD, GRASS_DEATH_LIGHT_THRESHOLD, SPREAD_ATTEMPTS);
-    }
 }
