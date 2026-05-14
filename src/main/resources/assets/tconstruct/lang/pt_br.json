@@ -1,8 +1,8 @@
 {
   "config.synced.ok": "Configurações sincronizadas com o servidor.",
   "config.synced.restart": "Configurações alteradas pelo servidor. Reinicie o jogo.",
-  "death.attack.bleed": "%1$s sangrou até a morte com um ataque de %2$",
-  "death.attack.bleed.item": "%1$s sangrou até a morte com um ataque de %2$ usando %3$s",
+  "death.attack.bleed": "%1$s sangrou até a morte com um ataque de %2$s",
+  "death.attack.bleed.item": "%1$s sangrou até a morte com um ataque de %2$s usando %3$s",
   "death.attack.smeltery": "%s tentou criar Jogador Derretido",
   "death.attack.splinter": "%s pegou um calo. Deve ter sido grande",
   "entity.tconstruct.blueslime.name": "Slime Azul",
