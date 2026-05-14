@@ -12,6 +12,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.common.TinkerTags;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
@@ -75,11 +76,21 @@ public final class TinkerBlockTagsProvider extends BlockTagsProvider {
         }
 
         // Phase-3 slime logs (normal + stripped): axe-mineable, feeding BlockTags.LOGS so
-        // vanilla "any log" recipes (planks crafting, etc. in a future task) pick them up.
+        // vanilla "any log" recipes (planks crafting, etc. in a future task) pick them up,
+        // and the sconstruct:slimelogs parent tag for any "any sconstruct slime log" recipe
+        // / interaction.
         for (DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> holder : WorldBlocks.ALL_LOGS) {
             net.minecraft.world.level.block.RotatedPillarBlock log = holder.get();
             tag(BlockTags.MINEABLE_WITH_AXE).add(log);
             tag(BlockTags.LOGS).add(log);
+            tag(TinkerTags.Blocks.SLIMELOGS).add(log);
+        }
+
+        // Phase-3 slime grass parent tag — sconstruct:slimegrass collects every coloured
+        // grass block so "any slime grass" lookups (spread rules, future bonemeal hooks)
+        // can target one tag instead of enumerating per-colour fields.
+        for (SlimePlantSet set : WorldBlocks.PLANT_SETS.values()) {
+            tag(TinkerTags.Blocks.SLIMEGRASS).add(set.grass().get());
         }
     }
 
