@@ -1,6 +1,5 @@
 package slimeknights.sconstruct.port1211.data.material;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,6 +9,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
@@ -17,54 +17,53 @@ import net.minecraft.resources.ResourceLocation;
 
 import org.junit.jupiter.api.Test;
 
+import slimeknights.sconstruct.port1211.tools.PartType;
 import slimeknights.sconstruct.port1211.tools.material.Material;
 
 /**
  * Pinned-behaviour tests for {@link TinkerMaterialBootstrap}. Captures the entries the bootstrap
  * registers into a {@link BootstrapContext} mock, then asserts the roster surface SMTCON-71
- * promises: 15 materials at the right ids in the {@code tconstruct} namespace with the
- * tier-ladder the AC pins (iron=2, cobalt=4, manyullyn=5, wood=0).
+ * promises: 15 specific materials at the expected ids with the AC-pinned tier ladder, the
+ * canonical five stat-slot keys, and a repair tag on every smeltery-tier metal.
  */
 class TinkerMaterialBootstrapTest {
 
+    /** Canonical roster — id → tier — pinned by SMTCON-71 AC. Any drift breaks downstream
+     *  tool-default math; the test compares this map against the bootstrap output as a set. */
+    private static final Map<ResourceLocation, Integer> EXPECTED_TIERS = Map.ofEntries(Map.entry(rl("wood"), 0), Map.entry(rl("stone"), 1), Map.entry(rl("iron"), 2), Map.entry(rl("gold"), 0),
+            Map.entry(rl("flint"), 1), Map.entry(rl("bone"), 1), Map.entry(rl("paper"), 1), Map.entry(rl("slime"), 1), Map.entry(rl("blueslime"), 1), Map.entry(rl("copper"), 2),
+            Map.entry(rl("silver"), 3), Map.entry(rl("steel"), 3), Map.entry(rl("cobalt"), 4), Map.entry(rl("ardite"), 4), Map.entry(rl("manyullyn"), 5));
+
+    /** Canonical five stat-slot keys every material must populate so tool builds resolve. */
+    private static final Set<PartType> EXPECTED_STAT_SLOTS = Set.of(PartType.PICKHEAD, PartType.HANDLE, PartType.BINDING, PartType.BOWLIMB, PartType.ARROWSHAFT);
+
     @Test
-    void registersFifteenMaterialsInTheTconstructNamespaceWithTheExpectedTiers() {
+    void registersTheExactMaterialRosterWithItsPinnedTierLadder() {
         Map<ResourceLocation, Material> registered = captureBootstrap();
-
-        assertEquals(15, registered.size(), "SMTCON-71 ships fifteen base materials");
-
-        // Namespace contract: every material lives under tconstruct: so legacy addon material
-        // lookups resolve against this roster. Any future drift would split addon compatibility.
-        registered.keySet().forEach(id -> assertEquals("tconstruct", id.getNamespace(), () -> "non-tconstruct material id: " + id));
-
-        // Tier ladder pinned by AC: wood=0, iron=2, cobalt=4, manyullyn=5. Drift in any of these
-        // breaks downstream tool-default tier math.
-        assertAll(() -> assertEquals(0, registered.get(rl("wood")).tier()), () -> assertEquals(1, registered.get(rl("stone")).tier()), () -> assertEquals(2, registered.get(rl("iron")).tier()),
-                () -> assertEquals(0, registered.get(rl("gold")).tier()), () -> assertEquals(4, registered.get(rl("cobalt")).tier()), () -> assertEquals(4, registered.get(rl("ardite")).tier()),
-                () -> assertEquals(5, registered.get(rl("manyullyn")).tier()));
+        assertEquals(EXPECTED_TIERS.keySet(), registered.keySet(), "material roster drifted from SMTCON-71 spec");
+        EXPECTED_TIERS.forEach((id, tier) -> assertEquals(tier.intValue(), registered.get(id).tier(), () -> "tier drift for " + id));
     }
 
     @Test
-    void everyRegisteredMaterialPopulatesFiveStatSlots() {
-        // The bootstrap helper attaches HeadStats/HandleStats/ExtraStats/BowStats/ArrowStats to
-        // every material. Catches a regression where one material drops a slot — downstream
-        // tool builds rely on the full five-slot set being present.
+    void everyRegisteredMaterialPopulatesTheCanonicalFiveStatSlotKeys() {
+        // Size-only check would pass a map with five wrong keys; pin the key set explicitly so
+        // a typo (e.g. swapping PICKHEAD → AXEHEAD on the helper) surfaces here.
         Map<ResourceLocation, Material> registered = captureBootstrap();
         registered.forEach((id, material) -> {
             assertNotNull(material.stats(), () -> "stats null for " + id);
-            assertEquals(5, material.stats().size(), () -> id + " must have all five stat slots populated");
+            assertEquals(EXPECTED_STAT_SLOTS, material.stats().keySet(), () -> "unexpected stat slot keys for " + id);
         });
     }
 
     @Test
-    void smelteryTierMetalsCarryRepairTags() {
-        // Tier-4+ metals each ship a repair tag in c:ingots/<metal> so anvil repair stays
-        // consistent with the legacy material registry.
+    void everySmelteryTierMetalCarriesARepairTag() {
+        // The "smeltery-tier" cohort that needs a repair tag covers iron + every metal at
+        // tier >= 2: copper, silver, steel, cobalt, ardite, manyullyn. The earlier draft of
+        // this test only checked the tier-4+ subset; the scope matches its claim now.
         Map<ResourceLocation, Material> registered = captureBootstrap();
-        assertAll(() -> assertTrue(registered.get(rl("cobalt")).repairTag().isPresent(), "cobalt repair tag missing"),
-                () -> assertTrue(registered.get(rl("ardite")).repairTag().isPresent(), "ardite repair tag missing"),
-                () -> assertTrue(registered.get(rl("manyullyn")).repairTag().isPresent(), "manyullyn repair tag missing"),
-                () -> assertTrue(registered.get(rl("iron")).repairTag().isPresent(), "iron repair tag missing"));
+        for (String metal : new String[] { "iron", "copper", "silver", "steel", "cobalt", "ardite", "manyullyn" }) {
+            assertTrue(registered.get(rl(metal)).repairTag().isPresent(), () -> metal + " repair tag missing");
+        }
     }
 
     /** Run {@link TinkerMaterialBootstrap#bootstrap} against a recording {@link BootstrapContext}
