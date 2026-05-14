@@ -82,11 +82,12 @@ class WorldFluidsTest {
     void acceptBucketsVisitsEverySetInOrder() {
         // The world pulse's creative-tab listener calls acceptBuckets to populate the tab. The
         // visit order must match WorldFluids.ALL so the buckets land in the same column the
-        // player expects from the lang display order.
+        // player expects from the lang display order — assert the exact expected sequence,
+        // not just count + suffix, so a shuffled implementation doesn't slip through.
         List<String> seen = new ArrayList<>();
         WorldFluids.acceptBuckets(item -> seen.add(item.asItem().getDescriptionId()));
-        assertEquals(4, seen.size());
-        // Every visited item should be a bucket — assert the descriptor ends in "_bucket".
+        List<String> expected = WorldFluids.ALL.stream().map(set -> set.bucket().get().getDescriptionId()).toList();
+        assertEquals(expected, seen, "acceptBuckets order/content must match WorldFluids.ALL");
         seen.forEach(id -> assertTrue(id.endsWith("_bucket"), "expected '*_bucket' description id, got " + id));
     }
 
