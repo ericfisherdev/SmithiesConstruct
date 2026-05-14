@@ -65,7 +65,7 @@ public record Material(ResourceLocation id, int tier, Optional<TagKey<Item>> rep
     public static final Codec<Material> DIRECT_CODEC = RecordCodecBuilder.create(instance -> instance
             .group(ResourceLocation.CODEC.fieldOf("id").forGetter(Material::id), Codec.INT.fieldOf("tier").forGetter(Material::tier),
                     TagKey.codec(Registries.ITEM).optionalFieldOf("repair_tag").forGetter(Material::repairTag),
-                    Codec.unboundedMap(PartType.CODEC, MaterialStats.Placeholder.CODEC).optionalFieldOf("stats", Map.of()).forGetter(Material::stats),
+                    Codec.unboundedMap(PartType.CODEC, MaterialStatsCodecs.CODEC).optionalFieldOf("stats", Map.of()).forGetter(Material::stats),
                     MaterialTrait.CODEC.listOf().optionalFieldOf("traits", List.of()).forGetter(Material::traits), Codec.INT.optionalFieldOf("color", 0xFFFFFFFF).forGetter(Material::color))
             .apply(instance, Material::new));
 
