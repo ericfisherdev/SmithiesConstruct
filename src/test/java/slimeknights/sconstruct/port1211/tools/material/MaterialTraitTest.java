@@ -12,12 +12,15 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 
+import slimeknights.sconstruct.port1211.tools.PartType;
+
 import io.netty.buffer.Unpooled;
 
 /**
- * Pinned-behaviour tests for the {@link MaterialTrait} placeholder used by {@link Material}.
- * SMTCON-70 will grow the record; these tests lock in the SMTCON-68 surface (id + level pair
- * round-trips through JSON, NBT, and the stream codec).
+ * Pinned-behaviour tests for {@link MaterialTrait}. Locks in the SMTCON-70 shape — a
+ * {@code (traitId, slot)} pair that round-trips through JSON, NBT, and the stream codec — and
+ * pins the JSON field names ({@code trait}, {@code slot}) so shipped material files don't
+ * break on a future field rename.
  */
 class MaterialTraitTest {
 
@@ -25,30 +28,31 @@ class MaterialTraitTest {
 
     @Test
     void codecRoundTripsThroughJson() {
-        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, 3);
+        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, PartType.PICKHEAD);
         JsonElement json = MaterialTrait.CODEC.encodeStart(JsonOps.INSTANCE, trait).getOrThrow();
         assertEquals(trait, MaterialTrait.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
     }
 
     @Test
-    void codecLevelDefaultsToOneWhenOmitted() {
-        // The JSON shorthand {"id":"..."} should decode to level=1 so material files don't
-        // need a level field for vanilla level-1 traits.
-        JsonElement json = JsonOps.INSTANCE.createMap(java.util.Map.of(JsonOps.INSTANCE.createString("id"), JsonOps.INSTANCE.createString(ECOLOGICAL.toString())));
-        MaterialTrait decoded = MaterialTrait.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
-        assertEquals(new MaterialTrait(ECOLOGICAL, 1), decoded);
+    void codecJsonShapeUsesTraitAndSlotFields() {
+        // Pin the JSON field names — datapacks depend on them, and a rename to e.g. "id" or
+        // "type" would break every shipped material file silently.
+        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, PartType.HANDLE);
+        com.google.gson.JsonObject json = (com.google.gson.JsonObject) MaterialTrait.CODEC.encodeStart(JsonOps.INSTANCE, trait).getOrThrow();
+        assertEquals(ECOLOGICAL.toString(), json.get("trait").getAsString());
+        assertEquals("handle", json.get("slot").getAsString());
     }
 
     @Test
     void codecRoundTripsThroughNbt() {
-        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, 2);
+        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, PartType.BINDING);
         Tag encoded = MaterialTrait.CODEC.encodeStart(NbtOps.INSTANCE, trait).getOrThrow();
         assertEquals(trait, MaterialTrait.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow());
     }
 
     @Test
     void streamCodecRoundTrips() {
-        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, 4);
+        MaterialTrait trait = new MaterialTrait(ECOLOGICAL, PartType.ARROW_HEAD);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         try {
             MaterialTrait.STREAM_CODEC.encode(buf, trait);
