@@ -1,0 +1,36 @@
+{
+  "color": -7644629,
+  "id": "tconstruct:wood",
+  "repair_tag": "minecraft:planks",
+  "stats": {
+    "arrowshaft": {
+      "type": "arrow",
+      "extra_durability": 0,
+      "weight": 0.7
+    },
+    "binding": {
+      "type": "extra",
+      "extra_durability": 15
+    },
+    "bowlimb": {
+      "type": "bow",
+      "damage_bonus": 0.0,
+      "draw_speed": 20,
+      "range_multiplier": 1.0
+    },
+    "handle": {
+      "type": "handle",
+      "attack_speed_modifier": 1.0,
+      "durability_modifier": 1.0,
+      "mining_speed_modifier": 1.0
+    },
+    "pickhead": {
+      "type": "head",
+      "attack_damage": 2.0,
+      "durability": 35,
+      "harvest_level": 0,
+      "mining_speed": 2.0
+    }
+  },
+  "tier": 0
+}

@@ -1,0 +1,36 @@
+{
+  "color": -7829368,
+  "id": "tconstruct:stone",
+  "repair_tag": "minecraft:stone_tool_materials",
+  "stats": {
+    "arrowshaft": {
+      "type": "arrow",
+      "extra_durability": 0,
+      "weight": 2.5
+    },
+    "binding": {
+      "type": "extra",
+      "extra_durability": 20
+    },
+    "bowlimb": {
+      "type": "bow",
+      "damage_bonus": 0.0,
+      "draw_speed": 0,
+      "range_multiplier": 0.0
+    },
+    "handle": {
+      "type": "handle",
+      "attack_speed_modifier": 0.8,
+      "durability_modifier": 0.6,
+      "mining_speed_modifier": 1.0
+    },
+    "pickhead": {
+      "type": "head",
+      "attack_damage": 3.0,
+      "durability": 120,
+      "harvest_level": 1,
+      "mining_speed": 4.0
+    }
+  },
+  "tier": 1
+}
