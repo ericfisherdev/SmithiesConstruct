@@ -134,7 +134,10 @@ public final class WorldBlocks {
      * block. Leaves and sapling are independent.
      */
     private static SlimePlantSet slimePlantSet(SlimeColor color) {
-        BlockBehaviour.Properties dirtProperties = BlockBehaviour.Properties.of().mapColor(color.mapColor()).sound(SoundType.GRAVEL).strength(0.5F).randomTicks();
+        // No randomTicks() — dirt has no random-tick behaviour (grass spread is driven from
+        // SlimeGrassBlock#randomTick, which reads the dirt state). Adding random ticks here
+        // would only pay the server-scheduler cost without any in-game effect.
+        BlockBehaviour.Properties dirtProperties = BlockBehaviour.Properties.of().mapColor(color.mapColor()).sound(SoundType.GRAVEL).strength(0.5F);
         DeferredBlock<SlimeDirtBlock> dirt = TinkerRegistries.BLOCKS.register("slime_" + color.id() + "_dirt", () -> new SlimeDirtBlock(color, dirtProperties));
         TinkerRegistries.ITEMS.registerSimpleBlockItem(dirt);
 
