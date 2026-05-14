@@ -1,0 +1,36 @@
+{
+  "color": -2565928,
+  "id": "tconstruct:iron",
+  "repair_tag": "c:ingots/iron",
+  "stats": {
+    "arrowshaft": {
+      "type": "arrow",
+      "extra_durability": 10,
+      "weight": 1.5
+    },
+    "binding": {
+      "type": "extra",
+      "extra_durability": 25
+    },
+    "bowlimb": {
+      "type": "bow",
+      "damage_bonus": 0.5,
+      "draw_speed": 35,
+      "range_multiplier": 1.1
+    },
+    "handle": {
+      "type": "handle",
+      "attack_speed_modifier": 1.0,
+      "durability_modifier": 1.0,
+      "mining_speed_modifier": 1.0
+    },
+    "pickhead": {
+      "type": "head",
+      "attack_damage": 4.0,
+      "durability": 250,
+      "harvest_level": 2,
+      "mining_speed": 6.0
+    }
+  },
+  "tier": 2
+}
