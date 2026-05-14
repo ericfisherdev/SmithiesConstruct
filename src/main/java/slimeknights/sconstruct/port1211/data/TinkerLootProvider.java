@@ -15,13 +15,18 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
  * rather than centralising every block-drop here.
  *
  * <p>Phase 2: the shared pulse contributes {@link SharedBlockLoot} for the metal storage
- * blocks and decoratives. Later pulses (Phase 3 slime islands' chest loot, Phase 6 smeltery
- * drops, etc.) append their own entries to the constructor's list.
+ * blocks and decoratives. Phase 3: {@link WorldBlockLoot} drops the world-pulse blocks,
+ * {@link SlimeMobLoot} drops the slime mob entities, and {@link SlimeIslandChestLoot} fills the
+ * slime-island treasure chest. Later pulses (Phase 6 smeltery drops, etc.) append their own
+ * entries to the constructor's list.
  */
 public final class TinkerLootProvider extends LootTableProvider {
 
     public TinkerLootProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, Set.of(), List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK),
-                new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK)), registries);
+        super(output, Set.of(),
+                List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK), new LootTableProvider.SubProviderEntry(SlimeMobLoot::new, LootContextParamSets.ENTITY),
+                        new LootTableProvider.SubProviderEntry(SlimeIslandChestLoot::new, LootContextParamSets.CHEST)),
+                registries);
     }
 }

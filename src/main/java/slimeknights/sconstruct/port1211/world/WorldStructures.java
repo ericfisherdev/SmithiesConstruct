@@ -102,6 +102,15 @@ public final class WorldStructures {
     public static final ResourceKey<BiomeModifier> SLIME_MOB_SPAWNS_KEY = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,
             ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "slime_mob_spawns"));
 
+    /**
+     * Loot-table resource key for the slime-island treasure chest. Exposed here (rather than
+     * buried inside the loot sub-provider) so a future {@link SlimeIslandPiece} variant that
+     * places a treasure chest can resolve the same key when calling
+     * {@code RandomizableContainerBlockEntity#setLootTable}.
+     */
+    public static final ResourceKey<net.minecraft.world.level.storage.loot.LootTable> SLIME_ISLAND_CHEST_LOOT = ResourceKey.create(Registries.LOOT_TABLE,
+            ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "chests/slime_island"));
+
     private static final Map<SlimeColor, ResourceKey<Structure>> STRUCTURE_KEYS = buildStructureKeys();
 
     private WorldStructures() {
