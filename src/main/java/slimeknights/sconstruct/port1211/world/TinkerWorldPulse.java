@@ -13,6 +13,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.shared.SharedTabs;
 import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 import slimeknights.sconstruct.port1211.world.client.WorldClientFluidTypes;
+import slimeknights.sconstruct.port1211.world.client.WorldEntityRenderers;
 
 /**
  * Phase-3 world subsystem. Owns the slime-island content stack — Phase-3 first pass registers
@@ -60,6 +61,7 @@ public final class TinkerWorldPulse implements Pulse {
         // JVM doesn't resolve types inside an unreached branch.
         if (FMLEnvironment.dist == Dist.CLIENT) {
             WorldClientFluidTypes.register(modBus);
+            WorldEntityRenderers.register(modBus);
         }
     }
 
