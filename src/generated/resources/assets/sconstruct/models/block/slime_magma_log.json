@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "sconstruct:block/slime_magma_log_top",
+    "side": "sconstruct:block/slime_magma_log"
+  }
+}

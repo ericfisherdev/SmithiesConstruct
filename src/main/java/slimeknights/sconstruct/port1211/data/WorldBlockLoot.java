@@ -57,6 +57,10 @@ public final class WorldBlockLoot extends BlockLootSubProvider {
         // have richer drop tables (sapling chance, dirt-fallback without shears) — those are a
         // follow-up; the AC for SMTCON-54 just requires a loot table exists per block.
         WorldBlocks.ALL_PLANTS.forEach(holder -> blocks.add(holder.get()));
+        // Slime logs (normal + stripped): drop self, matching vanilla oak_log loot. Per the
+        // SMTCON-55 AC, the stripped/non-stripped distinction is purely an item-id swap when
+        // an axe interacts with a placed log — both variants self-drop on break.
+        WorldBlocks.ALL_LOGS.forEach(holder -> blocks.add(holder.get()));
         return blocks;
     }
 }
