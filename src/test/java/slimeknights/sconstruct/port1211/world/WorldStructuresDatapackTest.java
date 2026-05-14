@@ -66,11 +66,19 @@ class WorldStructuresDatapackTest {
         JsonObject json = load(STRUCTURE_SET_PATH);
         var entries = json.getAsJsonArray("structures");
         assertEquals(SlimeColor.values().length, entries.size(), "all four colour variants must be in the set");
+        java.util.Set<String> actualKeys = new java.util.HashSet<>();
         for (var element : entries) {
             JsonObject entry = element.getAsJsonObject();
-            assertTrue(entry.get("structure").getAsString().startsWith(SConstruct.MOD_ID + ":slime_island_"), "structure key must be sconstruct:slime_island_<colour>");
+            String structureKey = entry.get("structure").getAsString();
+            actualKeys.add(structureKey);
+            assertTrue(structureKey.startsWith(SConstruct.MOD_ID + ":slime_island_"), "structure key must be sconstruct:slime_island_<colour>");
             assertEquals(1, entry.get("weight").getAsInt(), "all colours must have equal weight so random spread picks uniformly");
         }
+        // Set equality catches duplicates that count+prefix alone would miss — e.g. blue
+        // appearing twice while magma is absent would still hit size==4 + prefix-OK but the
+        // expected-vs-actual set comparison reveals the missing colour.
+        java.util.Set<String> expectedKeys = java.util.Arrays.stream(SlimeColor.values()).map(color -> SConstruct.MOD_ID + ":slime_island_" + color.id()).collect(java.util.stream.Collectors.toSet());
+        assertEquals(expectedKeys, actualKeys, "structure set must contain each slime colour exactly once");
     }
 
     @Test
