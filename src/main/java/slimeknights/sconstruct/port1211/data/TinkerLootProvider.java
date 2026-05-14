@@ -21,6 +21,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 public final class TinkerLootProvider extends LootTableProvider {
 
     public TinkerLootProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, Set.of(), List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK)), registries);
+        super(output, Set.of(), List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK),
+                new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK)), registries);
     }
 }

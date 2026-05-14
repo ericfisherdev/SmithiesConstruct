@@ -11,7 +11,9 @@ import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
 import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
+import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.WorldFluids;
+import slimeknights.sconstruct.port1211.world.block.SlimeColor;
 
 /**
  * {@code en_us} translation data provider. Baseline for the other twelve locales — those land
@@ -92,6 +94,15 @@ public final class TinkerLanguageProvider extends LanguageProvider {
             // Fluid descriptionId is explicit; the FluidType ctor sets it to
             // "fluid.sconstruct.slime_<color>" and there is no add(FluidType, String) helper.
             add("fluid.sconstruct.slime_" + slimeColorId(fluid), "Liquid " + displayColor + " Slime");
+        }
+
+        // World pulse: four bouncy slime blocks. Iterate WorldBlocks.SLIME_BLOCKS keyed by
+        // SlimeColor so a new colour added in the enum + WorldBlocks lights up here with no
+        // edit.
+        for (Map.Entry<SlimeColor, ? extends net.neoforged.neoforge.registries.DeferredBlock<?>> entry : WorldBlocks.SLIME_BLOCKS.entrySet()) {
+            String colorId = entry.getKey().id();
+            String display = Character.toUpperCase(colorId.charAt(0)) + colorId.substring(1);
+            add(entry.getValue().get(), display + " Slime Block");
         }
     }
 
