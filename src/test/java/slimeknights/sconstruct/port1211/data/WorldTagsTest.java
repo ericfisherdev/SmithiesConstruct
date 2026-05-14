@@ -108,6 +108,10 @@ class WorldTagsTest {
             assertNotNull(values, resourcePath + " is missing the 'values' array — provider output drift?");
             Set<String> result = new HashSet<>();
             values.forEach(element -> result.add(element.getAsString()));
+            // Duplicate JSON entries would silently dedupe into the Set and pass the
+            // per-tag equality checks above. Comparing source-array size vs. deduped-set
+            // size catches the drift instead of letting a "blue logged twice" slip through.
+            assertEquals(values.size(), result.size(), resourcePath + " contains duplicate entries in the 'values' array");
             return result;
         }
         catch (IOException e) {
