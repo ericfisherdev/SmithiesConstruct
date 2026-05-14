@@ -22,6 +22,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
+import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
 /**
  * Mod entry point. Composes the Phase 1 foundation infrastructure during mod construction:
@@ -70,7 +71,7 @@ public final class SConstruct {
         // {@link Config#pulseGate} so each pulse's per-id flag in the COMMON TOML controls
         // whether its register/setup hooks run — disabling "shared" here skips every Phase-2
         // registration cleanly, leaving the mod with only foundation infrastructure.
-        List<Pulse> pulses = List.of(new TinkerSharedPulse());
+        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse());
         PulseLoader.boot(modBus, pulses, Config.pulseGate());
         LOGGER.info("SConstruct 1.21.1 port: foundation infrastructure wired ({} pulses)", pulses.size());
     }
