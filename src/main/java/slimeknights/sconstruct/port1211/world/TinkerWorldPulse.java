@@ -1,13 +1,17 @@
 package slimeknights.sconstruct.port1211.world;
 
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.shared.SharedTabs;
+import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 import slimeknights.sconstruct.port1211.world.client.WorldClientFluidTypes;
 
 /**
@@ -67,5 +71,23 @@ public final class TinkerWorldPulse implements Pulse {
         }
         WorldFluids.acceptBuckets(event::accept);
         WorldBlocks.acceptBlockItems(event::accept);
+        WorldBlocks.acceptPlantItems(event::accept);
+    }
+
+    @Override
+    public void clientSetup(FMLClientSetupEvent event) {
+        // Leaves and saplings ship with transparent pixels in their sprites; the default SOLID
+        // render layer would render those pixels as black. Cutout is the right layer for
+        // alpha-tested foliage (matches vanilla oak/birch leaves). Done inside enqueueWork
+        // because ItemBlockRenderTypes is not thread-safe — FMLClientSetupEvent fires on the
+        // mod-loading thread, which isn't the render thread.
+        event.enqueueWork(TinkerWorldPulse::registerPlantRenderTypes);
+    }
+
+    private static void registerPlantRenderTypes() {
+        for (SlimePlantSet set : WorldBlocks.PLANT_SETS.values()) {
+            ItemBlockRenderTypes.setRenderLayer(set.leaves().get(), RenderType.cutoutMipped());
+            ItemBlockRenderTypes.setRenderLayer(set.sapling().get(), RenderType.cutout());
+        }
     }
 }

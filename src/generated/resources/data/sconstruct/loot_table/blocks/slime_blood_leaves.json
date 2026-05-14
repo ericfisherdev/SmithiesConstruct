@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "sconstruct:slime_blood_leaves"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "sconstruct:blocks/slime_blood_leaves"
+}

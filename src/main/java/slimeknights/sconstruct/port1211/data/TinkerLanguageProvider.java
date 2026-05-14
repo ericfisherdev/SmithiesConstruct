@@ -104,6 +104,19 @@ public final class TinkerLanguageProvider extends LanguageProvider {
             String display = Character.toUpperCase(colorId.charAt(0)) + colorId.substring(1);
             add(entry.getValue().get(), display + " Slime Block");
         }
+
+        // World pulse: four plant sets, four entries each (dirt + grass + leaves + sapling).
+        // Iterate WorldBlocks.PLANT_SETS so a new colour lights up the lang entries with one
+        // line in WorldBlocks plus a single SlimeColor constant.
+        for (Map.Entry<SlimeColor, slimeknights.sconstruct.port1211.world.block.SlimePlantSet> entry : WorldBlocks.PLANT_SETS.entrySet()) {
+            String colorId = entry.getKey().id();
+            String display = Character.toUpperCase(colorId.charAt(0)) + colorId.substring(1);
+            slimeknights.sconstruct.port1211.world.block.SlimePlantSet set = entry.getValue();
+            add(set.dirt().get(), display + " Slime Dirt");
+            add(set.grass().get(), display + " Slime Grass");
+            add(set.leaves().get(), display + " Slime Leaves");
+            add(set.sapling().get(), display + " Slime Sapling");
+        }
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {

@@ -53,6 +53,10 @@ public final class WorldBlockLoot extends BlockLootSubProvider {
     private List<Block> ownedBlocks() {
         List<Block> blocks = new ArrayList<>();
         WorldBlocks.ALL.forEach(holder -> blocks.add(holder.get()));
+        // Plant set: dirt + grass + leaves + sapling all drop themselves. Vanilla leaves/grass
+        // have richer drop tables (sapling chance, dirt-fallback without shears) — those are a
+        // follow-up; the AC for SMTCON-54 just requires a loot table exists per block.
+        WorldBlocks.ALL_PLANTS.forEach(holder -> blocks.add(holder.get()));
         return blocks;
     }
 }
