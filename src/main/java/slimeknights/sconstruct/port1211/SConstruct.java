@@ -22,6 +22,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
+import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
 /**
@@ -62,6 +63,14 @@ public final class SConstruct {
         // accessed lazily by pulses, but the *register* call inside the static block has to
         // run before the registry event fires.
         TinkerDataComponents.init();
+
+        // Force ToolParts to register its 16 MaterialItem entries before the ITEMS registry
+        // event fires, and subscribe its BuildCreativeModeTabContentsEvent listener so every
+        // part shows up under the shared GENERAL tab. This wiring will relocate into a future
+        // TinkerToolsPulse#register once that pulse lands; until then it lives here alongside
+        // the other "foundation" touches above.
+        ToolParts.init();
+        ToolParts.registerCreativeTabContents(modBus);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
