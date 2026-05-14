@@ -84,6 +84,44 @@ class TinkerRecipeProviderTest {
     }
 
     @Test
+    void slimeBlockFromSlimeballsIsAShaped2x2GroupedAsBuildingBlocks() {
+        // Pin one colour's shaped recipe — the rest are emitted from the same provider loop so
+        // a one-colour check is sufficient to catch the shape/category drift, and the
+        // everySlimeColorHasItsBlockSlimeballPair test below covers per-colour presence.
+        JsonObject recipe = loadRecipe("slime_blue_block.json");
+        assertAll(() -> assertEquals("minecraft:crafting_shaped", recipe.get("type").getAsString()), () -> assertEquals("building", recipe.get("category").getAsString()),
+                () -> assertEquals(2, recipe.getAsJsonArray("pattern").size(), "slime block recipe must declare 2 rows"),
+                () -> assertEquals("SS", recipe.getAsJsonArray("pattern").get(0).getAsString()), () -> assertEquals("SS", recipe.getAsJsonArray("pattern").get(1).getAsString()),
+                () -> assertEquals("sconstruct:slimeball_blue", recipe.getAsJsonObject("key").getAsJsonObject("S").get("item").getAsString()),
+                () -> assertEquals("sconstruct:slime_blue_block", recipe.getAsJsonObject("result").get("id").getAsString()),
+                () -> assertEquals(1, recipe.getAsJsonObject("result").get("count").getAsInt()));
+    }
+
+    @Test
+    void slimeballsFromSlimeBlockIsAShapelessYieldingFour() {
+        JsonObject recipe = loadRecipe("slimeball_magma_from_block.json");
+        assertAll(() -> assertEquals("minecraft:crafting_shapeless", recipe.get("type").getAsString()),
+                () -> assertEquals(1, recipe.getAsJsonArray("ingredients").size(), "shapeless block→slimeballs recipe takes exactly one input"),
+                () -> assertEquals("sconstruct:slime_magma_block", recipe.getAsJsonArray("ingredients").get(0).getAsJsonObject().get("item").getAsString()),
+                () -> assertEquals("sconstruct:slimeball_magma", recipe.getAsJsonObject("result").get("id").getAsString()),
+                () -> assertEquals(4, recipe.getAsJsonObject("result").get("count").getAsInt()));
+    }
+
+    @Test
+    void everySlimeColorHasItsBlockSlimeballPair() {
+        // Per-colour resource-existence check. Mirrors everyMetalHasItsIngotNuggetPair: every
+        // colour in SlimeColor lights up both the shaped (slimeballs→block) and shapeless
+        // (block→slimeballs) recipe files. A future fifth colour would fail here first if its
+        // entry in TinkerRecipeProvider#slimeballFor is missed.
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        String[] colorIds = { "blue", "purple", "magma", "blood" };
+        for (String id : colorIds) {
+            assertNotNull(cl.getResource(RECIPE_ROOT + "slime_" + id + "_block.json"), "slime_" + id + "_block.json missing");
+            assertNotNull(cl.getResource(RECIPE_ROOT + "slimeball_" + id + "_from_block.json"), "slimeball_" + id + "_from_block.json missing");
+        }
+    }
+
+    @Test
     void everyMetalHasItsIngotNuggetPair() {
         // Spot-check the per-metal recipe coverage: every metal in the canonical list has both
         // ingot↔nugget recipes regardless of block presence. This is a tighter guard than

@@ -14,12 +14,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.world.WorldBlocks;
+import slimeknights.sconstruct.port1211.world.block.SlimeColor;
 
 /**
  * Recipe data provider. Writes the standard per-metal crafting-table conversion recipes —
@@ -62,6 +65,38 @@ public final class TinkerRecipeProvider extends RecipeProvider {
             }
             addNuggetConversions(recipeOutput, metal.id(), ingot, nugget);
         }
+
+        // Phase-3 slime blocks: 4 slimeballs → 1 coloured slime block (shaped 2×2), and the
+        // reverse 1 block → 4 slimeballs (shapeless). Mirrors vanilla's slime-block recipe
+        // pair, replicated per colour. The colour-to-slimeball mapping is centralised in
+        // {@link #slimeballFor} so a future fifth colour lights up by extending SlimeColor
+        // and that one switch — no recipe edit required.
+        for (SlimeColor color : SlimeColor.values()) {
+            Block slimeBlock = WorldBlocks.SLIME_BLOCKS.get(color).get();
+            Item slimeball = slimeballFor(color).get();
+            addSlimeBlockConversions(recipeOutput, color.id(), slimeball, slimeBlock.asItem());
+        }
+    }
+
+    private static DeferredItem<Item> slimeballFor(SlimeColor color) {
+        return switch (color) {
+        case BLUE -> SharedItems.SLIMEBALL_BLUE;
+        case PURPLE -> SharedItems.SLIMEBALL_PURPLE;
+        case MAGMA -> SharedItems.SLIMEBALL_MAGMA;
+        case BLOOD -> SharedItems.SLIMEBALL_BLOOD;
+        };
+    }
+
+    private void addSlimeBlockConversions(RecipeOutput output, String colorId, Item slimeball, Item blockItem) {
+        // 4 slimeballs → 1 slime block. BUILDING_BLOCKS category so the result lands in the
+        // building-blocks recipe-book tab alongside vanilla slime block. Auto-id is the
+        // block's registry path so no explicit save id.
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, blockItem).pattern("SS").pattern("SS").define('S', slimeball).unlockedBy("has_slimeball", has(slimeball)).save(output);
+        // 1 slime block → 4 slimeballs. Explicit recipe id ("slimeball_<color>_from_block")
+        // because the slimeball item's auto-id would collide if any other recipe also produced
+        // it (none today, but the explicit id keeps the recipe self-describing).
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, slimeball, 4).requires(blockItem).unlockedBy("has_slime_block", has(blockItem)).save(output,
+                ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "slimeball_" + colorId + "_from_block"));
     }
 
     private void addBlockConversions(RecipeOutput output, String metalId, Item ingot, Item blockItem) {

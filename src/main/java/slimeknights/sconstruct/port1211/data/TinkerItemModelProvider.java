@@ -14,7 +14,9 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
+import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
+import slimeknights.sconstruct.port1211.world.WorldFluids;
 import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 
 /**
@@ -55,6 +57,13 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         registerSpriteItem(SharedItems.BACON);
         registerSpriteItem(SharedItems.MUDBRICK);
         registerSpriteItem(SharedItems.BUCKET_BLOOD);
+
+        // Phase-3 slime fluid buckets: one filled bucket per SlimeFluidSet. Each gets the
+        // same flat sprite treatment as BUCKET_BLOOD — runtime tinting lives in the fluid
+        // type / IClientFluidTypeExtensions wiring, not in the item model.
+        for (SlimeFluidSet set : WorldFluids.ALL) {
+            registerSpriteItem(set.bucket());
+        }
 
         // BlockItems. Each item model references the matching block model as its parent so
         // inventory renders as a 3D block (vanilla's iron_block.json convention). The block
