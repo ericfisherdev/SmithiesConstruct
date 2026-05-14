@@ -92,8 +92,8 @@ class SharedTextureAssetsTest {
     }
 
     @Test
-    void everySlimeColorHasItsFourPhase3WorldBlockTextures() {
-        // Phase-3 plant set + bouncy block per colour: dirt, grass, leaves, sapling, block.
+    void everySlimeColorHasItsFivePhase3WorldBlockTextures() {
+        // Phase-3 plant set + bouncy block per colour: block, dirt, grass, leaves, sapling.
         // Driven from SlimeColor.values() so a new colour lights up the test by adding the
         // enum entry plus the matching PNGs — no edit here.
         assertAll(java.util.Arrays.stream(SlimeColor.values()).flatMap(color -> java.util.stream.Stream.of("block", "dirt", "grass", "leaves", "sapling").map(suffix -> () -> {
