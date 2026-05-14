@@ -1,9 +1,12 @@
 package slimeknights.sconstruct.port1211.world.block;
 
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.MapColor;
+
+import com.mojang.serialization.Codec;
 
 /**
  * Per-colour identity and bounce-time behaviour for the four {@link TinkerSlimeBlock} variants.
@@ -23,7 +26,7 @@ import net.minecraft.world.level.material.MapColor;
  * branch, and (b) "bounce in place" triggers from low-distance landings that would otherwise
  * make the player invincible (blood) or instantly-killable (magma) by sneaking on the block.
  */
-public enum SlimeColor {
+public enum SlimeColor implements StringRepresentable {
 
     BLUE("blue", MapColor.COLOR_LIGHT_BLUE), PURPLE("purple", MapColor.COLOR_PURPLE), MAGMA("magma", MapColor.COLOR_ORANGE) {
         @Override
@@ -41,6 +44,14 @@ public enum SlimeColor {
             }
         }
     };
+
+    /**
+     * Codec for the slime colour. Backed by {@link StringRepresentable#fromEnum} so the JSON
+     * surface (used by {@code SlimeIslandStructure}'s {@code MapCodec}) reads/writes the
+     * lower-snake-case {@link #id} returned by {@link #getSerializedName()} — e.g.
+     * {@code "color": "blue"} rather than the upper-case enum constant name.
+     */
+    public static final Codec<SlimeColor> CODEC = StringRepresentable.fromEnum(SlimeColor::values);
 
     /** Minimum {@code fallDistance} that arms the per-colour effect; suppresses tick-rate retriggers. */
     static final float MIN_FALL_DISTANCE = 1.0F;
@@ -64,6 +75,16 @@ public enum SlimeColor {
 
     /** Lower-snake-case colour segment used in the block registry path {@code slime_<id>_block}. */
     public String id() {
+        return id;
+    }
+
+    /**
+     * {@link StringRepresentable} contract: returns the same lower-snake-case segment as
+     * {@link #id} so {@link #CODEC} and the registry-path derivation share one source of truth
+     * — a colour-rename would flow through every consumer in one edit.
+     */
+    @Override
+    public String getSerializedName() {
         return id;
     }
 
