@@ -118,22 +118,16 @@ public final class Config {
         if (value == null) {
             return Optional.empty();
         }
-        // PulseLoader runs during mod construction — config-load happens later in the NeoForge
-        // lifecycle, so calling value.get() now would throw "Cannot get config value before
-        // config is loaded". Swallow that exact case and return Optional.empty() so the gate
-        // falls back to the pulse's declared default. Once config has loaded (e.g. from a
-        // setup-event invocation), value.get() returns the resolved flag normally. Other
-        // IllegalStateException causes (e.g. a spec-builder bug) propagate so they're not
-        // silently masked as a fall-through-to-default.
-        try {
-            return Optional.of(value.get());
+        // {@link ModConfigSpec#isLoaded()} is the supported way to detect whether config-load
+        // has happened — message-text matching on the IllegalStateException #get() throws is
+        // fragile because NeoForge can reword the exception between versions. STARTUP configs
+        // load synchronously inside registerConfig (see TConstruct ctor), so this returns
+        // true immediately after that call. Before then, fall back to Optional.empty() so the
+        // gate honours the pulse's declared default.
+        if (!SPEC.isLoaded()) {
+            return Optional.empty();
         }
-        catch (IllegalStateException ise) {
-            if (ise.getMessage() != null && ise.getMessage().contains("Cannot get config value before config is loaded")) {
-                return Optional.empty();
-            }
-            throw ise;
-        }
+        return Optional.of(value.get());
     }
 
     /**

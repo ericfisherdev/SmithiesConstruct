@@ -40,10 +40,14 @@ public final class TConstruct {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public TConstruct(IEventBus modBus, ModContainer container) {
-        // Register the COMMON spec before any subsystem reads its flags. NeoForge guarantees the
-        // TOML is loaded before FMLCommonSetupEvent fires, so a PulseLoader.boot called during
-        // common setup sees the resolved values rather than the declared defaults.
-        container.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        // Register the STARTUP spec. STARTUP configs are read immediately when registerConfig
+        // returns, so PulseLoader.boot a few lines below can read the actual TOML flags rather
+        // than falling back to the declared defaults. (COMMON would only load just before
+        // FMLCommonSetupEvent — too late to gate DeferredRegister attachment in this ctor.)
+        // The NeoForge desync warning for STARTUP applies when a content-disable flag differs
+        // between client and server; a mismatched pulse roster is a deliberate config choice
+        // by the operator and outside this layer's contract.
+        container.registerConfig(ModConfig.Type.STARTUP, Config.SPEC);
 
         // Attach every DeferredRegister the mod owns to the bus before any pulse runs — pulses
         // pull from these and need them to have already subscribed their registry listeners.
