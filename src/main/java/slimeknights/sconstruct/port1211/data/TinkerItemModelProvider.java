@@ -78,6 +78,11 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
             registerBlockItemFromBlockModel(set.leaves());
             registerSaplingItem(set.sapling());
         }
+
+        // Phase-3 slime logs (normal + stripped): each renders as a 3D cube in inventory,
+        // parented to the y-axis variant of its blockstate model so the side bark texture
+        // shows on the four side faces.
+        WorldBlocks.ALL_LOGS.forEach(this::registerBlockItemFromBlockModel);
     }
 
     /**

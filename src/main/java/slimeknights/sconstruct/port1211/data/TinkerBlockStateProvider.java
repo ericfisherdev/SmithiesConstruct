@@ -5,6 +5,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -60,6 +61,29 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
             registerCubeAll(set.leaves().get());
             registerCross(set.sapling().get());
         }
+
+        // Phase-3 slime logs (normal + stripped): each gets an axis-aware blockstate built
+        // from logBlock(), which emits two oriented variants (y, x, z) so logs face the right
+        // way under the player's placement gesture. Two textures per log — "side" (matches the
+        // registered name) and "_top".
+        for (DeferredBlock<RotatedPillarBlock> holder : WorldBlocks.ALL_LOGS) {
+            registerLog(holder.get());
+        }
+    }
+
+    /**
+     * Emit an axis-aware blockstate + cube_column model pair for a slime log. Vanilla
+     * {@link BlockStateProvider#logBlock} uses two textures: {@code <name>} for the four sides
+     * and {@code <name>_top} for the top/bottom caps. Pre-register both so
+     * {@link ExistingFileHelper} doesn't fail validation before the PNGs land.
+     */
+    private void registerLog(RotatedPillarBlock block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation side = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        ResourceLocation top = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath() + "_top");
+        models().existingFileHelper.trackGenerated(side, PackType.CLIENT_RESOURCES, ".png", "textures");
+        models().existingFileHelper.trackGenerated(top, PackType.CLIENT_RESOURCES, ".png", "textures");
+        logBlock(block);
     }
 
     /**

@@ -1,0 +1,9 @@
+{
+  "feature": "sconstruct:slime_blood_tree",
+  "placement": [
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "MOTION_BLOCKING"
+    }
+  ]
+}
