@@ -55,11 +55,11 @@ public final class WorldEntities {
     /** Width of the huge slime entity. Vanilla "size 4" slime sits at 4 blocks square. */
     private static final float HUGESLIME_SIZE = 4.0F;
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityBlueslime>> BLUESLIME = TinkerRegistries.ENTITY_TYPES.register("blueslime",
-            () -> EntityType.Builder.<EntityBlueslime> of(EntityBlueslime::new, MobCategory.MONSTER).sized(BLUESLIME_SIZE, BLUESLIME_SIZE).clientTrackingRange(8).updateInterval(3).build("blueslime"));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityBlueslime>> BLUESLIME = TinkerRegistries.ENTITY_TYPES.register("blueslime", () -> EntityType.Builder
+            .<EntityBlueslime> of(EntityBlueslime::new, MobCategory.MONSTER).sized(BLUESLIME_SIZE, BLUESLIME_SIZE).clientTrackingRange(8).updateInterval(3).build(SConstruct.MOD_ID + ":blueslime"));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityHugeSlime>> HUGESLIME = TinkerRegistries.ENTITY_TYPES.register("hugeslime",
-            () -> EntityType.Builder.<EntityHugeSlime> of(EntityHugeSlime::new, MobCategory.MONSTER).sized(HUGESLIME_SIZE, HUGESLIME_SIZE).clientTrackingRange(8).updateInterval(3).build("hugeslime"));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityHugeSlime>> HUGESLIME = TinkerRegistries.ENTITY_TYPES.register("hugeslime", () -> EntityType.Builder
+            .<EntityHugeSlime> of(EntityHugeSlime::new, MobCategory.MONSTER).sized(HUGESLIME_SIZE, HUGESLIME_SIZE).clientTrackingRange(8).updateInterval(3).build(SConstruct.MOD_ID + ":hugeslime"));
 
     /** Insertion-ordered list view of every slime mob entity type. Iterated by datagen / lang / loot. */
     public static final List<DeferredHolder<EntityType<?>, ? extends EntityType<?>>> ALL = List.of(BLUESLIME, HUGESLIME);
