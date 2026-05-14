@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import slimeknights.sconstruct.port1211.world.block.SlimeColor;
+
 /**
  * Pinned-behaviour tests for the generated crafting-table recipe JSONs. Validates the four
  * recipe shapes emitted by {@link TinkerRecipeProvider} per metal — block↔ingot and
@@ -114,8 +116,8 @@ class TinkerRecipeProviderTest {
         // (block→slimeballs) recipe files. A future fifth colour would fail here first if its
         // entry in TinkerRecipeProvider#slimeballFor is missed.
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        String[] colorIds = { "blue", "purple", "magma", "blood" };
-        for (String id : colorIds) {
+        for (SlimeColor color : SlimeColor.values()) {
+            String id = color.id();
             assertNotNull(cl.getResource(RECIPE_ROOT + "slime_" + id + "_block.json"), "slime_" + id + "_block.json missing");
             assertNotNull(cl.getResource(RECIPE_ROOT + "slimeball_" + id + "_from_block.json"), "slimeball_" + id + "_from_block.json missing");
         }
