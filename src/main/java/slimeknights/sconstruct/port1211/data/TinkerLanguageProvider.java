@@ -10,6 +10,8 @@ import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
+import slimeknights.sconstruct.port1211.world.WorldFluids;
 
 /**
  * {@code en_us} translation data provider. Baseline for the other twelve locales — those land
@@ -78,6 +80,34 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // a separate key from the BucketItem above ({@code fluid.sconstruct.blood} vs
         // {@code item.sconstruct.blood_bucket}).
         add("fluid.sconstruct.blood", "Blood");
+
+        // World pulse: four coloured slime fluids. Iterate WorldFluids.ALL so a new colour
+        // lights up here automatically (matches the SharedMetals iteration pattern above).
+        for (SlimeFluidSet fluid : WorldFluids.ALL) {
+            String displayColor = slimeColorDisplayName(fluid);
+            // LiquidBlock auto-derives "block.sconstruct.<path>" from the registered name.
+            add(fluid.block().get(), displayColor + " Slime");
+            // BucketItem auto-derives "item.sconstruct.<path>_bucket" from the registered name.
+            add(fluid.bucket().get(), "Bucket of " + displayColor + " Slime");
+            // Fluid descriptionId is explicit; the FluidType ctor sets it to
+            // "fluid.sconstruct.slime_<color>" and there is no add(FluidType, String) helper.
+            add("fluid.sconstruct.slime_" + slimeColorId(fluid), "Liquid " + displayColor + " Slime");
+        }
+    }
+
+    private static String slimeColorId(SlimeFluidSet fluid) {
+        // Path is "sconstruct:slime_<color>" — strip the "slime_" prefix to recover the colour
+        // segment for display-name and lang-key derivation.
+        String path = fluid.source().getId().getPath();
+        if (!path.startsWith("slime_")) {
+            throw new IllegalStateException("expected SlimeFluidSet source path to start with 'slime_', got '" + path + "'");
+        }
+        return path.substring("slime_".length());
+    }
+
+    private static String slimeColorDisplayName(SlimeFluidSet fluid) {
+        String id = slimeColorId(fluid);
+        return Character.toUpperCase(id.charAt(0)) + id.substring(1);
     }
 
     /**
