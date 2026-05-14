@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
+import slimeknights.sconstruct.port1211.world.WorldFluids;
+import slimeknights.sconstruct.port1211.world.block.SlimeColor;
 
 /**
  * Pinned-presence tests for Phase-2 texture assets. {@link TinkerBlockStateProvider} and
@@ -86,6 +89,59 @@ class SharedTextureAssetsTest {
                         ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png missing"),
                 () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png"),
                         ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png missing"));
+    }
+
+    @Test
+    void everySlimeColorHasItsFourPhase3WorldBlockTextures() {
+        // Phase-3 plant set + bouncy block per colour: dirt, grass, leaves, sapling, block.
+        // Driven from SlimeColor.values() so a new colour lights up the test by adding the
+        // enum entry plus the matching PNGs — no edit here.
+        assertAll(java.util.Arrays.stream(SlimeColor.values()).flatMap(color -> java.util.stream.Stream.of("block", "dirt", "grass", "leaves", "sapling").map(suffix -> () -> {
+            String path = "slime_" + color.id() + "_" + suffix;
+            assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + path + ".png"), BLOCK_TEXTURE_ROOT + path + ".png missing");
+        })));
+    }
+
+    @Test
+    void everySlimeColorHasItsLogAndStrippedLogTextures() {
+        // Slime logs ship side + top PNGs for both axis faces; the stripped variant doubles
+        // the count. Two-axis-per-log shape pinned so a future refactor that drops the _top
+        // texture (and falls back to the side on the bark face) surfaces here.
+        assertAll(java.util.Arrays.stream(SlimeColor.values()).flatMap(color -> java.util.stream.Stream
+                .of("slime_" + color.id() + "_log", "slime_" + color.id() + "_log_top", "stripped_slime_" + color.id() + "_log", "stripped_slime_" + color.id() + "_log_top").map(path -> () -> {
+                    assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + path + ".png"), BLOCK_TEXTURE_ROOT + path + ".png missing");
+                })));
+    }
+
+    @Test
+    void slimeFluidStillAndFlowTexturesArePresent() {
+        // Each WorldFluids set lands two PNGs (still + flow) under block/fluid/, plus the
+        // mcmeta animation descriptors. Drift here would manifest as a flat untinted fluid
+        // in-world.
+        assertAll(WorldFluids.ALL.stream().flatMap(set -> {
+            String id = set.source().getId().getPath();
+            return java.util.stream.Stream.of("fluid/" + id + "_still.png", "fluid/" + id + "_flow.png", "fluid/" + id + "_still.png.mcmeta", "fluid/" + id + "_flow.png.mcmeta").map(path -> () -> {
+                assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + path), BLOCK_TEXTURE_ROOT + path + " missing");
+            });
+        }));
+    }
+
+    @Test
+    void slimeFluidBucketItemTexturesArePresent() {
+        // Generated from blood_bucket.png via BT.601 desaturate + per-fluid tint multiply.
+        // Without these PNGs, the four slime bucket items render the missing-texture sprite.
+        assertAll(WorldFluids.ALL.stream().map((SlimeFluidSet set) -> () -> {
+            String path = set.bucket().getId().getPath();
+            assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + path + ".png"), ITEM_TEXTURE_ROOT + path + ".png missing");
+        }));
+    }
+
+    @Test
+    void blueslimeAndHugeslimeEntityTexturesArePresent() {
+        // Both renderers reference these PNGs; missing files surface as a black-and-purple
+        // entity model in-game.
+        assertAll(() -> assertNotNull(loader().getResource("assets/sconstruct/textures/entity/slime/blueslime.png"), "entity/slime/blueslime.png missing"),
+                () -> assertNotNull(loader().getResource("assets/sconstruct/textures/entity/slime/hugeslime.png"), "entity/slime/hugeslime.png missing"));
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
