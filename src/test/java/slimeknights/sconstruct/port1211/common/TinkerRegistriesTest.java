@@ -82,7 +82,8 @@ class TinkerRegistriesTest {
     private static DeferredRegister<?>[] allRegisters() {
         return new DeferredRegister<?>[] { TinkerRegistries.ITEMS, TinkerRegistries.BLOCKS, TinkerRegistries.DATA_COMPONENTS, TinkerRegistries.BLOCK_ENTITY_TYPES, TinkerRegistries.ENTITY_TYPES,
                 TinkerRegistries.MENU_TYPES, TinkerRegistries.RECIPE_TYPES, TinkerRegistries.RECIPE_SERIALIZERS, TinkerRegistries.MOB_EFFECTS, TinkerRegistries.PARTICLE_TYPES,
-                TinkerRegistries.SOUND_EVENTS, TinkerRegistries.CREATIVE_TABS, TinkerRegistries.FLUID_TYPES, TinkerRegistries.FLUIDS, };
+                TinkerRegistries.SOUND_EVENTS, TinkerRegistries.CREATIVE_TABS, TinkerRegistries.FLUID_TYPES, TinkerRegistries.FLUIDS, TinkerRegistries.STRUCTURE_TYPES,
+                TinkerRegistries.STRUCTURE_PIECE_TYPES, };
     }
 
     @Test
