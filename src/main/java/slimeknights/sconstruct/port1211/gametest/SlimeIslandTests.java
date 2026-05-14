@@ -100,6 +100,7 @@ public final class SlimeIslandTests {
         // impact, so a single-shot check would race the physics. Sample every tick for a
         // generous window and record the peak — any positive sample proves the bounce hook
         // fired, regardless of where the test happens to poll in the impact cycle.
+        final double bounceVelocityThreshold = 0.0;
         double[] maxYVelocity = { Double.NEGATIVE_INFINITY };
         helper.startSequence().thenExecuteFor(80, () -> {
             double vy = pig.getDeltaMovement().y;
@@ -107,7 +108,7 @@ public final class SlimeIslandTests {
                 maxYVelocity[0] = vy;
             }
         }).thenExecute(() -> {
-            if (maxYVelocity[0] <= 0.0) {
+            if (maxYVelocity[0] <= bounceVelocityThreshold) {
                 helper.fail("expected positive Y velocity (slime-block bounce) at some point in 80 ticks, peak observed=" + maxYVelocity[0]);
             }
         }).thenSucceed();
