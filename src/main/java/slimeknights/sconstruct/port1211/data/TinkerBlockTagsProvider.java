@@ -15,6 +15,8 @@ import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.world.WorldBlocks;
+import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 
 /**
  * Block-tag data provider. Writes the {@code minecraft:mineable/*} and {@code minecraft:needs_*_tool}
@@ -60,6 +62,17 @@ public final class TinkerBlockTagsProvider extends BlockTagsProvider {
         // tier requirement — any axe (or hand) can mine them, matching the legacy hardness
         // settings on BlockGlow and BlockFirewood.
         tag(BlockTags.MINEABLE_WITH_AXE).add(SharedBlocks.GLOW.get(), SharedBlocks.FIREWOOD.get(), SharedBlocks.LAVAWOOD.get());
+
+        // Phase-3 plant blocks: dirt and grass take shovel, leaves take hoe, saplings are
+        // hand-mined; leaves also feed BlockTags.LEAVES (so vanilla compost / fire-spread /
+        // decay machinery picks them up) and saplings feed BlockTags.SAPLINGS (so vanilla
+        // bonemeal target detection treats them like oak/birch saplings).
+        for (SlimePlantSet set : WorldBlocks.PLANT_SETS.values()) {
+            tag(BlockTags.MINEABLE_WITH_SHOVEL).add(set.dirt().get(), set.grass().get());
+            tag(BlockTags.MINEABLE_WITH_HOE).add(set.leaves().get());
+            tag(BlockTags.LEAVES).add(set.leaves().get());
+            tag(BlockTags.SAPLINGS).add(set.sapling().get());
+        }
     }
 
     private static Map<String, Metal> indexMetalsById() {
