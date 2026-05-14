@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
@@ -14,7 +15,6 @@ import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 
 /**
  * Grass cover for a coloured {@link SlimeDirtBlock}. Behaves like vanilla {@link
@@ -119,7 +119,11 @@ public final class SlimeGrassBlock extends Block implements BonemealableBlock {
     private static boolean canPropagate(BlockState grassState, ServerLevel level, BlockPos pos) {
         BlockPos above = pos.above();
         FluidState aboveFluid = level.getFluidState(above);
-        if (aboveFluid.is(Fluids.WATER)) {
+        // Use the FluidTags.WATER tag rather than Fluids.WATER directly — the latter only
+        // matches still water, so flowing water above the dirt would silently slip through and
+        // let grass spread under a stream. The vanilla water tag covers both Fluids.WATER and
+        // Fluids.FLOWING_WATER, plus any modded fluid that opts into "is water" semantics.
+        if (aboveFluid.is(FluidTags.WATER)) {
             return false;
         }
         if (level.getRawBrightness(above, 0) < GRASS_DEATH_LIGHT_THRESHOLD && level.getBrightness(LightLayer.SKY, above) < GRASS_DEATH_LIGHT_THRESHOLD) {
