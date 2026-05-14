@@ -135,8 +135,10 @@ public final class SlimeIslandPiece extends StructurePiece {
 
         // Sapling at the disc centre. AC asks for "optional sapling"; planting exactly one at
         // the centre gives a deterministic anchor point that SMTCON-55's TreeGrower can grow
-        // into a colour-matched slime tree when the chunk ticks.
-        BlockPos saplingPos = new BlockPos(centerX, discY + 1, centerZ);
+        // into a colour-matched slime tree when the chunk ticks. Placed at discY + 2 so it
+        // sits one block above the grass cap (grass at discY + 1) — putting it at the grass
+        // layer would overwrite the cap and leave bare dirt under the sapling.
+        BlockPos saplingPos = new BlockPos(centerX, discY + 2, centerZ);
         if (chunkBox.isInside(saplingPos)) {
             level.setBlock(saplingPos, saplingState, 2);
         }
