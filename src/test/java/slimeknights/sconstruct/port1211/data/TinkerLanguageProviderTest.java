@@ -103,8 +103,9 @@ class TinkerLanguageProviderTest {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
         // (block, bucket, fluid descriptionId) + 4 slime blocks + 4 plant sets × 4 entries
-        // each (dirt, grass, leaves, sapling) + 4 slime logs + 4 stripped slime logs = 95.
-        assertEquals(95, lang().entrySet().size());
+        // each (dirt, grass, leaves, sapling) + 4 slime logs + 4 stripped slime logs + 2 slime
+        // mobs (blueslime + hugeslime) = 97.
+        assertEquals(97, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

@@ -47,6 +47,8 @@
   "block.sconstruct.stripped_slime_blue_log": "Stripped Blue Slime Log",
   "block.sconstruct.stripped_slime_magma_log": "Stripped Magma Slime Log",
   "block.sconstruct.stripped_slime_purple_log": "Stripped Purple Slime Log",
+  "entity.sconstruct.blueslime": "Blueslime",
+  "entity.sconstruct.hugeslime": "Huge Slime",
   "fluid.sconstruct.blood": "Blood",
   "fluid.sconstruct.slime_blood": "Liquid Blood Slime",
   "fluid.sconstruct.slime_blue": "Liquid Blue Slime",

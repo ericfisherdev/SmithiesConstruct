@@ -129,6 +129,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
             String display = Character.toUpperCase(colorId.charAt(0)) + colorId.substring(1);
             add(entry.getValue().get(), "Stripped " + display + " Slime Log");
         }
+
+        // World pulse: slime mob entities. entity.<modid>.<path> is the conventional auto-key
+        // for entity types; LanguageProvider has no add(EntityType, String) overload so the
+        // raw key is written explicitly.
+        add(slimeknights.sconstruct.port1211.world.WorldEntities.BLUESLIME.get(), "Blueslime");
+        add(slimeknights.sconstruct.port1211.world.WorldEntities.HUGESLIME.get(), "Huge Slime");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
