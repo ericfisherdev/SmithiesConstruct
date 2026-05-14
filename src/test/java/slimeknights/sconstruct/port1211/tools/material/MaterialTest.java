@@ -48,7 +48,7 @@ class MaterialTest {
     void directCodecRoundTripsAFullMaterialThroughJson() {
         Material wood = new Material(WOOD, 1, Optional.of(PLANKS_TAG),
                 Map.of(PartType.HANDLE, new HandleStats(1.0f, 1.0f, 1.0f), PartType.PICKHEAD, new HeadStats(60, 0, 2.0f, 2.0f), PartType.BOWLIMB, new BowStats(20, 1.0f, 0.5f)),
-                List.of(new MaterialTrait(ResourceLocation.fromNamespaceAndPath("tconstruct", "ecological"), 2)), 0xFF8B5A2B);
+                List.of(new MaterialTrait(ResourceLocation.fromNamespaceAndPath("tconstruct", "ecological"), PartType.PICKHEAD)), 0xFF8B5A2B);
         JsonElement json = Material.DIRECT_CODEC.encodeStart(JsonOps.INSTANCE, wood).getOrThrow();
         Material decoded = Material.DIRECT_CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
         assertEquals(wood, decoded);
@@ -73,7 +73,7 @@ class MaterialTest {
         java.util.Map<PartType, MaterialStats> mutableStats = new java.util.EnumMap<>(PartType.class);
         mutableStats.put(PartType.HANDLE, new HandleStats(1.0f, 1.0f, 1.0f));
         java.util.List<MaterialTrait> mutableTraits = new java.util.ArrayList<>();
-        mutableTraits.add(new MaterialTrait(WOOD, 1));
+        mutableTraits.add(new MaterialTrait(WOOD, PartType.HANDLE));
 
         Material material = new Material(WOOD, 1, Optional.empty(), mutableStats, mutableTraits, 0);
 
@@ -83,7 +83,7 @@ class MaterialTest {
         assertEquals(1, material.stats().size(), "stats copy must not see post-construction mutation");
         assertEquals(1, material.traits().size(), "traits copy must not see post-construction mutation");
         assertThrows(UnsupportedOperationException.class, () -> material.stats().put(PartType.PICKHEAD, new HeadStats(1, 0, 1.0f, 1.0f)), "stats must be unmodifiable");
-        assertThrows(UnsupportedOperationException.class, () -> material.traits().add(new MaterialTrait(WOOD, 1)), "traits must be unmodifiable");
+        assertThrows(UnsupportedOperationException.class, () -> material.traits().add(new MaterialTrait(WOOD, PartType.HANDLE)), "traits must be unmodifiable");
     }
 
 }
