@@ -1,6 +1,7 @@
 package slimeknights.sconstruct.port1211.common.data;
 
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
@@ -61,6 +62,17 @@ public final class TinkerDataComponents {
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolBroken>> TOOL_BROKEN = TinkerRegistries.DATA_COMPONENTS.registerComponentType("toolbroken",
             builder -> builder.persistent(ToolBroken.CODEC).networkSynchronized(ToolBroken.STREAM_CODEC));
+
+    /**
+     * Per-stack material identity for a {@code MaterialItem} (tool part). Stores the
+     * {@link ResourceLocation} of the material the part is made of (e.g. {@code tconstruct:wood},
+     * {@code tconstruct:iron}). Held as a single ResourceLocation rather than a record wrapper
+     * because a part has exactly one material — no need for the per-component allocation a
+     * wrapper would add to every part stack in the world. Persisted + network-synced because the
+     * material drives the part's rendered name, model tint, and downstream stat contribution.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> PART_MATERIAL = TinkerRegistries.DATA_COMPONENTS.registerComponentType("part_material",
+            builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
 
     private TinkerDataComponents() {
     }
