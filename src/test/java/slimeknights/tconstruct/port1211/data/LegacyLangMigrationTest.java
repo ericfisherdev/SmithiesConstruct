@@ -34,9 +34,15 @@ class LegacyLangMigrationTest {
     private static final List<String> EXPECTED_LOCALES = List.of("de_de", "en_ud", "es_es", "fr_fr", "ja_jp", "ko_kr", "pt_br", "pt_pt", "ru_ru", "sv_se", "zh_cn", "zh_tw");
 
     @Test
+    @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
     void everyExpectedLocaleShipsAJsonFile() {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        if (cl == null) {
+            cl = LegacyLangMigrationTest.class.getClassLoader();
+        }
+        final ClassLoader loader = cl;
         assertAll(EXPECTED_LOCALES.stream().map(locale -> () -> {
-            assertNotNull(Thread.currentThread().getContextClassLoader().getResource(LANG_ROOT + locale + ".json"), locale + ".json missing from the classpath — re-run scripts/lang_to_json.py?");
+            assertNotNull(loader.getResource(LANG_ROOT + locale + ".json"), locale + ".json missing from the classpath — re-run scripts/lang_to_json.py?");
         }));
     }
 
