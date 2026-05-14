@@ -20,9 +20,9 @@ import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 /**
  * Single-piece structure body for {@link SlimeIslandStructure}. Lays down a horizontal disc of
  * the matching colour's {@link SlimePlantSet#dirt() slime dirt} at the anchor Y, the
- * {@link SlimePlantSet#grass() slime grass} cap one block above, and a small spray of
- * {@link SlimePlantSet#leaves() leaves} plus 1–2 {@link SlimePlantSet#sapling() saplings}
- * placed within the disc footprint.
+ * {@link SlimePlantSet#grass() slime grass} cap one block above, a {@link #LEAF_COUNT}-strong
+ * scatter of {@link SlimePlantSet#leaves() leaves} a layer above the grass, and exactly one
+ * centred {@link SlimePlantSet#sapling() sapling} sitting two blocks above the dirt floor.
  *
  * <p>NBT round-trips three values: the {@link SlimeColor} serialized-name id via
  * {@link SlimeColor#getSerializedName()} + {@link SlimeColor#byId(String)} (so reloading a save
