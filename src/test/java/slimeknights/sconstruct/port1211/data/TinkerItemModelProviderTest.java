@@ -52,6 +52,16 @@ class TinkerItemModelProviderTest {
     }
 
     @Test
+    void slimeFluidBucketsHaveParentGeneratedWithMatchingLayer0() {
+        // Each of the four coloured slime buckets should follow the flat-icon convention so
+        // the inventory render shows a tinted bucket sprite. Tinting itself is wired through
+        // the FluidType client extensions, not via per-colour PNGs — the model just points at
+        // the shared bucket sprite path under sconstruct:item/<bucket_id>.
+        assertAll(() -> assertSpriteShape("slime_blue_bucket.json", "sconstruct:item/slime_blue_bucket"), () -> assertSpriteShape("slime_purple_bucket.json", "sconstruct:item/slime_purple_bucket"),
+                () -> assertSpriteShape("slime_magma_bucket.json", "sconstruct:item/slime_magma_bucket"), () -> assertSpriteShape("slime_blood_bucket.json", "sconstruct:item/slime_blood_bucket"));
+    }
+
+    @Test
     void blockItemsInheritFromTheirBlockModel() {
         // BlockItems' item model should parent the block model so inventory renders 3D. A
         // refactor that flipped them to the generated parent would render the BlockItem as

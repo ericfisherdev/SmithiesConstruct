@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "sconstruct:slime_blue_block"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "sconstruct:slimeball_blue"
+  }
+}
