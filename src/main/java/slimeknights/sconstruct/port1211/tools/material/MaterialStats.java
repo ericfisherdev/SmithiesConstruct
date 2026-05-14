@@ -1,7 +1,5 @@
 package slimeknights.sconstruct.port1211.tools.material;
 
-import java.util.Locale;
-
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
@@ -38,7 +36,7 @@ public sealed interface MaterialStats permits HeadStats, HandleStats, ExtraStats
      */
     enum Type {
 
-        HEAD, HANDLE, EXTRA, BOW, ARROW;
+        HEAD("head"), HANDLE("handle"), EXTRA("extra"), BOW("bow"), ARROW("arrow");
 
         /**
          * Codec routing the dispatch field through {@link #id()}. Decode goes via
@@ -55,9 +53,16 @@ public sealed interface MaterialStats permits HeadStats, HandleStats, ExtraStats
             return com.mojang.serialization.DataResult.error(() -> "Unknown MaterialStats.Type id: " + id);
         }, type -> com.mojang.serialization.DataResult.success(type.id()));
 
-        /** Lowercase identifier used in JSON. */
+        private final String id;
+
+        Type(String id) {
+            this.id = id;
+        }
+
+        /** Explicit lowercase identifier used in JSON — decoupled from {@link #name()} so a
+         *  future constant rename does not break shipped datapacks. */
         public String id() {
-            return name().toLowerCase(Locale.ROOT);
+            return id;
         }
 
         /** Lookup helper used by the dispatch codec; throws on unknown ids. */
