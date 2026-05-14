@@ -62,7 +62,13 @@ public final class SlimeIslandPiece extends StructurePiece {
         // fallback to BLUE handles corrupted/legacy tags — better to keep the island in-world
         // with a default colour than throw and lose the StructureStart altogether.
         this.color = SlimeColor.byId(tag.getString(TAG_COLOR)).orElse(SlimeColor.BLUE);
-        this.radius = tag.getInt(TAG_RADIUS);
+        // Clamp the saved radius to the codec's accepted range so a tampered or legacy NBT
+        // entry can't drag the value below zero (which would throw inside random.nextInt) or
+        // beyond the bounding box this piece was sized for. Falling back to the lower bound
+        // keeps the disc visibly intact; the alternative — throwing — would lose the entire
+        // StructureStart on a single corrupted field.
+        int savedRadius = tag.getInt(TAG_RADIUS);
+        this.radius = clampRadius(savedRadius);
     }
 
     /** Slime colour this piece will place blocks for. */
@@ -119,11 +125,15 @@ public final class SlimeIslandPiece extends StructurePiece {
             }
         }
 
-        // Leaf scatter — pick random offsets within the disc and place leaves a block above the
-        // grass cap. The seeded RandomSource keeps the spray deterministic per chunk.
+        // Leaf scatter — seed a fresh RandomSource from the disc-centre coordinates so every
+        // chunk's postProcess pass evaluates the *same* LEAF_COUNT candidate offsets. The
+        // chunkBox.isInside gate then places only the candidates that fall inside the active
+        // chunk slice. Using the caller-supplied `random` would re-roll LEAF_COUNT new offsets
+        // per chunk and inflate the leaf count on islands that span chunk boundaries.
+        net.minecraft.util.RandomSource leafRandom = net.minecraft.util.RandomSource.create((((long) centerX) << 32) ^ (centerZ & 0xFFFFFFFFL) ^ radius);
         for (int i = 0; i < LEAF_COUNT; i++) {
-            int leafDx = random.nextInt(radius * 2 + 1) - radius;
-            int leafDz = random.nextInt(radius * 2 + 1) - radius;
+            int leafDx = leafRandom.nextInt(radius * 2 + 1) - radius;
+            int leafDz = leafRandom.nextInt(radius * 2 + 1) - radius;
             if (leafDx * leafDx + leafDz * leafDz > radiusSquared) {
                 continue;
             }
@@ -151,5 +161,21 @@ public final class SlimeIslandPiece extends StructurePiece {
      */
     private static BoundingBox buildBoundingBox(BlockPos origin, int radius) {
         return new BoundingBox(origin.getX() - radius, origin.getY(), origin.getZ() - radius, origin.getX() + radius, origin.getY() + VERTICAL_PADDING, origin.getZ() + radius);
+    }
+
+    /**
+     * Clamp a saved radius to the {@link SlimeIslandStructure#RADIUS_MIN}-
+     * {@link SlimeIslandStructure#RADIUS_MAX} range. Used by the NBT-deserialise ctor to
+     * defend against tampered / legacy saves carrying values that would otherwise throw
+     * inside {@code random.nextInt(radius * 2 + 1)} or overflow the bounding box.
+     */
+    private static int clampRadius(int savedRadius) {
+        if (savedRadius < SlimeIslandStructure.RADIUS_MIN) {
+            return SlimeIslandStructure.RADIUS_MIN;
+        }
+        if (savedRadius > SlimeIslandStructure.RADIUS_MAX) {
+            return SlimeIslandStructure.RADIUS_MAX;
+        }
+        return savedRadius;
     }
 }
