@@ -24,10 +24,13 @@ import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
  * {@link SlimePlantSet#leaves() leaves} plus 1–2 {@link SlimePlantSet#sapling() saplings}
  * placed within the disc footprint.
  *
- * <p>NBT round-trips three values: the {@link SlimeColor} ordinal (so reloading a save resolves
- * the matching plant set), the sampled radius (so post-processing can re-derive the same disc
- * shape if the piece is unloaded and reloaded), and the structure piece's bounding box +
- * orientation (handled by the {@link StructurePiece} parent).
+ * <p>NBT round-trips three values: the {@link SlimeColor} serialized-name id via
+ * {@link SlimeColor#getSerializedName()} + {@link SlimeColor#byId(String)} (so reloading a save
+ * resolves the matching plant set without brittleness to enum reordering — an ordinal-based
+ * write would silently shift colours if a future refactor inserts a new constant), the sampled
+ * radius (so post-processing can re-derive the same disc shape if the piece is unloaded and
+ * reloaded), and the structure piece's bounding box + orientation (handled by the
+ * {@link StructurePiece} parent).
  *
  * <p>The piece intentionally generates procedurally rather than via a structure-template NBT
  * so a future colour or radius change is a single Java edit instead of an asset re-author.
