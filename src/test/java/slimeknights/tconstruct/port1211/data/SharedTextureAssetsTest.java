@@ -37,23 +37,25 @@ class SharedTextureAssetsTest {
 
     @Test
     void decorativeBlocksHaveTextures() {
-        assertAll(() -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "glow.png")), () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "firewood.png")),
-                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "lavawood.png")));
+        assertAll(() -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "glow.png"), BLOCK_TEXTURE_ROOT + "glow.png missing"),
+                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "firewood.png"), BLOCK_TEXTURE_ROOT + "firewood.png missing"),
+                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "lavawood.png"), BLOCK_TEXTURE_ROOT + "lavawood.png missing"));
     }
 
     @Test
     void firewoodHasAnimationMcmeta() {
         // The legacy mod animates the firewood top texture. Preserving the mcmeta keeps the
         // animation intact post-port.
-        assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "firewood.png.mcmeta"));
+        assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "firewood.png.mcmeta"), BLOCK_TEXTURE_ROOT + "firewood.png.mcmeta missing");
     }
 
     @Test
     void bloodFluidTexturesAndAnimationStillPresent() {
         // Shipped earlier by SMTCON-39; pin here so a future texture refactor doesn't
         // accidentally rebase the fluid into the wrong subdirectory.
-        assertAll(() -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodstill.png")), () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png")),
-                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png.mcmeta")));
+        assertAll(() -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodstill.png"), BLOCK_TEXTURE_ROOT + "fluid/bloodstill.png missing"),
+                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png"), BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png missing"),
+                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png.mcmeta"), BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png.mcmeta missing"));
     }
 
     @Test
@@ -70,13 +72,14 @@ class SharedTextureAssetsTest {
 
     @Test
     void slimeballsBaconMudbrickBloodBucketHaveItemTextures() {
-        assertAll(() -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png")),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png")),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png")),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png")),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png")),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png")),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png")));
+        assertAll(
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_PURPLE.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLOOD.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png missing"));
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
