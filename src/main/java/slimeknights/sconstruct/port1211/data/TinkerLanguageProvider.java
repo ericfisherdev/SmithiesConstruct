@@ -59,6 +59,13 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("modifier.tconstruct.lapis", "Luck %s");
         add("modifier.tconstruct.diamond", "Diamond");
         add("modifier.tconstruct.emerald", "Emerald");
+        // SMTCON-86 utility modifier labels. Silktouch is a one-shot (no level suffix);
+        // the rest carry per-level numbering.
+        add("modifier.tconstruct.silktouch", "Silky");
+        add("modifier.tconstruct.beheading", "Beheading %s");
+        add("modifier.tconstruct.smite", "Smite %s");
+        add("modifier.tconstruct.bane_of_arthropods", "Bane of Arthropods %s");
+        add("modifier.tconstruct.knockback", "Knockback %s");
 
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
