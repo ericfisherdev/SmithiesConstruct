@@ -30,9 +30,9 @@ import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 class ToolItemsTest {
 
     @Test
-    void registersExactlyNineTools() {
-        assertEquals(9, ToolItems.registeredCount(), "4 basic + hammer + excavator + lumberaxe + scythe + mattock");
-        assertEquals(9, ToolItems.ALL_TOOLS.size());
+    void registersAllShippedTools() {
+        assertEquals(13, ToolItems.registeredCount(), "4 basic + 5 AOE + 4 melee variants");
+        assertEquals(13, ToolItems.ALL_TOOLS.size());
     }
 
     @Test
@@ -63,6 +63,18 @@ class ToolItemsTest {
         assertAll(() -> assertEquals(ToolDefinition.HAMMER, ToolItems.HAMMER.get().definition), () -> assertEquals(ToolDefinition.EXCAVATOR, ToolItems.EXCAVATOR.get().definition),
                 () -> assertEquals(ToolDefinition.LUMBER_AXE, ToolItems.LUMBER_AXE.get().definition), () -> assertEquals(ToolDefinition.SCYTHE, ToolItems.SCYTHE.get().definition),
                 () -> assertEquals(ToolDefinition.MATTOCK, ToolItems.MATTOCK.get().definition));
+    }
+
+    @Test
+    void meleeToolsBindToTheirDefinitions() {
+        assertAll(() -> assertEquals(ToolDefinition.CLEAVER, ToolItems.CLEAVER.get().definition), () -> assertEquals(ToolDefinition.LONGSWORD, ToolItems.LONGSWORD.get().definition),
+                () -> assertEquals(ToolDefinition.RAPIER, ToolItems.RAPIER.get().definition), () -> assertEquals(ToolDefinition.FROE, ToolItems.FROE.get().definition));
+    }
+
+    @Test
+    void meleeToolRuntimeTypesMatchExpectedSubclasses() {
+        assertAll(() -> assertTrue(ToolItems.CLEAVER.get() instanceof CleaverItem), () -> assertTrue(ToolItems.LONGSWORD.get() instanceof LongswordItem),
+                () -> assertTrue(ToolItems.RAPIER.get() instanceof RapierItem), () -> assertTrue(ToolItems.FROE.get() instanceof FroeItem));
     }
 
     @Test
@@ -118,7 +130,7 @@ class ToolItemsTest {
         List<ItemLike> visited = new ArrayList<>();
         ToolItems.acceptAll(visited::add);
         Set<ItemLike> canonical = ToolItems.ALL_TOOLS.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(9, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(9L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(13, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(13L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical ALL_TOOLS values"));
     }
 
@@ -127,7 +139,7 @@ class ToolItemsTest {
         // The list is part of the public registration surface — downstream pulses must not be
         // able to mutate the iteration order or roster after registration. List.of returns an
         // immutable list, so any mutator must raise UnsupportedOperationException.
-        assertEquals(9, ToolItems.ALL_TOOLS.size());
+        assertEquals(13, ToolItems.ALL_TOOLS.size());
         assertThrows(UnsupportedOperationException.class, () -> ToolItems.ALL_TOOLS.add(null));
     }
 

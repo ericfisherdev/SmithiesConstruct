@@ -141,6 +141,36 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
             DEFAULT_MODIFIER_SLOTS);
 
     /**
+     * {@code Cleaver}: toughHandle + broadBlade + largePlate × 2 ({@code TinkerMeleeWeapons:78}).
+     * Heavy melee weapon with a chance-to-behead on kill; mining-tag is null and the ability
+     * set mirrors the sword so right-click swing still animates.
+     */
+    public static final ToolDefinition CLEAVER = new ToolDefinition("cleaver", List.of(PartType.TOUGHHANDLE, PartType.BROADBLADE, PartType.LARGEPLATE, PartType.LARGEPLATE), null,
+            ItemAbilities.DEFAULT_SWORD_ACTIONS, DEFAULT_MODIFIER_SLOTS);
+
+    /**
+     * {@code Longsword}: toughHandle + swordBlade + wideGuard ({@code TinkerMeleeWeapons:76}).
+     * Mid-weight sword variant whose held bonus extends the player's entity-interaction range.
+     */
+    public static final ToolDefinition LONGSWORD = new ToolDefinition("longsword", List.of(PartType.TOUGHHANDLE, PartType.SWORDBLADE, PartType.WIDEGUARD), null, ItemAbilities.DEFAULT_SWORD_ACTIONS,
+            DEFAULT_MODIFIER_SLOTS);
+
+    /**
+     * {@code Rapier}: handle + swordBlade + wideGuard ({@code TinkerMeleeWeapons:77}). Light
+     * sword variant whose held bonus raises attack-speed for faster swings at lower damage.
+     */
+    public static final ToolDefinition RAPIER = new ToolDefinition("rapier", List.of(PartType.HANDLE, PartType.SWORDBLADE, PartType.WIDEGUARD), null, ItemAbilities.DEFAULT_SWORD_ACTIONS,
+            DEFAULT_MODIFIER_SLOTS);
+
+    /**
+     * {@code Froe}: handle + axeHead + binding. Hatchet-shaped utility weapon whose damage
+     * doubles against wood-armoured targets. Mining tag matches the axe so it still works as a
+     * tree-chopper outside combat.
+     */
+    public static final ToolDefinition FROE = new ToolDefinition("froe", List.of(PartType.HANDLE, PartType.AXEHEAD, PartType.BINDING), BlockTags.MINEABLE_WITH_AXE, ItemAbilities.DEFAULT_AXE_ACTIONS,
+            DEFAULT_MODIFIER_SLOTS);
+
+    /**
      * {@code ShortBow}: bowLimb + bowLimb + bowString ({@code TinkerRangedWeapons:100}).
      * Two limb slots intentionally — top and bottom limbs carry independent stats in legacy.
      * No vanilla mining tag (bows aren't dig tools); ability set empty since NeoForge has no
@@ -168,7 +198,7 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
      * the heavy 4-part definitions (hammer, excavator, lumberaxe) and the ranged ammunition /
      * weapons (shortbow, crossbow, arrow) become buildable too.
      */
-    public static final List<ToolDefinition> ALL_BASIC = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE);
+    public static final List<ToolDefinition> ALL_BASIC = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, LONGSWORD, RAPIER, FROE);
 
     /**
      * Advanced tool definitions buildable at the Tool Forge (SMTCON-93) — the full roster
@@ -177,5 +207,6 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
      * the heavy 4-part definitions (hammer, excavator, lumberaxe) and the ranged ammunition /
      * weapons (shortbow, crossbow, arrow) whose legacy 1.12 line required the Tool Forge.
      */
-    public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, HAMMER, EXCAVATOR, LUMBER_AXE, SHORTBOW, CROSSBOW, ARROW);
+    public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, LONGSWORD, RAPIER, FROE, CLEAVER, HAMMER, EXCAVATOR, LUMBER_AXE, SHORTBOW,
+            CROSSBOW, ARROW);
 }

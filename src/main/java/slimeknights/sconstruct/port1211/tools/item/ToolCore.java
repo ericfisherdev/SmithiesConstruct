@@ -20,6 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -129,6 +130,26 @@ public class ToolCore extends DiggerItem {
         return properties.component(TinkerDataComponents.TOOL_MATERIALS.get(), ToolMaterials.empty()).component(TinkerDataComponents.TOOL_MODIFIERS.get(), ToolModifiers.empty())
                 .component(TinkerDataComponents.TOOL_STATS.get(), ToolStats.zero()).component(TinkerDataComponents.TOOL_PERSISTENT_DATA.get(), ToolPersistentData.empty())
                 .component(TinkerDataComponents.TOOL_BROKEN.get(), ToolBroken.intact());
+    }
+
+    /**
+     * Per-subclass hook for layering extra {@link ItemAttributeModifiers} on top of the
+     * baseline {@link slimeknights.sconstruct.port1211.tools.AttributeBuilder#build} output.
+     * The default implementation returns {@code baseline} unchanged; melee subclasses (longsword
+     * reach, rapier attack-speed) override to fold in their per-class attribute boosts so
+     * {@link slimeknights.sconstruct.port1211.tools.ToolHelper#rebuildStats} writes the combined
+     * modifier set into {@link net.minecraft.core.component.DataComponents#ATTRIBUTE_MODIFIERS}.
+     *
+     * <p>Implementations should return a new {@link ItemAttributeModifiers} (do not mutate the
+     * baseline) since the builder is the source of truth on each rebuild.
+     *
+     * @param baseline the stats-derived attribute modifiers from
+     *     {@link slimeknights.sconstruct.port1211.tools.AttributeBuilder#build}.
+     * @param stats the cached tool stats — passed so subclasses can scale their per-class
+     *     additions against material-driven figures (e.g. crit bonus from sharpness).
+     */
+    public ItemAttributeModifiers augmentAttributes(ItemAttributeModifiers baseline, slimeknights.sconstruct.port1211.common.data.ToolStats stats) {
+        return baseline;
     }
 
     /**

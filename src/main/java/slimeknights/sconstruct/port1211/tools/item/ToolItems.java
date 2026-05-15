@@ -66,8 +66,20 @@ public final class ToolItems {
     /** Axe / shovel / hoe hybrid — 1x3 vertical dig column. */
     public static final DeferredItem<MattockItem> MATTOCK = TinkerRegistries.ITEMS.registerItem("mattock", MattockItem::new);
 
+    /** Heavy 4-part melee weapon with chance-to-behead on kill. */
+    public static final DeferredItem<CleaverItem> CLEAVER = TinkerRegistries.ITEMS.registerItem("cleaver", CleaverItem::new);
+
+    /** Mid-weight sword variant with held-bonus reach. */
+    public static final DeferredItem<LongswordItem> LONGSWORD = TinkerRegistries.ITEMS.registerItem("longsword", LongswordItem::new);
+
+    /** Light sword variant with held-bonus attack speed. */
+    public static final DeferredItem<RapierItem> RAPIER = TinkerRegistries.ITEMS.registerItem("rapier", RapierItem::new);
+
+    /** Utility melee weapon — doubles damage against leather / wood-armoured targets. */
+    public static final DeferredItem<FroeItem> FROE = TinkerRegistries.ITEMS.registerItem("froe", FroeItem::new);
+
     /** Iteration surface for the creative-tab listener and any future "all tools" hook. */
-    public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK);
+    public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK, CLEAVER, LONGSWORD, RAPIER, FROE);
 
     private ToolItems() {
     }
