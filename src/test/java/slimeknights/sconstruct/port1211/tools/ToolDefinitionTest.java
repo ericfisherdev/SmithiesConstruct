@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 class ToolDefinitionTest {
 
     private static final List<ToolDefinition> ALL = List.of(ToolDefinition.PICKAXE, ToolDefinition.SHOVEL, ToolDefinition.HATCHET, ToolDefinition.MATTOCK, ToolDefinition.HAMMER,
-            ToolDefinition.LUMBER_AXE, ToolDefinition.BROADSWORD, ToolDefinition.SHORTBOW, ToolDefinition.CROSSBOW, ToolDefinition.ARROW);
+            ToolDefinition.EXCAVATOR, ToolDefinition.LUMBER_AXE, ToolDefinition.SCYTHE, ToolDefinition.BROADSWORD, ToolDefinition.SHORTBOW, ToolDefinition.CROSSBOW, ToolDefinition.ARROW);
 
     @Test
     void shipsAtLeastEightToolConstants() {

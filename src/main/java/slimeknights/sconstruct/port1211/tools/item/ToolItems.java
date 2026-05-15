@@ -51,8 +51,23 @@ public final class ToolItems {
     /** Tinker broadsword — handle + sword-blade + wide-guard. */
     public static final DeferredItem<SwordItem> SWORD = TinkerRegistries.ITEMS.registerItem("sword", SwordItem::new);
 
+    /** Heavy-pickaxe AOE tool — 3x3 mining swing. */
+    public static final DeferredItem<HammerItem> HAMMER = TinkerRegistries.ITEMS.registerItem("hammer", HammerItem::new);
+
+    /** Heavy-shovel AOE tool — 3x3 mining swing. */
+    public static final DeferredItem<ExcavatorItem> EXCAVATOR = TinkerRegistries.ITEMS.registerItem("excavator", ExcavatorItem::new);
+
+    /** Two-handed axe — tree-felling pattern. */
+    public static final DeferredItem<LumberAxeItem> LUMBER_AXE = TinkerRegistries.ITEMS.registerItem("lumberaxe", LumberAxeItem::new);
+
+    /** Two-handed melee weapon — AOE sweep + 3x3 crop / leaf clear. */
+    public static final DeferredItem<ScytheItem> SCYTHE = TinkerRegistries.ITEMS.registerItem("scythe", ScytheItem::new);
+
+    /** Axe / shovel / hoe hybrid — 1x3 vertical dig column. */
+    public static final DeferredItem<MattockItem> MATTOCK = TinkerRegistries.ITEMS.registerItem("mattock", MattockItem::new);
+
     /** Iteration surface for the creative-tab listener and any future "all tools" hook. */
-    public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD);
+    public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK);
 
     private ToolItems() {
     }

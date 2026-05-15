@@ -30,9 +30,9 @@ import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 class ToolItemsTest {
 
     @Test
-    void registersExactlyFourTools() {
-        assertEquals(4, ToolItems.registeredCount(), "pickaxe + shovel + axe + sword");
-        assertEquals(4, ToolItems.ALL_TOOLS.size());
+    void registersExactlyNineTools() {
+        assertEquals(9, ToolItems.registeredCount(), "4 basic + hammer + excavator + lumberaxe + scythe + mattock");
+        assertEquals(9, ToolItems.ALL_TOOLS.size());
     }
 
     @Test
@@ -59,6 +59,16 @@ class ToolItemsTest {
     }
 
     @Test
+    void aoeToolsBindToTheirAoePatterns() {
+        // Pin pattern selection per AOE tool so a future rewire doesn't silently swap which tool
+        // gets which AOE shape — the player-facing behaviour difference between TREE / FULL3x3 /
+        // COLUMN_1x3 is non-trivial.
+        assertAll(() -> assertEquals(AoePattern.FULL3x3, ToolItems.HAMMER.get().aoePattern()), () -> assertEquals(AoePattern.FULL3x3, ToolItems.EXCAVATOR.get().aoePattern()),
+                () -> assertEquals(AoePattern.TREE, ToolItems.LUMBER_AXE.get().aoePattern()), () -> assertEquals(AoePattern.FULL3x3, ToolItems.SCYTHE.get().aoePattern()),
+                () -> assertEquals(AoePattern.COLUMN_1x3, ToolItems.MATTOCK.get().aoePattern()));
+    }
+
+    @Test
     void registeredItemsAreTypedToolCoreSubclasses() {
         // The DeferredItem generic param is only enforced at compile time; assert the runtime
         // instance is the expected subclass so a future rewire that loosens the factory doesn't
@@ -76,7 +86,7 @@ class ToolItemsTest {
         List<ItemLike> visited = new ArrayList<>();
         ToolItems.acceptAll(visited::add);
         Set<ItemLike> canonical = ToolItems.ALL_TOOLS.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(4, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(4, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(9, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(9L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical ALL_TOOLS values"));
     }
 
@@ -85,7 +95,7 @@ class ToolItemsTest {
         // The list is part of the public registration surface — downstream pulses must not be
         // able to mutate the iteration order or roster after registration. List.of returns an
         // immutable list, so any mutator must raise UnsupportedOperationException.
-        assertEquals(4, ToolItems.ALL_TOOLS.size());
+        assertEquals(9, ToolItems.ALL_TOOLS.size());
         assertThrows(UnsupportedOperationException.class, () -> ToolItems.ALL_TOOLS.add(null));
     }
 
