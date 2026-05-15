@@ -40,7 +40,7 @@ class PatternItemTest {
     @Test
     void getPartReturnsValueWhenComponentPresent() {
         ItemStack stack = mock(ItemStack.class);
-        when(stack.get(TinkerDataComponents.TINKER_PATTERN_PART.get())).thenReturn(Optional.of(PatternType.SWORDBLADE_TEST_VALUE));
+        when(stack.get(TinkerDataComponents.TINKER_PATTERN_PART.get())).thenReturn(Optional.of(PartType.SWORDBLADE));
         Optional<PartType> read = PatternItem.getPart(stack);
         assertTrue(read.isPresent());
         assertEquals(PartType.SWORDBLADE, read.get());
@@ -62,15 +62,4 @@ class PatternItemTest {
                 () -> assertTrue(((Component) contents.getArgs()[0]).getContents() instanceof TranslatableContents, "part arg must be a TranslatableComponent"));
     }
 
-    /**
-     * Constants used by the tests above. Kept private to this file so the test stays a pure
-     * unit test — referencing the {@code PartType} enum directly through a real value avoids
-     * any reflective access on a synthesised enum entry.
-     */
-    private static final class PatternType {
-        static final PartType SWORDBLADE_TEST_VALUE = PartType.SWORDBLADE;
-
-        private PatternType() {
-        }
-    }
 }
