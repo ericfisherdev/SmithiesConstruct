@@ -93,8 +93,9 @@ public final class DataGenerators {
         generator.addProvider(client, languageFactory);
 
         // SMTCON-106: emits the blocks-atlas PalettedPermutations source that materialises one
-        // sprite per (part × material) pair at runtime. Client-side only — atlas JSON belongs
-        // under assets/sconstruct/atlases on the client jar.
+        // sprite per (part × material) pair at runtime. Client-side only — the atlas JSON is
+        // written to assets/minecraft/atlases/blocks.json (the vanilla blocks atlas path on the
+        // client jar), which is the atlas the per-material baked tool model resolves against.
         DataProvider.Factory<TinkerSpriteSourceProvider> spriteSourceFactory = out -> new TinkerSpriteSourceProvider(out, registries, existingFileHelper);
         generator.addProvider(client, spriteSourceFactory);
     }
