@@ -43,8 +43,12 @@ public final class AoeHelper {
      */
     private static final int TREE_WALK_LIMIT = 64;
 
-    /** Sentinel returned by {@link BlockState#getDestroySpeed} for unbreakable blocks (bedrock, etc.). */
-    private static final float UNBREAKABLE_DESTROY_SPEED = 0.0F;
+    /**
+     * Sentinel value vanilla {@link BlockState#getDestroySpeed} returns for unbreakable blocks
+     * (bedrock, command block, etc.). Compared against with {@code <=} so any block whose hardness
+     * is at or below this sentinel is treated as unbreakable.
+     */
+    private static final float UNBREAKABLE_HARDNESS_SENTINEL = -1.0F;
 
     private AoeHelper() {
     }
@@ -98,7 +102,7 @@ public final class AoeHelper {
         if (state.isAir()) {
             return false;
         }
-        if (state.getDestroySpeed(level, pos) < UNBREAKABLE_DESTROY_SPEED) {
+        if (state.getDestroySpeed(level, pos) <= UNBREAKABLE_HARDNESS_SENTINEL) {
             return false;
         }
         if (!stack.isCorrectToolForDrops(state)) {
