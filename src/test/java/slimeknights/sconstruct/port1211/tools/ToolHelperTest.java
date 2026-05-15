@@ -338,9 +338,10 @@ class ToolHelperTest {
     }
 
     @Test
-    void rebuildStatsClampsDamageWhenMaxDurabilityDropsBelowCurrent() {
+    void rebuildStatsClampsDamageAndMarksBrokenWhenMaxDurabilityDropsBelowCurrent() {
         // AC: damage value never exceeds maxDurability after rebuild. Recompute path mid-life
-        // (e.g. cap-tier downgrade) must clamp so the broken-flag transition still triggers.
+        // (e.g. cap-tier downgrade) must clamp the damage AND resync the TOOL_BROKEN flag —
+        // damage == maxDurability after clamp means the tool is broken in the same tick.
         ItemStack stack = nonEmptyStack();
         when(stack.getDamageValue()).thenReturn(500); // far past the wood-pickaxe ceiling of 50
         when(stack.getOrDefault(eq(TinkerDataComponents.TOOL_MODIFIERS.get()), any())).thenReturn(ToolModifiers.empty());
@@ -349,13 +350,14 @@ class ToolHelperTest {
         ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
 
         verify(stack).setDamageValue(50);
+        verify(stack).set(eq(BROKEN), same(ToolBroken.BROKEN));
     }
 
     @Test
     void rebuildStatsDoesNotResetDamageWhenWithinNewMax() {
         // Inverse of the clamp test — a tool whose existing damage is below the new ceiling
         // keeps its damage untouched, so the player's wear-and-tear progress doesn't reset on
-        // every material swap.
+        // every material swap. The broken flag must also resolve to intact.
         ItemStack stack = nonEmptyStack();
         when(stack.getDamageValue()).thenReturn(20);
         when(stack.getOrDefault(eq(TinkerDataComponents.TOOL_MODIFIERS.get()), any())).thenReturn(ToolModifiers.empty());
@@ -364,6 +366,22 @@ class ToolHelperTest {
         ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
 
         verify(stack, never()).setDamageValue(anyInt());
+        verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
+    }
+
+    @Test
+    void rebuildStatsUnbreaksToolWhenCeilingRisesAboveDamage() {
+        // A material upgrade that lifts maxDurability past the current damage must clear the
+        // broken bit so the UI / damage-handler sees the tool as usable again on the same
+        // tick the stats were recomputed.
+        ItemStack stack = nonEmptyStack();
+        when(stack.getDamageValue()).thenReturn(30); // below the new wood-pickaxe ceiling of 50
+        when(stack.getOrDefault(eq(TinkerDataComponents.TOOL_MODIFIERS.get()), any())).thenReturn(ToolModifiers.empty());
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+
+        ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
+
+        verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
     }
 
     /**
