@@ -146,6 +146,21 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void stencilTableLangKeysRegistered() {
+        // SMTCON-91 adds four lang keys: block name, container title, blank pattern item, and
+        // the typed-pattern name format (carrying a %s substitution for the PartType display
+        // name). Pin each key + display value directly so a mistyped key wouldn't render the
+        // GUI title or item name as raw lang keys in-game.
+        JsonObject lang = lang();
+        assertAll(() -> assertTrue(lang.has("block.sconstruct.stencil_table"), "block stencil_table key missing"),
+                () -> assertEquals("Stencil Table", lang.get("block.sconstruct.stencil_table").getAsString()),
+                () -> assertTrue(lang.has("container.sconstruct.stencil_table"), "container stencil_table key missing"),
+                () -> assertEquals("Stencil Table", lang.get("container.sconstruct.stencil_table").getAsString()),
+                () -> assertTrue(lang.has("item.sconstruct.blank_pattern"), "blank_pattern key missing"), () -> assertEquals("Blank Pattern", lang.get("item.sconstruct.blank_pattern").getAsString()),
+                () -> assertTrue(lang.has("item.sconstruct.pattern"), "pattern key missing"), () -> assertEquals("Pattern: %s", lang.get("item.sconstruct.pattern").getAsString()));
+    }
+
+    @Test
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
@@ -156,8 +171,9 @@ class TinkerLanguageProviderTest {
         // bane_of_arthropods, knockback) + 5 SMTCON-87 specialty modifier labels (fiery,
         // necrotic, moss, mending, auto_repair) + 4 SMTCON-88 cap-tier modifier labels
         // (gilded, reinforced, haste, luck) + 1 SMTCON-89 tool tooltip key + 2 SMTCON-90
-        // pattern chest keys (block + container title) = 120.
-        assertEquals(120, lang().entrySet().size());
+        // pattern chest keys (block + container title) + 4 SMTCON-91 stencil table keys
+        // (block + container title + blank_pattern item + typed pattern name format) = 124.
+        assertEquals(124, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

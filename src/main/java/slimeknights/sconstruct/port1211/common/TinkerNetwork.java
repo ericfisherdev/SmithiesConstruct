@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.common.network.StencilTablePartPayload;
 
 /**
  * Central registration point for the mod's network payloads. Phase 1 ships only the registrar
@@ -59,7 +60,7 @@ public final class TinkerNetwork {
             throw new IllegalStateException("PayloadRegistrar from RegisterPayloadHandlersEvent was null — NeoForge contract violated");
         }
         LOGGER.info("SConstruct: network payload registrar version {} created", VERSION);
-        // No payloads registered yet. Phase 2+ pulses will append registrar.playToClient/server
-        // calls here as their network packets come online.
+        // SMTCON-91: client→server cycle-button packet for the Stencil Table.
+        registrar.playToServer(StencilTablePartPayload.TYPE, StencilTablePartPayload.STREAM_CODEC, StencilTablePartPayload::handleServer);
     }
 }

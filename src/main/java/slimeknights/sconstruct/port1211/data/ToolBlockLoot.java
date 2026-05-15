@@ -9,6 +9,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
+import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
 
 /**
  * Block loot-table sub-provider for the tools pulse. SMTCON-90 introduces the first
@@ -46,6 +47,6 @@ public final class ToolBlockLoot extends BlockLootSubProvider {
      * list.
      */
     private List<Block> ownedBlocks() {
-        return List.of(PatternChestRegistry.PATTERN_CHEST.get());
+        return List.of(PatternChestRegistry.PATTERN_CHEST.get(), StencilTableRegistry.STENCIL_TABLE.get());
     }
 }

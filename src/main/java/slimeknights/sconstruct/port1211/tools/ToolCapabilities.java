@@ -34,5 +34,11 @@ public final class ToolCapabilities {
                 // every face. Per-face filtering is a follow-up if/when the design wants the
                 // bottom face to only emit and the top to only receive.
                 (be, side) -> be.getHandler());
+        // SMTCON-91: stencil table's combined 2-slot handler. The handler enforces blank-only
+        // insertion on the input slot and rejects all insertion on the output slot at the
+        // handler layer (see StencilTableBlockEntity#isItemValid), so hoppers can feed blank
+        // patterns into the table but cannot bypass the cycle button by pre-stamping the
+        // output slot.
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, StencilTableRegistry.STENCIL_TABLE_BE.get(), (be, side) -> be.getHandler());
     }
 }

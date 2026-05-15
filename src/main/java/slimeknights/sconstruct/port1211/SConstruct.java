@@ -25,7 +25,9 @@ import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
+import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
 import slimeknights.sconstruct.port1211.tools.client.PatternChestClient;
+import slimeknights.sconstruct.port1211.tools.client.StencilTableClient;
 import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
 import slimeknights.sconstruct.port1211.tools.item.ToolItems;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
@@ -96,6 +98,12 @@ public final class SConstruct {
         PatternChestRegistry.init();
         PatternChestRegistry.registerCreativeTabContents(modBus);
 
+        // SMTCON-91: stencil table + the two pattern items (blank + typed) that share the
+        // PatternItem class. Same temporary-home rationale as PatternChestRegistry above —
+        // moves into TinkerToolsPulse when that pulse lands.
+        StencilTableRegistry.init();
+        StencilTableRegistry.registerCreativeTabContents(modBus);
+
         // Register the sconstruct:material datapack registry on DataPackRegistryEvent.NewRegistry
         // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary
         // home as the ToolParts wiring above — moves into TinkerToolsPulse when that lands.
@@ -118,6 +126,10 @@ public final class SConstruct {
             // RegisterMenuScreensEvent so the client opens PatternChestScreen when the server
             // sends a ClientboundOpenScreenPacket for the chest's menu.
             PatternChestClient.register(modBus);
+            // SMTCON-91: pair the stencil table menu type with its screen on
+            // RegisterMenuScreensEvent so the client opens StencilTableScreen when the server
+            // sends a ClientboundOpenScreenPacket for the table's menu.
+            StencilTableClient.register(modBus);
         }
 
         modBus.addListener(this::onCommonSetup);

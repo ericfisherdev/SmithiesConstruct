@@ -1,10 +1,14 @@
 package slimeknights.sconstruct.port1211.common.data;
 
+import java.util.Optional;
+
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
+import slimeknights.sconstruct.port1211.tools.PartType;
 
 /**
  * Registration hub for every tool {@code DataComponentType} the mod ships. Each constant is a
@@ -73,6 +77,26 @@ public final class TinkerDataComponents {
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> PART_MATERIAL = TinkerRegistries.DATA_COMPONENTS.registerComponentType("part_material",
             builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+
+    /**
+     * Pattern-typing component for the stencil table's typed pattern items (SMTCON-91). Held as
+     * an {@link Optional} so a single {@code PatternItem} class can carry both the blank
+     * (component absent) and the typed (component present with a {@link PartType}) variant —
+     * the registered {@code BLANK_PATTERN} item exposes no default component, while the
+     * stencil table writes the component onto the typed-output stack at GUI craft time.
+     *
+     * <p>Persisted + network-synced because the typed identity drives both the rendered name
+     * (the {@code "Pattern: <part>"} form built by
+     * {@link slimeknights.sconstruct.port1211.tools.item.PatternItem#getName}) and the
+     * downstream part-builder lookup that resolves a typed pattern to its target
+     * {@link PartType}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Optional<PartType>>> TINKER_PATTERN_PART = TinkerRegistries.DATA_COMPONENTS.registerComponentType("tinker_pattern_part",
+            // Persistent codec wraps PartType.CODEC in an optional field "part" — encodes a
+            // typed stack as {part: "<id>"} and an absent component as the empty NBT compound.
+            // Stream codec uses vanilla's ByteBufCodecs.optional helper (boolean presence flag
+            // followed by the inner payload when present).
+            builder -> builder.persistent(PartType.CODEC.optionalFieldOf("part").codec()).networkSynchronized(ByteBufCodecs.optional(PartType.STREAM_CODEC)));
 
     private TinkerDataComponents() {
     }

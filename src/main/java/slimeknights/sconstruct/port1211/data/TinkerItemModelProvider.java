@@ -15,6 +15,7 @@ import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
+import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
 import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.WorldFluids;
@@ -97,6 +98,15 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // SMTCON-90 pattern chest: inventory icon parents the cube_all block model emitted
         // by TinkerBlockStateProvider above.
         registerBlockItemFromBlockModel(PatternChestRegistry.PATTERN_CHEST);
+
+        // SMTCON-91: stencil table inventory icon parents the cube_all block model.
+        registerBlockItemFromBlockModel(StencilTableRegistry.STENCIL_TABLE);
+        // Blank pattern + typed pattern share one PatternItem class — both get the same flat
+        // item/generated sprite. The typed variant uses the same texture; tinting / overlay for
+        // the per-part typed look is a follow-up rendering task (the texture PNG itself is
+        // also a follow-up per the ticket plan).
+        registerSpriteItem(StencilTableRegistry.BLANK_PATTERN);
+        registerSpriteItem(StencilTableRegistry.PATTERN);
     }
 
     /**
