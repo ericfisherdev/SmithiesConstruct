@@ -181,12 +181,13 @@ class StatsBuilderTest {
     }
 
     @Test
-    void bowDrawSpeedAveragesBowMaterialStatsAcrossLimbAndStringSlots() {
-        // SHORTBOW = BOWLIMB + BOWLIMB + BOWSTRING. In the current port every bow-coded
-        // PartType (BOWLIMB and BOWSTRING) carries BowStats, so the average folds all three
-        // entries together. Pure-iron bow: drawSpeed = avg(35, 35, 35) = 35.
+    void bowLaneAggregatesDrawSpeedRangeAndProjectileDamageAcrossLimbAndStringSlots() {
+        // SHORTBOW = BOWLIMB + BOWLIMB + BOWSTRING. Every bow-coded PartType carries BowStats
+        // in the current port, so the average folds all three entries together. Pure-iron
+        // bow: drawSpeed = avg(35,35,35) = 35; rangeMultiplier = avg(1.1, 1.1, 1.1) = 1.1;
+        // damageBonus = avg(0.5, 0.5, 0.5) = 0.5 (no arrow contributors).
         ToolStats stats = StatsBuilder.compute(parts(IRON, IRON, IRON), ToolModifiers.empty(), ToolDefinition.SHORTBOW);
-        assertEquals(35.0F, stats.drawSpeed(), 1e-4);
+        assertAll(() -> assertEquals(35.0F, stats.drawSpeed(), 1e-4), () -> assertEquals(1.1F, stats.bowRange(), 1e-4), () -> assertEquals(0.5F, stats.projectileBonus(), 1e-4));
     }
 
     // -------------------------------------------------------------------- fixture helpers
