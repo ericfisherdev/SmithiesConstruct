@@ -30,8 +30,8 @@ import io.netty.buffer.ByteBuf;
 public enum PartType implements StringRepresentable {
 
     PICKHEAD("pickhead"), AXEHEAD("axehead"), SHOVELHEAD("shovelhead"), SWORDBLADE("swordblade"), BROADAXEHEAD("broadaxehead"), BROADBLADE("broadblade"), HAMMERHEAD("hammerhead"), HANDLE(
-            "handle"), BINDING("binding"), TOUGHHANDLE(
-                    "toughhandle"), TOUGHBINDING("toughbinding"), BOWLIMB("bowlimb"), BOWSTRING("bowstring"), ARROWSHAFT("arrowshaft"), ARROW_HEAD("arrow_head"), FLETCHING("fletching");
+            "handle"), BINDING("binding"), TOUGHHANDLE("toughhandle"), TOUGHBINDING("toughbinding"), BOWLIMB(
+                    "bowlimb"), BOWSTRING("bowstring"), ARROWSHAFT("arrowshaft"), ARROW_HEAD("arrow_head"), FLETCHING("fletching"), WIDEGUARD("wideguard"), LARGEPLATE("largeplate");
 
     /** JSON / NBT round-trip codec; encodes / decodes by {@link #id()}. */
     public static final Codec<PartType> CODEC = StringRepresentable.fromEnum(PartType::values);

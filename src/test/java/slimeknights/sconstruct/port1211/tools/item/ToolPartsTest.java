@@ -31,7 +31,9 @@ class ToolPartsTest {
     @Test
     void registersOneItemPerPartType() {
         assertEquals(PartType.values().length, ToolParts.registeredCount(), "one DeferredItem per PartType");
-        assertEquals(16, ToolParts.registeredCount(), "ticket spec: 16 part items registered");
+        // SMTCON-67 pinned 16; SMTCON-73 appended WIDEGUARD + LARGEPLATE so legacy-accurate
+        // ToolDefinitions (BroadSword, Hammer, LumberAxe) had every part slot to bind to.
+        assertEquals(18, ToolParts.registeredCount(), "PartType roster: 16 legacy + 2 SMTCON-73 additions");
     }
 
     @Test
