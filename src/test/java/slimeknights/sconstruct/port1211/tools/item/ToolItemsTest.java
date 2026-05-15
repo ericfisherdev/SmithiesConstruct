@@ -37,7 +37,39 @@ class ToolItemsTest {
 
     @Test
     void everyDeferredItemIsNonNull() {
-        assertAll(() -> assertNotNull(ToolItems.PICKAXE), () -> assertNotNull(ToolItems.SHOVEL), () -> assertNotNull(ToolItems.AXE), () -> assertNotNull(ToolItems.SWORD));
+        assertAll(() -> assertNotNull(ToolItems.PICKAXE), () -> assertNotNull(ToolItems.SHOVEL), () -> assertNotNull(ToolItems.AXE), () -> assertNotNull(ToolItems.SWORD),
+                () -> assertNotNull(ToolItems.HAMMER), () -> assertNotNull(ToolItems.EXCAVATOR), () -> assertNotNull(ToolItems.LUMBER_AXE), () -> assertNotNull(ToolItems.SCYTHE),
+                () -> assertNotNull(ToolItems.MATTOCK));
+    }
+
+    @Test
+    void aoeToolsAppearInAllToolsRoster() {
+        // Pin presence of every AOE tool in the iteration surface — a future ALL_TOOLS rewire
+        // that drops one would silently de-register it from the creative tab.
+        assertAll(() -> assertTrue(ToolItems.ALL_TOOLS.contains(ToolItems.HAMMER)), () -> assertTrue(ToolItems.ALL_TOOLS.contains(ToolItems.EXCAVATOR)),
+                () -> assertTrue(ToolItems.ALL_TOOLS.contains(ToolItems.LUMBER_AXE)), () -> assertTrue(ToolItems.ALL_TOOLS.contains(ToolItems.SCYTHE)),
+                () -> assertTrue(ToolItems.ALL_TOOLS.contains(ToolItems.MATTOCK)));
+    }
+
+    @Test
+    void aoeToolRegistrationPathsMatchExpectedKeys() {
+        assertAll(() -> assertEquals("hammer", ToolItems.registeredPath(ToolItems.HAMMER)), () -> assertEquals("excavator", ToolItems.registeredPath(ToolItems.EXCAVATOR)),
+                () -> assertEquals("lumberaxe", ToolItems.registeredPath(ToolItems.LUMBER_AXE)), () -> assertEquals("scythe", ToolItems.registeredPath(ToolItems.SCYTHE)),
+                () -> assertEquals("mattock", ToolItems.registeredPath(ToolItems.MATTOCK)));
+    }
+
+    @Test
+    void aoeToolsBindToTheirToolDefinitions() {
+        assertAll(() -> assertEquals(ToolDefinition.HAMMER, ToolItems.HAMMER.get().definition), () -> assertEquals(ToolDefinition.EXCAVATOR, ToolItems.EXCAVATOR.get().definition),
+                () -> assertEquals(ToolDefinition.LUMBER_AXE, ToolItems.LUMBER_AXE.get().definition), () -> assertEquals(ToolDefinition.SCYTHE, ToolItems.SCYTHE.get().definition),
+                () -> assertEquals(ToolDefinition.MATTOCK, ToolItems.MATTOCK.get().definition));
+    }
+
+    @Test
+    void aoeToolRuntimeTypesMatchExpectedSubclasses() {
+        assertAll(() -> assertTrue(ToolItems.HAMMER.get() instanceof HammerItem), () -> assertTrue(ToolItems.EXCAVATOR.get() instanceof ExcavatorItem),
+                () -> assertTrue(ToolItems.LUMBER_AXE.get() instanceof LumberAxeItem), () -> assertTrue(ToolItems.SCYTHE.get() instanceof ScytheItem),
+                () -> assertTrue(ToolItems.MATTOCK.get() instanceof MattockItem));
     }
 
     @Test

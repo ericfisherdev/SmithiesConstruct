@@ -128,9 +128,10 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
      * {@code Scythe}: toughHandle + broadBlade + toughBinding + toughBinding
      * ({@code TinkerMeleeWeapons:80}). The legacy 1.12 line declared a dedicated
      * {@code scytheHead}; the port reuses {@link PartType#BROADBLADE} since the part-material
-     * surface is shared with the cleaver. Mining ability set is empty — the scythe's AOE
-     * effect is an attack-side override on {@link slimeknights.sconstruct.port1211.tools.item.ScytheItem},
-     * not a vanilla-tag dig.
+     * surface is shared with the cleaver. No mining tag — the scythe is melee-first, but the
+     * sword ability set is wired so right-clicks still trigger the vanilla sword sweep
+     * animation; the SMTCON AOE effect is an attack-side override on
+     * {@link slimeknights.sconstruct.port1211.tools.item.ScytheItem} on top of that.
      */
     public static final ToolDefinition SCYTHE = new ToolDefinition("scythe", List.of(PartType.TOUGHHANDLE, PartType.BROADBLADE, PartType.TOUGHBINDING, PartType.TOUGHBINDING), null,
             ItemAbilities.DEFAULT_SWORD_ACTIONS, DEFAULT_MODIFIER_SLOTS);
@@ -161,24 +162,20 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
     public static final ToolDefinition ARROW = new ToolDefinition("arrow", List.of(PartType.ARROWSHAFT, PartType.ARROW_HEAD, PartType.FLETCHING), null, Set.of(), DEFAULT_MODIFIER_SLOTS);
 
     /**
-     * Basic tool definitions buildable at the Tool Station (SMTCON-93) — three-part tools that
-     * the legacy 1.12 Tool Station supports. Iteration surface for
+     * Basic tool definitions buildable at the Tool Station (SMTCON-93). Iteration surface for
      * {@code ToolStationLogic#tryBuild} when called from the base
      * {@code ToolStationBlockEntity}; the Tool Forge widens this to {@link #ALL_ADVANCED} so
-     * hammer / lumberaxe / crossbow / arrow become buildable.
-     *
-     * <p>Note: arrow / shortbow / crossbow are ranged ammunition / weapons whose 1.12 line
-     * required the Tool Forge — they're listed in {@link #ALL_ADVANCED} alongside the heavy
-     * 4-part definitions. The Tool Station only handles the three "vanilla-equivalent"
-     * harvest / melee tools the {@link slimeknights.sconstruct.port1211.tools.item.ToolItems}
-     * registry currently exposes.
+     * the heavy 4-part definitions (hammer, excavator, lumberaxe) and the ranged ammunition /
+     * weapons (shortbow, crossbow, arrow) become buildable too.
      */
     public static final List<ToolDefinition> ALL_BASIC = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE);
 
     /**
-     * Advanced tool definitions buildable at the Tool Forge (SMTCON-93) — the {@link #ALL_BASIC}
-     * roster plus the heavy / ranged definitions whose legacy 1.12 line required the Tool Forge:
-     * hammer, lumberaxe, shortbow, crossbow, arrow.
+     * Advanced tool definitions buildable at the Tool Forge (SMTCON-93) — the full roster
+     * {@code PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, HAMMER, EXCAVATOR,
+     * LUMBER_AXE, SHORTBOW, CROSSBOW, ARROW}. Equals the {@link #ALL_BASIC} list extended with
+     * the heavy 4-part definitions (hammer, excavator, lumberaxe) and the ranged ammunition /
+     * weapons (shortbow, crossbow, arrow) whose legacy 1.12 line required the Tool Forge.
      */
     public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, HAMMER, EXCAVATOR, LUMBER_AXE, SHORTBOW, CROSSBOW, ARROW);
 }
