@@ -138,7 +138,14 @@ public class ToolCore extends DiggerItem {
      */
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        return ToolBehavior.isCorrectForBlock(stack, state, super.isCorrectToolForDrops(stack, state));
+        // Read the mining-tag answer directly off the BlockState rather than delegating to
+        // super.isCorrectToolForDrops. The {@link Tiers#WOOD} baseline passed to
+        // {@link DiggerItem} carries {@link BlockTags#INCORRECT_FOR_WOODEN_TOOL} as forbidden
+        // blocks — letting vanilla gate the answer here would lock every higher-tier SMTCON
+        // tool out of iron / diamond / netherite blocks before our harvest-level ladder gets
+        // to swing. The mining-tag membership is the authoritative "tool is correct for this
+        // block" answer; the harvest-level check downstream of it is what governs tiering.
+        return ToolBehavior.isCorrectForBlock(stack, state, state.is(resolveMiningTag(definition)));
     }
 
     /**
