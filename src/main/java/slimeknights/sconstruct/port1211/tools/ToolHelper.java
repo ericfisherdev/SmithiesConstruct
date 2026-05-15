@@ -1,9 +1,15 @@
 package slimeknights.sconstruct.port1211.tools;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
 
 import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
@@ -11,6 +17,7 @@ import slimeknights.sconstruct.port1211.common.data.ToolBroken;
 import slimeknights.sconstruct.port1211.common.data.ToolMaterials;
 import slimeknights.sconstruct.port1211.common.data.ToolModifiers;
 import slimeknights.sconstruct.port1211.common.data.ToolStats;
+import slimeknights.sconstruct.port1211.tools.material.Material;
 
 /**
  * Read / write façade over the five tool {@link net.minecraft.core.component.DataComponentType
@@ -147,12 +154,84 @@ public final class ToolHelper {
     }
 
     /**
-     * Stat-rebuild hook called whenever materials or modifiers change. SMTCON-75 introduces
-     * {@code StatsBuilder} and SMTCON-77 wires this method to invoke it — currently a no-op so
-     * SMTCON-74 can ship its accessor / mutator surface without a forward-reference to code
-     * that doesn't yet exist.
+     * Single-source-of-truth stat rebuild for a tool stack. Resolves the stack's
+     * {@link ToolMaterials} via the server-side {@link Material#REGISTRY_KEY} datapack
+     * registry, runs {@link StatsBuilder#compute} for the supplied {@link ToolDefinition},
+     * and writes the resulting snapshot back as three components: {@link
+     * TinkerDataComponents#TOOL_STATS}, vanilla {@link DataComponents#MAX_DAMAGE}, and
+     * vanilla {@link DataComponents#ATTRIBUTE_MODIFIERS} (built via {@link
+     * AttributeBuilder#build}). Existing damage is clamped to the new {@code maxDurability}
+     * so a recipe / cap-tier downgrade can't leave a tool with a damage value past its new
+     * ceiling — vanilla would render the durability bar at a negative fill and the next
+     * hit would underflow.
+     *
+     * <p>Server-only: the materials registry is server-authoritative and the cached stat
+     * snapshot is network-synchronised down to clients via {@link
+     * TinkerDataComponents#TOOL_STATS} — running the rebuild on the client thread would
+     * either read a stale registry view (integrated server) or NPE on a missing one
+     * (dedicated client). The {@link MinecraftServer#isSameThread} guard catches the
+     * misuse at the call site rather than after a downstream registry NPE.
+     *
+     * <p>The private no-op {@code rebuildStats} hook called from {@link #setMaterials} and
+     * {@link #addModifier} stays in place: those mutators are part of the SMTCON-74
+     * façade and don't have a {@link MinecraftServer} / {@link ToolDefinition} in scope.
+     * SMTCON-78's {@code ToolCore} will wire callers to invoke this public method
+     * directly with the definition pinned on the item.
+     *
+     * @param stack the tool stack to rebuild — no-op when {@link ItemStack#isEmpty}.
+     * @param server the running server (provides the materials {@link HolderLookup} and
+     *     the thread-affinity check); must not be null.
+     * @param definition the tool's part-slot / modifier-slot metadata used to drive the
+     *     {@link StatsBuilder} aggregation; must not be null.
+     * @throws IllegalStateException if invoked off the server thread.
+     */
+    public static void rebuildStats(ItemStack stack, MinecraftServer server, ToolDefinition definition) {
+        Objects.requireNonNull(stack, "stack");
+        Objects.requireNonNull(server, "server");
+        Objects.requireNonNull(definition, "definition");
+        if (!server.isSameThread()) {
+            throw new IllegalStateException("ToolHelper.rebuildStats must be invoked on the server thread");
+        }
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        HolderLookup.RegistryLookup<Material> lookup = server.registryAccess().lookupOrThrow(Material.REGISTRY_KEY);
+        List<ResourceLocation> ids = getMaterials(stack);
+        List<Holder<Material>> materials = new ArrayList<>(ids.size());
+        for (ResourceLocation id : ids) {
+            // null entries fold into the StatsBuilder's wood fallback per the documented
+            // contract — a missing material on a built tool produces meaningful baseline
+            // stats rather than crashing the rebuild.
+            materials.add(lookup.get(ResourceKey.create(Material.REGISTRY_KEY, id)).orElse(null));
+        }
+
+        ToolModifiers modifiers = stack.getOrDefault(TinkerDataComponents.TOOL_MODIFIERS.get(), ToolModifiers.empty());
+        ToolStats computed = StatsBuilder.compute(materials, modifiers, definition);
+
+        stack.set(TinkerDataComponents.TOOL_STATS.get(), computed);
+        stack.set(DataComponents.MAX_DAMAGE, computed.maxDurability());
+        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, AttributeBuilder.build(computed));
+
+        // Damage value is held in vanilla DataComponents.DAMAGE (not our component map). A
+        // stat recompute that lowers maxDurability under the current damage would otherwise
+        // leave the tool past full damage — clamp so the broken-flag transition (driven by
+        // damage == maxDurability) still triggers at the right moment.
+        int currentDamage = stack.getDamageValue();
+        if (currentDamage > computed.maxDurability()) {
+            stack.setDamageValue(computed.maxDurability());
+        }
+    }
+
+    /**
+     * Stat-rebuild hook called whenever materials or modifiers change via the SMTCON-74
+     * façade. Currently a no-op: the public {@link #rebuildStats(ItemStack, MinecraftServer,
+     * ToolDefinition)} variant added in SMTCON-77 needs a {@link MinecraftServer} and a
+     * {@link ToolDefinition} that neither {@link #setMaterials} nor {@link #addModifier}
+     * have in scope. SMTCON-78's {@code ToolCore} will swap these callsites over to the
+     * public method once the per-item definition is reachable.
      */
     private static void rebuildStats(ItemStack stack) {
-        // TODO(SMTCON-77): replace with StatsBuilder.rebuild(stack) once SMTCON-75 ships.
+        // TODO(SMTCON-78): replace with rebuildStats(stack, server, def) once ToolCore lands.
     }
 }

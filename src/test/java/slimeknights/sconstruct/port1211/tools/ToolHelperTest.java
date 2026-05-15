@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
@@ -18,10 +19,18 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +40,7 @@ import slimeknights.sconstruct.port1211.common.data.ToolBroken;
 import slimeknights.sconstruct.port1211.common.data.ToolMaterials;
 import slimeknights.sconstruct.port1211.common.data.ToolModifiers;
 import slimeknights.sconstruct.port1211.common.data.ToolStats;
+import slimeknights.sconstruct.port1211.tools.material.Material;
 
 /**
  * Pinned-behaviour tests for {@link ToolHelper}. The class is a façade over five
@@ -38,6 +48,9 @@ import slimeknights.sconstruct.port1211.common.data.ToolStats;
  * (AC2), every mutator's "always set a fresh immutable record" contract (AC3), and the
  * rebuild-stats side effect on materials / modifier writes.
  */
+// MinecraftServer is AutoCloseable, but the mocks here are pure stubs with no resources to
+// release — PMD's CloseResource heuristic doesn't model Mockito's lifecycle.
+@SuppressWarnings("PMD.CloseResource")
 class ToolHelperTest {
 
     private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath("sconstruct", "iron");
@@ -259,6 +272,119 @@ class ToolHelperTest {
         ItemStack stack = nonEmptyStack();
         ToolHelper.setMaterials(stack, List.of(IRON));
         verify(stack, times(1)).set(eq(MATERIALS), any(ToolMaterials.class));
+    }
+
+    // -------------------------------------------------------------------- rebuildStats (SMTCON-77)
+
+    @Test
+    void rebuildStatsThrowsWhenCalledOffServerThread() {
+        // Client-thread guard — running the rebuild without server-thread affinity would read a
+        // stale / unsynced material registry; surface the misuse at the call site.
+        ItemStack stack = nonEmptyStack();
+        MinecraftServer server = mock(MinecraftServer.class);
+        when(server.isSameThread()).thenReturn(false);
+        assertThrows(IllegalStateException.class, () -> ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE));
+        verify(stack, never()).set(any(DataComponentType.class), any());
+    }
+
+    @Test
+    void rebuildStatsRejectsNullArguments() {
+        ItemStack stack = nonEmptyStack();
+        MinecraftServer server = mock(MinecraftServer.class);
+        assertAll(() -> assertThrows(NullPointerException.class, () -> ToolHelper.rebuildStats(null, server, ToolDefinition.PICKAXE)),
+                () -> assertThrows(NullPointerException.class, () -> ToolHelper.rebuildStats(stack, null, ToolDefinition.PICKAXE)),
+                () -> assertThrows(NullPointerException.class, () -> ToolHelper.rebuildStats(stack, server, null)));
+    }
+
+    @Test
+    void rebuildStatsIsNoOpForEmptyStack() {
+        // Empty-stack short-circuit mirrors every other mutator on the SMTCON-74 façade.
+        ItemStack stack = mock(ItemStack.class);
+        when(stack.isEmpty()).thenReturn(true);
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+        ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
+        verify(stack, never()).set(any(DataComponentType.class), any());
+        verify(stack, never()).setDamageValue(anyInt());
+    }
+
+    @Test
+    void rebuildStatsWritesStatsMaxDamageAndAttributeComponents() {
+        // AC: ItemStack components reflect computed values. Materials list is empty here so
+        // StatsBuilder folds in the wood baseline for every pickaxe slot; the test pins the
+        // wood-pickaxe stat block against the cached StatsBuilder constants. A future shift
+        // in the wood baseline will surface here as a clear delta rather than a silent drift.
+        ItemStack stack = nonEmptyStack();
+        when(stack.getDamageValue()).thenReturn(0);
+        when(stack.getOrDefault(eq(TinkerDataComponents.TOOL_MODIFIERS.get()), any())).thenReturn(ToolModifiers.empty());
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+
+        ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
+
+        ArgumentCaptor<ToolStats> statsCaptor = ArgumentCaptor.forClass(ToolStats.class);
+        verify(stack).set(eq(STATS), statsCaptor.capture());
+        ToolStats written = statsCaptor.getValue();
+        // Pure wood pickaxe (3 slots, all wood fallback): head=35 dur × handle 1.0 + extra 15 = 50.
+        assertAll(() -> assertEquals(50, written.maxDurability(), "wood pickaxe baseline durability"), () -> assertEquals(2.0F, written.attackDamage(), 0.0001F),
+                () -> assertEquals(2.0F, written.miningSpeed(), 0.0001F), () -> assertEquals(0, written.harvestLevel()), () -> assertEquals(3, written.freeModifiers()));
+
+        verify(stack).set(eq(DataComponents.MAX_DAMAGE), eq(50));
+
+        ArgumentCaptor<ItemAttributeModifiers> attrCaptor = ArgumentCaptor.forClass(ItemAttributeModifiers.class);
+        verify(stack).set(eq(DataComponents.ATTRIBUTE_MODIFIERS), attrCaptor.capture());
+        ItemAttributeModifiers attrs = attrCaptor.getValue();
+        // Both modifiers must land in the mainhand slot (off-hand / armor see no swing bonus).
+        attrs.modifiers().forEach(entry -> assertEquals(EquipmentSlotGroup.MAINHAND, entry.slot()));
+        assertEquals(2, attrs.modifiers().size(), "attack damage + attack speed = two modifiers");
+    }
+
+    @Test
+    void rebuildStatsClampsDamageWhenMaxDurabilityDropsBelowCurrent() {
+        // AC: damage value never exceeds maxDurability after rebuild. Recompute path mid-life
+        // (e.g. cap-tier downgrade) must clamp so the broken-flag transition still triggers.
+        ItemStack stack = nonEmptyStack();
+        when(stack.getDamageValue()).thenReturn(500); // far past the wood-pickaxe ceiling of 50
+        when(stack.getOrDefault(eq(TinkerDataComponents.TOOL_MODIFIERS.get()), any())).thenReturn(ToolModifiers.empty());
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+
+        ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
+
+        verify(stack).setDamageValue(50);
+    }
+
+    @Test
+    void rebuildStatsDoesNotResetDamageWhenWithinNewMax() {
+        // Inverse of the clamp test — a tool whose existing damage is below the new ceiling
+        // keeps its damage untouched, so the player's wear-and-tear progress doesn't reset on
+        // every material swap.
+        ItemStack stack = nonEmptyStack();
+        when(stack.getDamageValue()).thenReturn(20);
+        when(stack.getOrDefault(eq(TinkerDataComponents.TOOL_MODIFIERS.get()), any())).thenReturn(ToolModifiers.empty());
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+
+        ToolHelper.rebuildStats(stack, server, ToolDefinition.PICKAXE);
+
+        verify(stack, never()).setDamageValue(anyInt());
+    }
+
+    /**
+     * Server mock pre-wired so {@link MinecraftServer#isSameThread} returns {@code true} and the
+     * material registry lookup returns an empty {@link Optional} for every id — drives the
+     * StatsBuilder wood-fallback path without needing a real Material registry under test.
+     */
+    @SuppressWarnings("unchecked")
+    private static MinecraftServer serverOnServerThreadWithEmptyMaterials() {
+        MinecraftServer server = mock(MinecraftServer.class);
+        when(server.isSameThread()).thenReturn(true);
+        // MinecraftServer#registryAccess returns the Frozen subtype, so mock that specific
+        // subtype rather than the raw RegistryAccess interface to match the signature.
+        RegistryAccess.Frozen registryAccess = mock(RegistryAccess.Frozen.class);
+        HolderLookup.RegistryLookup<Material> lookup = mock(HolderLookup.RegistryLookup.class);
+        when(server.registryAccess()).thenReturn(registryAccess);
+        when(registryAccess.lookupOrThrow(eq(Material.REGISTRY_KEY))).thenReturn(lookup);
+        // HolderGetter#get is overloaded for ResourceKey and TagKey — disambiguate to the
+        // ResourceKey overload that rebuildStats actually calls.
+        when(lookup.get(any(ResourceKey.class))).thenReturn(Optional.empty());
+        return server;
     }
 
     private static ItemStack nonEmptyStack() {
