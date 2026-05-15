@@ -113,6 +113,17 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void smtcon88CapTierModifierLabelsRegistered() {
+        // Pinned key/value assertions for SMTCON-88 — the size check below would still pass if
+        // a key were mistyped, so verify each key + display value directly.
+        JsonObject lang = lang();
+        assertAll(() -> assertTrue(lang.has("modifier.tconstruct.gilded"), "gilded key missing"), () -> assertEquals("Gilded", lang.get("modifier.tconstruct.gilded").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.reinforced"), "reinforced key missing"), () -> assertEquals("Reinforced %s", lang.get("modifier.tconstruct.reinforced").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.haste"), "haste key missing"), () -> assertEquals("Hasty %s", lang.get("modifier.tconstruct.haste").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.luck"), "luck key missing"), () -> assertEquals("Lucky %s", lang.get("modifier.tconstruct.luck").getAsString()));
+    }
+
+    @Test
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
@@ -121,8 +132,9 @@ class TinkerLanguageProviderTest {
         // mobs (blueslime + hugeslime) + 1 sharpness + 5 SMTCON-85 vanilla modifier labels
         // + 5 SMTCON-86 utility modifier labels (silktouch, beheading, smite,
         // bane_of_arthropods, knockback) + 5 SMTCON-87 specialty modifier labels (fiery,
-        // necrotic, moss, mending, auto_repair) = 113.
-        assertEquals(113, lang().entrySet().size());
+        // necrotic, moss, mending, auto_repair) + 4 SMTCON-88 cap-tier modifier labels
+        // (gilded, reinforced, haste, luck) = 117.
+        assertEquals(117, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
