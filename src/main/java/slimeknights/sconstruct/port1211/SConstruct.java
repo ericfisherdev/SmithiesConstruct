@@ -25,6 +25,7 @@ import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
+import slimeknights.sconstruct.port1211.tools.item.ToolItems;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
@@ -75,6 +76,14 @@ public final class SConstruct {
         // the other "foundation" touches above.
         ToolParts.init();
         ToolParts.registerCreativeTabContents(modBus);
+
+        // Same wiring for the four vanilla-equivalent tool items (pickaxe, shovel, axe, sword)
+        // landed by SMTCON-79. Static initialiser registers each subclass against
+        // TinkerRegistries.ITEMS; the creative-tab listener pushes them into SharedTabs.GENERAL
+        // alongside the part items. Both calls move into TinkerToolsPulse#register when that
+        // pulse lands.
+        ToolItems.init();
+        ToolItems.registerCreativeTabContents(modBus);
 
         // Register the sconstruct:material datapack registry on DataPackRegistryEvent.NewRegistry
         // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary

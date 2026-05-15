@@ -1,8 +1,11 @@
 package slimeknights.sconstruct.port1211.tools.item;
 
+import java.util.Set;
+
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import slimeknights.sconstruct.port1211.tools.ToolHelper;
 
@@ -74,6 +77,22 @@ public final class ToolBehavior {
      */
     public static boolean canHurtEnemy(ItemStack stack) {
         return !ToolHelper.isBroken(stack);
+    }
+
+    /**
+     * Resolve {@link net.neoforged.neoforge.common.extensions.IItemExtension#canPerformAction
+     * canPerformAction} against the tool's static {@link ItemAbility} set. Broken tools decline
+     * every ability so vanilla's right-click handlers (axe-strip, shovel-flatten, sword-sweep,
+     * hoe-till) short-circuit before the side effect runs.
+     *
+     * <p>The ability set is part of the {@code ToolDefinition} so it stays fixed per tool
+     * subclass — abilities don't shift with materials or modifiers in legacy 1.12 either.
+     */
+    public static boolean canPerformAction(ItemStack stack, ItemAbility ability, Set<ItemAbility> definitionAbilities) {
+        if (ToolHelper.isBroken(stack)) {
+            return false;
+        }
+        return definitionAbilities.contains(ability);
     }
 
     /**

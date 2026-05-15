@@ -11,10 +11,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
+
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.ItemAbilities;
 
 import org.junit.jupiter.api.Test;
 
@@ -116,6 +119,30 @@ class ToolBehaviorTest {
     @Test
     void canHurtEnemyReturnsTrueOnIntactTool() {
         assertTrue(ToolBehavior.canHurtEnemy(intactStackWithStats(ToolStats.zero())));
+    }
+
+    // ----------------------------------------------------------- canPerformAction
+
+    @Test
+    void canPerformActionReturnsFalseOnBrokenTool() {
+        // Every right-click handler must short-circuit when the tool is broken — axe-strip,
+        // shovel-flatten, sword-sweep, hoe-till. The definition set is irrelevant in this case.
+        ItemStack stack = brokenStack();
+        assertFalse(ToolBehavior.canPerformAction(stack, ItemAbilities.AXE_STRIP, Set.of(ItemAbilities.AXE_STRIP)));
+    }
+
+    @Test
+    void canPerformActionReturnsTrueWhenDefinitionDeclaresIt() {
+        ItemStack stack = intactStackWithStats(ToolStats.zero());
+        assertTrue(ToolBehavior.canPerformAction(stack, ItemAbilities.PICKAXE_DIG, Set.of(ItemAbilities.PICKAXE_DIG)));
+    }
+
+    @Test
+    void canPerformActionReturnsFalseWhenDefinitionOmitsIt() {
+        // A pickaxe doesn't strip logs — the pickaxe definition's ability set won't contain
+        // AXE_STRIP, so the answer is false even on an intact tool.
+        ItemStack stack = intactStackWithStats(ToolStats.zero());
+        assertFalse(ToolBehavior.canPerformAction(stack, ItemAbilities.AXE_STRIP, Set.of(ItemAbilities.PICKAXE_DIG)));
     }
 
     // ----------------------------------------------------------- processDurabilityTick
