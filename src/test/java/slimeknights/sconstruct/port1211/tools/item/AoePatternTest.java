@@ -1,7 +1,6 @@
 package slimeknights.sconstruct.port1211.tools.item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -39,13 +38,15 @@ class AoePatternTest {
     }
 
     @Test
-    void plus3x3PerpendicularToUpReturnsFourCardinals() {
+    void plus3x3PerpendicularToUpReturnsFourHorizontalCardinals() {
         Set<BlockPos> positions = Set.copyOf(AoePattern.PLUS3x3.positions(CENTRE, Direction.UP));
-        assertEquals(4, positions.size());
-        assertTrue(positions.contains(CENTRE.east()));
-        assertTrue(positions.contains(CENTRE.west()));
-        assertTrue(positions.contains(CENTRE.north()));
-        assertTrue(positions.contains(CENTRE.south()));
+        assertEquals(Set.of(CENTRE.east(), CENTRE.west(), CENTRE.north(), CENTRE.south()), positions);
+    }
+
+    @Test
+    void plus3x3PerpendicularToNorthReturnsVerticalAndHorizontalCardinals() {
+        Set<BlockPos> positions = Set.copyOf(AoePattern.PLUS3x3.positions(CENTRE, Direction.NORTH));
+        assertEquals(Set.of(CENTRE.above(), CENTRE.below(), CENTRE.east(), CENTRE.west()), positions);
     }
 
     @Test
