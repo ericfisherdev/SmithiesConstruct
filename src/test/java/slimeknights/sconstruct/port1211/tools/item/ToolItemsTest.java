@@ -31,8 +31,8 @@ class ToolItemsTest {
 
     @Test
     void registersAllShippedTools() {
-        assertEquals(16, ToolItems.registeredCount(), "4 basic + 5 AOE + 4 melee + 3 bow variants (shuriken is non-ToolCore)");
-        assertEquals(16, ToolItems.ALL_TOOLS.size());
+        assertEquals(17, ToolItems.registeredCount(), "4 basic + 5 AOE + 4 melee + 3 bow + tinker arrow (shuriken is non-ToolCore)");
+        assertEquals(17, ToolItems.ALL_TOOLS.size());
     }
 
     @Test
@@ -72,6 +72,14 @@ class ToolItemsTest {
                 () -> assertEquals(ToolDefinition.LONGBOW, ToolItems.LONGBOW.get().definition), () -> assertEquals(ToolDefinition.CROSSBOW, ToolItems.CROSSBOW.get().definition),
                 () -> assertTrue(ToolItems.SHORTBOW.get() instanceof ShortbowItem), () -> assertTrue(ToolItems.LONGBOW.get() instanceof LongbowItem),
                 () -> assertTrue(ToolItems.CROSSBOW.get() instanceof CrossbowItem));
+    }
+
+    @Test
+    void tinkerArrowIsRegisteredAndToolCoreTyped() {
+        assertNotNull(ToolItems.TINKER_ARROW);
+        assertEquals("tinker_arrow", ToolItems.registeredPath(ToolItems.TINKER_ARROW));
+        assertEquals(ToolDefinition.ARROW, ToolItems.TINKER_ARROW.get().definition);
+        assertTrue(ToolItems.TINKER_ARROW.get() instanceof TinkerArrowItem);
     }
 
     @Test
@@ -154,7 +162,7 @@ class ToolItemsTest {
         List<ItemLike> visited = new ArrayList<>();
         ToolItems.acceptAll(visited::add);
         Set<ItemLike> canonical = ToolItems.ALL_TOOLS.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(16, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(16L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(17, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(17L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical ALL_TOOLS values"));
     }
 
@@ -163,7 +171,7 @@ class ToolItemsTest {
         // The list is part of the public registration surface — downstream pulses must not be
         // able to mutate the iteration order or roster after registration. List.of returns an
         // immutable list, so any mutator must raise UnsupportedOperationException.
-        assertEquals(16, ToolItems.ALL_TOOLS.size());
+        assertEquals(17, ToolItems.ALL_TOOLS.size());
         assertThrows(UnsupportedOperationException.class, () -> ToolItems.ALL_TOOLS.add(null));
     }
 
