@@ -94,6 +94,11 @@ public final class SConstruct {
         ToolItems.init();
         ToolItems.registerCreativeTabContents(modBus);
 
+        // SMTCON-101: tool projectile entities (shuriken). Forces the ToolEntities static
+        // initialiser to run before NewRegistryEvent fires so the entity types are registered
+        // against TinkerRegistries.ENTITY_TYPES alongside the world pulse's slime entities.
+        slimeknights.sconstruct.port1211.tools.entity.ToolEntities.init();
+
         // SMTCON-90: 32-slot pattern chest. Same temporary-home rationale as ToolItems above —
         // moves into TinkerToolsPulse#register when that pulse lands. The init() call forces
         // the block / item / BE / menu DeferredHolder field initialisers to run before the

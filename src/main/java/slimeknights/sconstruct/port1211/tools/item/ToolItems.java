@@ -84,9 +84,19 @@ public final class ToolItems {
     /** Heavy 4-part bow — slower draw, higher velocity and damage. */
     public static final DeferredItem<LongbowItem> LONGBOW = TinkerRegistries.ITEMS.registerItem("longbow", LongbowItem::new);
 
+    /** Crossbow-shaped ranged weapon — heavier draw, flatter shot than the longbow. */
+    public static final DeferredItem<CrossbowItem> CROSSBOW = TinkerRegistries.ITEMS.registerItem("crossbow", CrossbowItem::new);
+
+    /**
+     * Thrown shuriken projectile (stack size 4). Held outside {@link #ALL_TOOLS} because it
+     * extends plain {@link net.minecraft.world.item.Item} rather than {@link ToolCore} — the
+     * shuriken doesn't carry the material / modifier component map.
+     */
+    public static final DeferredItem<ShurikenItem> SHURIKEN = TinkerRegistries.ITEMS.registerItem("shuriken", ShurikenItem::new);
+
     /** Iteration surface for the creative-tab listener and any future "all tools" hook. */
     public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK, CLEAVER, LONGSWORD, RAPIER, FROE,
-            SHORTBOW, LONGBOW);
+            SHORTBOW, LONGBOW, CROSSBOW);
 
     private ToolItems() {
     }
