@@ -120,7 +120,10 @@ public class BowToolCore extends ToolCore {
                 arrow.setCritArrow(true);
             }
             arrow.setBaseDamage(arrow.getBaseDamage() + ToolHelper.getStats(stack).attackDamage());
-            if (freeShot && ammo.isEmpty()) {
+            if (freeShot) {
+                // Creative shots never consume ammo, so the spawned arrow must be marked
+                // creative-only — otherwise a survival player walking across one could collect
+                // it as a free arrow.
                 arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             }
             level.addFreshEntity(arrow);
