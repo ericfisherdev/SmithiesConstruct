@@ -1,0 +1,43 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:paletted_permutations",
+      "palette_key": "sconstruct:item/parts/_palette_key",
+      "permutations": {
+        "ardite": "sconstruct:item/parts/_palette_ardite",
+        "blueslime": "sconstruct:item/parts/_palette_blueslime",
+        "bone": "sconstruct:item/parts/_palette_bone",
+        "cobalt": "sconstruct:item/parts/_palette_cobalt",
+        "copper": "sconstruct:item/parts/_palette_copper",
+        "flint": "sconstruct:item/parts/_palette_flint",
+        "gold": "sconstruct:item/parts/_palette_gold",
+        "iron": "sconstruct:item/parts/_palette_iron",
+        "manyullyn": "sconstruct:item/parts/_palette_manyullyn",
+        "paper": "sconstruct:item/parts/_palette_paper",
+        "silver": "sconstruct:item/parts/_palette_silver",
+        "slime": "sconstruct:item/parts/_palette_slime",
+        "steel": "sconstruct:item/parts/_palette_steel",
+        "stone": "sconstruct:item/parts/_palette_stone",
+        "wood": "sconstruct:item/parts/_palette_wood"
+      },
+      "textures": [
+        "sconstruct:item/parts/pickhead_grayscale",
+        "sconstruct:item/parts/axehead_grayscale",
+        "sconstruct:item/parts/shovelhead_grayscale",
+        "sconstruct:item/parts/swordblade_grayscale",
+        "sconstruct:item/parts/broadaxehead_grayscale",
+        "sconstruct:item/parts/broadblade_grayscale",
+        "sconstruct:item/parts/hammerhead_grayscale",
+        "sconstruct:item/parts/handle_grayscale",
+        "sconstruct:item/parts/binding_grayscale",
+        "sconstruct:item/parts/toughhandle_grayscale",
+        "sconstruct:item/parts/toughbinding_grayscale",
+        "sconstruct:item/parts/bowlimb_grayscale",
+        "sconstruct:item/parts/bowstring_grayscale",
+        "sconstruct:item/parts/arrowshaft_grayscale",
+        "sconstruct:item/parts/arrow_head_grayscale",
+        "sconstruct:item/parts/fletching_grayscale"
+      ]
+    }
+  ]
+}

@@ -91,5 +91,11 @@ public final class DataGenerators {
 
         DataProvider.Factory<TinkerLanguageProvider> languageFactory = TinkerLanguageProvider::new;
         generator.addProvider(client, languageFactory);
+
+        // SMTCON-106: emits the blocks-atlas PalettedPermutations source that materialises one
+        // sprite per (part × material) pair at runtime. Client-side only — atlas JSON belongs
+        // under assets/sconstruct/atlases on the client jar.
+        DataProvider.Factory<TinkerSpriteSourceProvider> spriteSourceFactory = out -> new TinkerSpriteSourceProvider(out, registries, existingFileHelper);
+        generator.addProvider(client, spriteSourceFactory);
     }
 }
