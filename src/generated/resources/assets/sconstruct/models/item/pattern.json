@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "sconstruct:item/pattern"
+    "layer0": "sconstruct:item/blank_pattern"
   }
 }

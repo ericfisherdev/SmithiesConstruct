@@ -5,19 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 
 import org.junit.jupiter.api.Test;
 
+import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.port1211.tools.PartType;
 
 /**
@@ -34,14 +33,14 @@ class PatternItemTest {
     @Test
     void getPartReturnsEmptyWhenComponentAbsent() {
         ItemStack stack = mock(ItemStack.class);
-        when(stack.get(any(DataComponentType.class))).thenReturn(null);
+        when(stack.get(TinkerDataComponents.TINKER_PATTERN_PART.get())).thenReturn(null);
         assertFalse(PatternItem.getPart(stack).isPresent());
     }
 
     @Test
     void getPartReturnsValueWhenComponentPresent() {
         ItemStack stack = mock(ItemStack.class);
-        when(stack.get(any(DataComponentType.class))).thenReturn(Optional.of(PatternType.SWORDBLADE_TEST_VALUE));
+        when(stack.get(TinkerDataComponents.TINKER_PATTERN_PART.get())).thenReturn(Optional.of(PatternType.SWORDBLADE_TEST_VALUE));
         Optional<PartType> read = PatternItem.getPart(stack);
         assertTrue(read.isPresent());
         assertEquals(PartType.SWORDBLADE, read.get());
@@ -51,7 +50,7 @@ class PatternItemTest {
     void getNameRendersTypedFormWhenComponentPresent() {
         PatternItem item = mock(PatternItem.class);
         ItemStack stack = mock(ItemStack.class);
-        when(stack.get(any(DataComponentType.class))).thenReturn(Optional.of(PartType.PICKHEAD));
+        when(stack.get(TinkerDataComponents.TINKER_PATTERN_PART.get())).thenReturn(Optional.of(PartType.PICKHEAD));
         when(item.getName(stack)).thenCallRealMethod();
 
         Component name = item.getName(stack);
