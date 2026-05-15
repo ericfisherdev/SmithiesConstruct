@@ -10,7 +10,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
@@ -40,12 +39,10 @@ public final class ModifierRegistry {
         neoForgeBus.addListener(ModifierRegistry::onDatapackSync);
     }
 
-    @SubscribeEvent
     private static void onNewRegistry(DataPackRegistryEvent.NewRegistry event) {
         event.dataPackRegistry(Modifier.REGISTRY_KEY, Modifier.DIRECT_CODEC, Modifier.DIRECT_CODEC);
     }
 
-    @SubscribeEvent
     private static void onDatapackSync(OnDatapackSyncEvent event) {
         // Same one-snapshot-per-reload contract as MaterialRegistry — the event fires before
         // every client sync; we snapshot once and let later same-tick fires overwrite with the
