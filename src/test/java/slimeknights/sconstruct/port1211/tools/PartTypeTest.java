@@ -26,13 +26,17 @@ import io.netty.buffer.Unpooled;
 class PartTypeTest {
 
     @Test
-    void exactlySixteenValuesShipInTheExpectedOrder() {
+    void exactlyEighteenValuesShipInTheExpectedOrder() {
         // Order is part of the public surface: appending is non-breaking, reordering would
         // change Enum#ordinal and break any caller that ever stores ordinals (forbidden by
-        // contract, but pinned here so the next reviewer sees it).
-        assertEquals(16, PartType.values().length);
+        // contract, but pinned here so the next reviewer sees it). WIDEGUARD/LARGEPLATE
+        // appended in SMTCON-73 to support legacy-accurate ToolDefinition entries
+        // (BroadSword, Hammer, LumberAxe).
+        assertEquals(18, PartType.values().length);
         assertEquals(PartType.PICKHEAD, PartType.values()[0]);
         assertEquals(PartType.FLETCHING, PartType.values()[15]);
+        assertEquals(PartType.WIDEGUARD, PartType.values()[16]);
+        assertEquals(PartType.LARGEPLATE, PartType.values()[17]);
     }
 
     @Test
