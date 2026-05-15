@@ -1,7 +1,6 @@
 package slimeknights.sconstruct.port1211.tools.item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -22,24 +21,21 @@ class AoePatternTest {
     private static final BlockPos CENTRE = BlockPos.ZERO;
 
     @Test
-    void full3x3PerpendicularToUpReturnsEightHorizontalNeighbours() {
-        // Striking the top of a block expands across the XZ plane; the centre is excluded.
-        List<BlockPos> positions = AoePattern.FULL3x3.positions(CENTRE, Direction.UP);
-        assertEquals(8, positions.size());
-        for (BlockPos pos : positions) {
-            assertEquals(0, pos.getY(), "FULL3x3 perpendicular to UP must stay on the XZ plane");
-            assertFalse(pos.equals(CENTRE), "centre must be excluded — vanilla mineBlock already broke it");
-        }
+    void full3x3PerpendicularToUpReturnsExactEightHorizontalNeighbours() {
+        // Pin the exact 3x3 ring around the centre on the XZ plane so a bent / off-axis pattern
+        // (e.g. wrong axis pair, drifted offset) fails loudly rather than passing on size alone.
+        Set<BlockPos> positions = Set.copyOf(AoePattern.FULL3x3.positions(CENTRE, Direction.UP));
+        Set<BlockPos> expected = Set.of(CENTRE.offset(-1, 0, -1), CENTRE.offset(0, 0, -1), CENTRE.offset(1, 0, -1), CENTRE.offset(-1, 0, 0), CENTRE.offset(1, 0, 0), CENTRE.offset(-1, 0, 1),
+                CENTRE.offset(0, 0, 1), CENTRE.offset(1, 0, 1));
+        assertEquals(expected, positions);
     }
 
     @Test
-    void full3x3PerpendicularToNorthExpandsAcrossXY() {
-        // Striking the north face expands across the XY plane — vertical reach plus the X axis.
-        List<BlockPos> positions = AoePattern.FULL3x3.positions(CENTRE, Direction.NORTH);
-        assertEquals(8, positions.size());
-        for (BlockPos pos : positions) {
-            assertEquals(0, pos.getZ(), "FULL3x3 perpendicular to NORTH must stay on the XY plane");
-        }
+    void full3x3PerpendicularToNorthReturnsExactEightXyNeighbours() {
+        Set<BlockPos> positions = Set.copyOf(AoePattern.FULL3x3.positions(CENTRE, Direction.NORTH));
+        Set<BlockPos> expected = Set.of(CENTRE.offset(-1, -1, 0), CENTRE.offset(0, -1, 0), CENTRE.offset(1, -1, 0), CENTRE.offset(-1, 0, 0), CENTRE.offset(1, 0, 0), CENTRE.offset(-1, 1, 0),
+                CENTRE.offset(0, 1, 0), CENTRE.offset(1, 1, 0));
+        assertEquals(expected, positions);
     }
 
     @Test
