@@ -46,6 +46,34 @@ class ModifierCodecTest {
     }
 
     @Test
+    void modifierDirectCodecRejectsNonPositiveMaxLevel() {
+        // The shared MAX_LEVEL_CODEC field validator rejects max_level <= 0 at parse time,
+        // surfacing the bad input as a DataResult.error rather than letting the record
+        // constructor throw an unhandled IllegalArgumentException.
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "simple_stat_boost");
+        json.addProperty("id", "sconstruct:bad_max_level");
+        json.addProperty("max_level", 0);
+        json.addProperty("slot_cost", 1);
+        DataResult<Modifier> decoded = Modifier.DIRECT_CODEC.parse(JsonOps.INSTANCE, json);
+        assertTrue(decoded.error().isPresent(), "max_level=0 must surface as DataResult.error");
+    }
+
+    @Test
+    void modifierDirectCodecRejectsNegativeSlotCost() {
+        // SLOT_COST_CODEC rejects slot_cost < 0 — same DataResult.error surface as the
+        // max_level rejection. Pin so both validators stay codec-side rather than relying on
+        // the record constructor to be the failure point.
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "simple_stat_boost");
+        json.addProperty("id", "sconstruct:bad_slot_cost");
+        json.addProperty("max_level", 1);
+        json.addProperty("slot_cost", -1);
+        DataResult<Modifier> decoded = Modifier.DIRECT_CODEC.parse(JsonOps.INSTANCE, json);
+        assertTrue(decoded.error().isPresent(), "slot_cost=-1 must surface as DataResult.error");
+    }
+
+    @Test
     void modifierTypeCodecRejectsUnknownId() {
         // Unknown ids must surface as DataResult.error rather than throwing — datapack JSON
         // that ships a type the mod doesn't know fails gracefully.
