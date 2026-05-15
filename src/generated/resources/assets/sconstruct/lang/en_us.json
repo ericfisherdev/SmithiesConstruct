@@ -115,5 +115,6 @@
   "modifier.tconstruct.reinforced": "Reinforced %s",
   "modifier.tconstruct.sharpness": "Sharpness %s",
   "modifier.tconstruct.silktouch": "Silky",
-  "modifier.tconstruct.smite": "Smite %s"
+  "modifier.tconstruct.smite": "Smite %s",
+  "tooltip.sconstruct.free_modifiers": "Free Modifier Slots: %s"
 }
