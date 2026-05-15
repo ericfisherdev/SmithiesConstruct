@@ -40,5 +40,10 @@ public final class ToolCapabilities {
         // patterns into the table but cannot bypass the cycle button by pre-stamping the
         // output slot.
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, StencilTableRegistry.STENCIL_TABLE_BE.get(), (be, side) -> be.getHandler());
+        // SMTCON-92: part builder's 3-slot handler. The handler enforces typed-pattern-only on
+        // the pattern slot and rejects all insertion on the output slot at the handler layer
+        // (see PartBuilderBlockEntity#isItemValid), so hoppers can feed typed patterns +
+        // material stacks but cannot bypass the resolve step by pre-stamping the output slot.
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, PartBuilderRegistry.PART_BUILDER_BE.get(), (be, side) -> be.getHandler());
     }
 }

@@ -161,6 +161,19 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void partBuilderLangKeysRegistered() {
+        // SMTCON-92 adds two lang keys: the block-name key (used by the placed block + inventory
+        // BlockItem) and the container-title key (used by PartBuilderBlockEntity#getDisplayName).
+        // A mistyped key here would render the GUI title as raw "container.sconstruct.part_builder"
+        // in-game — pin both keys + their friendly display values directly.
+        JsonObject lang = lang();
+        assertAll(() -> assertTrue(lang.has("block.sconstruct.part_builder"), "block part_builder key missing"),
+                () -> assertEquals("Part Builder", lang.get("block.sconstruct.part_builder").getAsString()),
+                () -> assertTrue(lang.has("container.sconstruct.part_builder"), "container part_builder key missing"),
+                () -> assertEquals("Part Builder", lang.get("container.sconstruct.part_builder").getAsString()));
+    }
+
+    @Test
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
@@ -172,8 +185,9 @@ class TinkerLanguageProviderTest {
         // necrotic, moss, mending, auto_repair) + 4 SMTCON-88 cap-tier modifier labels
         // (gilded, reinforced, haste, luck) + 1 SMTCON-89 tool tooltip key + 2 SMTCON-90
         // pattern chest keys (block + container title) + 4 SMTCON-91 stencil table keys
-        // (block + container title + blank_pattern item + typed pattern name format) = 124.
-        assertEquals(124, lang().entrySet().size());
+        // (block + container title + blank_pattern item + typed pattern name format)
+        // + 2 SMTCON-92 part builder keys (block + container title) = 126.
+        assertEquals(126, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

@@ -14,6 +14,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
+import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
 import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
@@ -107,6 +108,10 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // is also a follow-up per the ticket plan).
         registerSpriteItem(StencilTableRegistry.BLANK_PATTERN);
         registerSpriteItemWithSharedTexture(StencilTableRegistry.PATTERN, StencilTableRegistry.BLANK_PATTERN);
+
+        // SMTCON-92 part builder: inventory icon parents the cube_all block model emitted
+        // by TinkerBlockStateProvider above.
+        registerBlockItemFromBlockModel(PartBuilderRegistry.PART_BUILDER);
     }
 
     /**

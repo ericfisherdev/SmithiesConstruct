@@ -12,6 +12,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
+import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
@@ -80,6 +81,10 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         // SMTCON-91: stencil table renders as a cube_all referencing sconstruct:block/stencil_table.
         // The texture PNG is a follow-up per the ticket plan.
         registerCubeAll(StencilTableRegistry.STENCIL_TABLE.get());
+
+        // SMTCON-92: part builder renders as a cube_all referencing sconstruct:block/part_builder.
+        // Texture PNG is a follow-up per the ticket plan.
+        registerCubeAll(PartBuilderRegistry.PART_BUILDER.get());
     }
 
     /**
