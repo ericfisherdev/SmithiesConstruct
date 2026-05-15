@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 
@@ -48,6 +49,17 @@ public interface Modifier {
      *  of the JSON object. Adding a new modifier shape means adding a permit to
      *  {@link ModifierType} — not editing this codec. */
     Codec<Modifier> DIRECT_CODEC = ModifierType.CODEC.dispatch("type", Modifier::type, ModifierType::instanceCodec);
+
+    /** Field codec that rejects {@code maxLevel <= 0} at parse time, surfacing the bad input as
+     *  a {@link DataResult#error} rather than letting the record constructor throw an
+     *  unhandled {@link IllegalArgumentException}. Shared across every {@link ModifierType}
+     *  permit so a single error message format covers every modifier shape. */
+    Codec<Integer> MAX_LEVEL_CODEC = Codec.INT.flatXmap(value -> value > 0 ? DataResult.success(value) : DataResult.error(() -> "max_level must be positive (got " + value + ")"), DataResult::success);
+
+    /** Field codec that rejects {@code slotCost < 0} at parse time — same rationale as
+     *  {@link #MAX_LEVEL_CODEC}. */
+    Codec<Integer> SLOT_COST_CODEC = Codec.INT.flatXmap(value -> value >= 0 ? DataResult.success(value) : DataResult.error(() -> "slot_cost must be non-negative (got " + value + ")"),
+            DataResult::success);
 
     /** The id this modifier was registered under. Used as the cross-cutting key in
      *  {@link slimeknights.sconstruct.port1211.common.data.ToolModifiers} and as the stable

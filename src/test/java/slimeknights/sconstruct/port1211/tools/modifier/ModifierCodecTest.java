@@ -83,10 +83,21 @@ class ModifierCodecTest {
         // Every ModifierType permit must be reachable from a JSON payload — pin the routing
         // for the other four shapes so a future change to dispatch doesn't silently break
         // any single permit.
-        assertInstanceOf(AttackTriggerType.Instance.class, parse("attack_trigger"), "attack_trigger routes to AttackTriggerType");
-        assertInstanceOf(MiningTriggerType.Instance.class, parse("mining_trigger"), "mining_trigger routes to MiningTriggerType");
-        assertInstanceOf(RightClickType.Instance.class, parse("right_click"), "right_click routes to RightClickType");
-        assertInstanceOf(OnBuildType.Instance.class, parse("on_build"), "on_build routes to OnBuildType");
+        Modifier attack = parse("attack_trigger");
+        assertInstanceOf(AttackTriggerType.Instance.class, attack, "attack_trigger routes to AttackTriggerType");
+        assertSame(AttackTriggerType.INSTANCE, attack.type(), "attack_trigger instance reports its singleton type");
+
+        Modifier mining = parse("mining_trigger");
+        assertInstanceOf(MiningTriggerType.Instance.class, mining, "mining_trigger routes to MiningTriggerType");
+        assertSame(MiningTriggerType.INSTANCE, mining.type(), "mining_trigger instance reports its singleton type");
+
+        Modifier rightClick = parse("right_click");
+        assertInstanceOf(RightClickType.Instance.class, rightClick, "right_click routes to RightClickType");
+        assertSame(RightClickType.INSTANCE, rightClick.type(), "right_click instance reports its singleton type");
+
+        Modifier onBuild = parse("on_build");
+        assertInstanceOf(OnBuildType.Instance.class, onBuild, "on_build routes to OnBuildType");
+        assertSame(OnBuildType.INSTANCE, onBuild.type(), "on_build instance reports its singleton type");
     }
 
     private static Modifier parse(String typeId) {
