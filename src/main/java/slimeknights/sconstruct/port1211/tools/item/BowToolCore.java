@@ -14,6 +14,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.ArrowLooseEvent;
+import net.neoforged.neoforge.event.entity.player.ArrowNockEvent;
 
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.ToolHelper;
@@ -90,6 +93,13 @@ public class BowToolCore extends ToolCore {
         if (ToolHelper.isBroken(stack)) {
             return InteractionResultHolder.fail(stack);
         }
+        // Fire NeoForge ArrowNockEvent so addons (no-ammo overlays, weapon overrides) can veto
+        // or replace the nock; the event's getAction() is honoured when non-null.
+        boolean hasAmmo = !findAmmo(player).isEmpty() || player.getAbilities().instabuild;
+        ArrowNockEvent nockEvent = new ArrowNockEvent(player, stack, hand, level, hasAmmo);
+        if (NeoForge.EVENT_BUS.post(nockEvent).getAction() != null) {
+            return nockEvent.getAction();
+        }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);
     }
@@ -100,6 +110,14 @@ public class BowToolCore extends ToolCore {
             return;
         }
         int charge = getUseDuration(stack, user) - timeLeft;
+        // Fire NeoForge ArrowLooseEvent so addons can veto the release or rewrite the charge.
+        // The event reads the post-modification charge back so a quick-charge enchant-style
+        // hook can extend a partial draw into a full one.
+        ArrowLooseEvent looseEvent = new ArrowLooseEvent(player, stack, level, charge, !findAmmo(player).isEmpty() || player.getAbilities().instabuild);
+        if (NeoForge.EVENT_BUS.post(looseEvent).isCanceled()) {
+            return;
+        }
+        charge = looseEvent.getCharge();
         float power = computePower(charge);
         if (power < MIN_RELEASE_POWER) {
             return;
