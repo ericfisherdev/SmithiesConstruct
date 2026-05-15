@@ -41,6 +41,19 @@ public final class SimpleStatBoostType implements ModifierType {
         public ModifierType type() {
             return INSTANCE;
         }
+
+        /**
+         * Localised tooltip label. Uses the {@code modifier.<namespace>.<path>} translation key
+         * convention (matching what {@code TinkerLanguageProvider} emits) and passes the level
+         * as the substitution argument so the JSON entry can format it as a roman numeral or a
+         * raw integer. Falls back to the {@link Modifier} default when no translation is
+         * registered.
+         */
+        @Override
+        public net.minecraft.network.chat.Component description(int level) {
+            String key = "modifier." + id.getNamespace() + "." + id.getPath();
+            return net.minecraft.network.chat.Component.translatable(key, level);
+        }
     }
 
     private static final MapCodec<Instance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(ResourceLocation.CODEC.fieldOf("id").forGetter(Instance::id),

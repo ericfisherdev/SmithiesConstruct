@@ -95,5 +95,6 @@
   "item.sconstruct.slimeball_blue": "Blue Slime Ball",
   "item.sconstruct.slimeball_magma": "Magma Slime Ball",
   "item.sconstruct.slimeball_purple": "Purple Slime Ball",
-  "itemGroup.sconstruct": "Smithies' Construct"
+  "itemGroup.sconstruct": "Smithies' Construct",
+  "modifier.tconstruct.sharpness": "Sharpness %s"
 }
