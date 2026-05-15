@@ -62,7 +62,9 @@ class TinkerMaterialBootstrapTest {
         // this test only checked the tier-4+ subset; the scope matches its claim now.
         Map<ResourceLocation, Material> registered = captureBootstrap();
         for (String metal : new String[] { "iron", "copper", "silver", "steel", "cobalt", "ardite", "manyullyn" }) {
-            assertTrue(registered.get(rl(metal)).repairTag().isPresent(), () -> metal + " repair tag missing");
+            Material material = registered.get(rl(metal));
+            assertNotNull(material, () -> metal + " missing from bootstrap roster");
+            assertTrue(material.repairTag().isPresent(), () -> metal + " repair tag missing");
         }
     }
 
