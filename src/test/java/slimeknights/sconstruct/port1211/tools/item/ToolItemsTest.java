@@ -31,8 +31,8 @@ class ToolItemsTest {
 
     @Test
     void registersAllShippedTools() {
-        assertEquals(15, ToolItems.registeredCount(), "4 basic + 5 AOE + 4 melee + 2 bow variants");
-        assertEquals(15, ToolItems.ALL_TOOLS.size());
+        assertEquals(16, ToolItems.registeredCount(), "4 basic + 5 AOE + 4 melee + 3 bow variants (shuriken is non-ToolCore)");
+        assertEquals(16, ToolItems.ALL_TOOLS.size());
     }
 
     @Test
@@ -68,8 +68,19 @@ class ToolItemsTest {
     @Test
     void bowToolRegistrationPathsAndBindings() {
         assertAll(() -> assertEquals("shortbow", ToolItems.registeredPath(ToolItems.SHORTBOW)), () -> assertEquals("longbow", ToolItems.registeredPath(ToolItems.LONGBOW)),
-                () -> assertEquals(ToolDefinition.SHORTBOW, ToolItems.SHORTBOW.get().definition), () -> assertEquals(ToolDefinition.LONGBOW, ToolItems.LONGBOW.get().definition),
-                () -> assertTrue(ToolItems.SHORTBOW.get() instanceof ShortbowItem), () -> assertTrue(ToolItems.LONGBOW.get() instanceof LongbowItem));
+                () -> assertEquals("crossbow", ToolItems.registeredPath(ToolItems.CROSSBOW)), () -> assertEquals(ToolDefinition.SHORTBOW, ToolItems.SHORTBOW.get().definition),
+                () -> assertEquals(ToolDefinition.LONGBOW, ToolItems.LONGBOW.get().definition), () -> assertEquals(ToolDefinition.CROSSBOW, ToolItems.CROSSBOW.get().definition),
+                () -> assertTrue(ToolItems.SHORTBOW.get() instanceof ShortbowItem), () -> assertTrue(ToolItems.LONGBOW.get() instanceof LongbowItem),
+                () -> assertTrue(ToolItems.CROSSBOW.get() instanceof CrossbowItem));
+    }
+
+    @Test
+    void shurikenIsRegisteredOutsideAllToolsRoster() {
+        // Shuriken doesn't extend ToolCore so it can't sit in the typed ALL_TOOLS list, but it
+        // does need to be a registered DeferredItem so the creative tab / drops resolve it.
+        assertNotNull(ToolItems.SHURIKEN);
+        assertEquals("shuriken", ToolItems.SHURIKEN.getId().getPath());
+        assertTrue(ToolItems.SHURIKEN.get() instanceof ShurikenItem);
     }
 
     @Test
@@ -143,7 +154,7 @@ class ToolItemsTest {
         List<ItemLike> visited = new ArrayList<>();
         ToolItems.acceptAll(visited::add);
         Set<ItemLike> canonical = ToolItems.ALL_TOOLS.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(15, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(15L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(16, visited.size(), "visitor must reach every tool exactly once"), () -> assertEquals(16L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical ALL_TOOLS values"));
     }
 
@@ -152,7 +163,7 @@ class ToolItemsTest {
         // The list is part of the public registration surface — downstream pulses must not be
         // able to mutate the iteration order or roster after registration. List.of returns an
         // immutable list, so any mutator must raise UnsupportedOperationException.
-        assertEquals(15, ToolItems.ALL_TOOLS.size());
+        assertEquals(16, ToolItems.ALL_TOOLS.size());
         assertThrows(UnsupportedOperationException.class, () -> ToolItems.ALL_TOOLS.add(null));
     }
 
