@@ -54,6 +54,22 @@ public final class TinkerModifierBootstrap {
         // modifier-slot ceiling so a downstream application can land on a tool that would
         // otherwise have hit the default-3 baseline.
         context.register(key("emerald"), new SimpleStatBoostType.Instance(rl("emerald"), 1, 1));
+
+        // SMTCON-86: utility / specialty modifier roster. Metadata-only entries — the
+        // per-modifier behaviour (silk-touch drop swap, beheading head-drop, smite / bane
+        // situational damage, knockback enchantment stamp) is the follow-up integration; the
+        // JSON registrations here let the tool-station UI surface the modifier and gate
+        // application against the slot-cost / cap before the runtime hooks land.
+        // Silk Touch: drop change for grass / leaves / glass, max level 1 (one-shot), 1 slot.
+        context.register(key("silktouch"), new SimpleStatBoostType.Instance(rl("silktouch"), 1, 1));
+        // Beheading: chance per level to drop the mob's head on kill, cap 3, 1 slot.
+        context.register(key("beheading"), new SimpleStatBoostType.Instance(rl("beheading"), 3, 1));
+        // Smite: bonus damage to undead, +2.5 per level, cap 5, 1 slot.
+        context.register(key("smite"), new SimpleStatBoostType.Instance(rl("smite"), 5, 1));
+        // Bane of Arthropods: bonus damage + slow on arthropods, +2.5 per level, cap 5, 1 slot.
+        context.register(key("bane_of_arthropods"), new SimpleStatBoostType.Instance(rl("bane_of_arthropods"), 5, 1));
+        // Knockback: +1 per level (vanilla parity), cap 2, 1 slot.
+        context.register(key("knockback"), new SimpleStatBoostType.Instance(rl("knockback"), 2, 1));
     }
 
     private static ResourceLocation rl(String path) {

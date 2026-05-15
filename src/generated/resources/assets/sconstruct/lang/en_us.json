@@ -96,10 +96,15 @@
   "item.sconstruct.slimeball_magma": "Magma Slime Ball",
   "item.sconstruct.slimeball_purple": "Purple Slime Ball",
   "itemGroup.sconstruct": "Smithies' Construct",
+  "modifier.tconstruct.bane_of_arthropods": "Bane of Arthropods %s",
+  "modifier.tconstruct.beheading": "Beheading %s",
   "modifier.tconstruct.diamond": "Diamond",
   "modifier.tconstruct.emerald": "Emerald",
+  "modifier.tconstruct.knockback": "Knockback %s",
   "modifier.tconstruct.lapis": "Luck %s",
   "modifier.tconstruct.quartz": "Sharper %s",
   "modifier.tconstruct.redstone": "Haste %s",
-  "modifier.tconstruct.sharpness": "Sharpness %s"
+  "modifier.tconstruct.sharpness": "Sharpness %s",
+  "modifier.tconstruct.silktouch": "Silky",
+  "modifier.tconstruct.smite": "Smite %s"
 }

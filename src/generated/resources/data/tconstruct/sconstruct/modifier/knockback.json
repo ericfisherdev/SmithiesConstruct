@@ -1,0 +1,6 @@
+{
+  "type": "simple_stat_boost",
+  "id": "tconstruct:knockback",
+  "max_level": 2,
+  "slot_cost": 1
+}

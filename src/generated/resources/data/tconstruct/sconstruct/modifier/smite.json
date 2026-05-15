@@ -1,0 +1,6 @@
+{
+  "type": "simple_stat_boost",
+  "id": "tconstruct:smite",
+  "max_level": 5,
+  "slot_cost": 1
+}
