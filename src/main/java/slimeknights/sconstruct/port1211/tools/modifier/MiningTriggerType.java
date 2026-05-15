@@ -2,7 +2,6 @@ package slimeknights.sconstruct.port1211.tools.modifier;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -35,7 +34,7 @@ public final class MiningTriggerType implements ModifierType {
     }
 
     private static final MapCodec<Instance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(ResourceLocation.CODEC.fieldOf("id").forGetter(Instance::id),
-            Codec.INT.fieldOf("max_level").forGetter(Instance::maxLevel), Codec.INT.fieldOf("slot_cost").forGetter(Instance::slotCost)).apply(instance, Instance::new));
+            Modifier.MAX_LEVEL_CODEC.fieldOf("max_level").forGetter(Instance::maxLevel), Modifier.SLOT_COST_CODEC.fieldOf("slot_cost").forGetter(Instance::slotCost)).apply(instance, Instance::new));
 
     private MiningTriggerType() {
     }

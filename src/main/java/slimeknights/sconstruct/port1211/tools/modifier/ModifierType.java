@@ -1,5 +1,10 @@
 package slimeknights.sconstruct.port1211.tools.modifier;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
@@ -35,10 +40,9 @@ public sealed interface ModifierType permits SimpleStatBoostType, AttackTriggerT
      *  {@code flatXmap} so an unknown id surfaces as a {@link DataResult#error} rather than
      *  throwing — datapacks that ship a type the mod doesn't know fail gracefully. */
     Codec<ModifierType> CODEC = Codec.STRING.flatXmap(id -> {
-        for (ModifierType type : All.VALUES) {
-            if (type.id().equals(id)) {
-                return DataResult.success(type);
-            }
+        ModifierType type = All.BY_ID.get(id);
+        if (type != null) {
+            return DataResult.success(type);
         }
         return DataResult.error(() -> "Unknown ModifierType: " + id);
     }, type -> DataResult.success(type.id()));
@@ -60,9 +64,17 @@ public sealed interface ModifierType permits SimpleStatBoostType, AttackTriggerT
      */
     final class All {
 
-        /** Every singleton {@link ModifierType} instance. Order is the canonical type order
-         *  (SimpleStatBoost first because it's the most common dispatch shape). */
-        public static final ModifierType[] VALUES = { SimpleStatBoostType.INSTANCE, AttackTriggerType.INSTANCE, MiningTriggerType.INSTANCE, RightClickType.INSTANCE, OnBuildType.INSTANCE };
+        /** Every singleton {@link ModifierType} instance. {@link List#of} is immutable so the
+         *  dispatch table cannot be reassigned at runtime — protects {@link #CODEC}'s lookup
+         *  against accidental or hostile {@code VALUES[i] = ...} writes that would silently
+         *  poison every modifier decode. Order is the canonical type order (SimpleStatBoost
+         *  first because it's the most common dispatch shape). */
+        public static final List<ModifierType> VALUES = List.of(SimpleStatBoostType.INSTANCE, AttackTriggerType.INSTANCE, MiningTriggerType.INSTANCE, RightClickType.INSTANCE, OnBuildType.INSTANCE);
+
+        /** Pre-built id → type lookup so {@link #CODEC}'s decode step is constant-time rather
+         *  than walking the list. Built once at class load — adding a new permit goes through
+         *  {@link #VALUES} and is automatically reflected here. */
+        public static final Map<String, ModifierType> BY_ID = VALUES.stream().collect(Collectors.toUnmodifiableMap(ModifierType::id, Function.identity()));
 
         private All() {
         }
