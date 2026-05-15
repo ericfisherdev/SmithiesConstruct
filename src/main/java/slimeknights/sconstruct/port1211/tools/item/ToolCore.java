@@ -1,12 +1,16 @@
 package slimeknights.sconstruct.port1211.tools.item;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,6 +19,7 @@ import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,7 +34,9 @@ import slimeknights.sconstruct.port1211.common.data.ToolPersistentData;
 import slimeknights.sconstruct.port1211.common.data.ToolStats;
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.ToolHelper;
+import slimeknights.sconstruct.port1211.tools.modifier.Modifier;
 import slimeknights.sconstruct.port1211.tools.modifier.ModifierHookDispatcher;
+import slimeknights.sconstruct.port1211.tools.modifier.ModifierRegistry;
 import slimeknights.sconstruct.port1211.tools.modifier.ToolEvents;
 
 /**
@@ -222,5 +229,39 @@ public class ToolCore extends DiggerItem {
     @Override
     public boolean canPerformAction(ItemStack stack, ItemAbility action) {
         return ToolBehavior.canPerformAction(stack, action, definition.abilities());
+    }
+
+    /**
+     * Renders the per-stack modifier roster and the free-modifier-slot count beneath the item's
+     * default vanilla tooltip. Modifiers are iterated in {@link ToolModifiers} insertion order so
+     * the legacy "first-match wins / tooltip mirrors application order" contract holds; each
+     * {@link Modifier#description description Component} carries the level as the substitution
+     * argument and is emitted in {@link ChatFormatting#GRAY} to keep the tooltip readable against
+     * vanilla's white default. Unknown modifier ids (datapack desync between save and reload) are
+     * silently skipped — mirroring {@link ModifierHookDispatcher}'s same-tick contract — rather
+     * than rendering as raw resource locations. The {@code Map} backing
+     * {@link ToolModifiers#levels} disallows duplicate keys, so the "tooltip never shows duplicate
+     * modifier lines" AC follows from the data shape rather than an explicit dedupe pass.
+     */
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        ToolModifiers modifiers = stack.getOrDefault(TinkerDataComponents.TOOL_MODIFIERS.get(), ToolModifiers.empty());
+        for (Map.Entry<ResourceLocation, Integer> entry : modifiers.levels().entrySet()) {
+            int level = entry.getValue();
+            if (level <= 0) {
+                continue;
+            }
+            ModifierRegistry.lookup(entry.getKey()).ifPresent(modifier -> tooltip.add(modifier.description(level).copy().withStyle(ChatFormatting.GRAY)));
+        }
+        ToolStats stats = ToolHelper.getStats(stack);
+        // Skip the free-slots line for un-built / zero stacks (every numeric field is {@code 0});
+        // surfacing "Free Modifier Slots: 0" on a wood-pickaxe-shaped placeholder would render as
+        // noise on every creative-menu hover. Built tools always carry at least the base slot
+        // count from {@link ToolDefinition#baseModifierSlots}, so {@code maxDurability > 0} is the
+        // built-vs-empty discriminator.
+        if (stats.maxDurability() > 0) {
+            tooltip.add(Component.translatable("tooltip." + SConstruct.MOD_ID + ".free_modifiers", stats.freeModifiers()).withStyle(ChatFormatting.GRAY));
+        }
     }
 }

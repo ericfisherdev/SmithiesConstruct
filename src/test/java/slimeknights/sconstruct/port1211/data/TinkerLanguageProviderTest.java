@@ -124,6 +124,15 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void smtcon89ToolTooltipKeyRegistered() {
+        // SMTCON-89 adds one tooltip lang key for the free-modifier-slot count rendered by
+        // ToolCore.appendHoverText. The key must carry a %s substitution for the level.
+        JsonObject lang = lang();
+        assertTrue(lang.has("tooltip.sconstruct.free_modifiers"), "free_modifiers tooltip key missing");
+        assertEquals("Free Modifier Slots: %s", lang.get("tooltip.sconstruct.free_modifiers").getAsString());
+    }
+
+    @Test
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
@@ -133,8 +142,8 @@ class TinkerLanguageProviderTest {
         // + 5 SMTCON-86 utility modifier labels (silktouch, beheading, smite,
         // bane_of_arthropods, knockback) + 5 SMTCON-87 specialty modifier labels (fiery,
         // necrotic, moss, mending, auto_repair) + 4 SMTCON-88 cap-tier modifier labels
-        // (gilded, reinforced, haste, luck) = 117.
-        assertEquals(117, lang().entrySet().size());
+        // (gilded, reinforced, haste, luck) + 1 SMTCON-89 tool tooltip key = 118.
+        assertEquals(118, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

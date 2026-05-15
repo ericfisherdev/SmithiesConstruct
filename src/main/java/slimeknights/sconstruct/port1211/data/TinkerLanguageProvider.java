@@ -80,6 +80,11 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("modifier.tconstruct.haste", "Hasty %s");
         add("modifier.tconstruct.luck", "Lucky %s");
 
+        // SMTCON-89 tool tooltip. ToolCore.appendHoverText emits this line beneath the
+        // modifier roster so the player can see how many free modifier slots remain before
+        // walking up to the tool station. Substitution argument is the current count.
+        add("tooltip.sconstruct.free_modifiers", "Free Modifier Slots: %s");
+
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();
