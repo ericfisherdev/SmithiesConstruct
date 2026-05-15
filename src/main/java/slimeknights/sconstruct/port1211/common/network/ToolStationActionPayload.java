@@ -97,15 +97,18 @@ public record ToolStationActionPayload(BlockPos pos, Action action) implements C
     public enum Action {
         BUILD, MODIFY, RENAME;
 
-        /** Stream codec gated against {@link #values}'s ordinal range. Out-of-range values
+        /** Cached enum array — {@link Enum#values()} allocates a new array on every call, and
+         *  this codec runs on every inbound payload decode. */
+        private static final Action[] VALUES = values();
+
+        /** Stream codec gated against {@link #VALUES}'s ordinal range. Out-of-range values
          *  surface as decoder errors during read, which the payload pipeline upgrades to a
          *  client disconnect — exactly the "disconnects on malformed payload" AC. */
         public static final StreamCodec<io.netty.buffer.ByteBuf, Action> STREAM_CODEC = ByteBufCodecs.VAR_INT.map(ordinal -> {
-            Action[] values = values();
-            if (ordinal < 0 || ordinal >= values.length) {
+            if (ordinal < 0 || ordinal >= VALUES.length) {
                 throw new IllegalArgumentException("ToolStationActionPayload.Action ordinal out of range: " + ordinal);
             }
-            return values[ordinal];
+            return VALUES[ordinal];
         }, Action::ordinal);
     }
 }
