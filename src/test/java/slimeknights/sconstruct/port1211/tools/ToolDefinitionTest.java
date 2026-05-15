@@ -66,6 +66,8 @@ class ToolDefinitionTest {
                 () -> assertEquals(List.of(PartType.HANDLE, PartType.AXEHEAD, PartType.SHOVELHEAD), ToolDefinition.MATTOCK.parts()),
                 () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.HAMMERHEAD, PartType.LARGEPLATE, PartType.LARGEPLATE), ToolDefinition.HAMMER.parts()),
                 () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.BROADAXEHEAD, PartType.LARGEPLATE, PartType.TOUGHBINDING), ToolDefinition.LUMBER_AXE.parts()),
+                () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.SHOVELHEAD, PartType.LARGEPLATE, PartType.TOUGHBINDING), ToolDefinition.EXCAVATOR.parts()),
+                () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.BROADBLADE, PartType.TOUGHBINDING, PartType.TOUGHBINDING), ToolDefinition.SCYTHE.parts()),
                 () -> assertEquals(List.of(PartType.HANDLE, PartType.SWORDBLADE, PartType.WIDEGUARD), ToolDefinition.BROADSWORD.parts()),
                 () -> assertEquals(List.of(PartType.BOWLIMB, PartType.BOWLIMB, PartType.BOWSTRING), ToolDefinition.SHORTBOW.parts()),
                 () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.BOWLIMB, PartType.TOUGHBINDING, PartType.BOWSTRING), ToolDefinition.CROSSBOW.parts()),
@@ -76,7 +78,7 @@ class ToolDefinitionTest {
     void miningTagsMatchVanillaTagsForDigTools() {
         assertAll(() -> assertSame(BlockTags.MINEABLE_WITH_PICKAXE, ToolDefinition.PICKAXE.miningTag()), () -> assertSame(BlockTags.MINEABLE_WITH_SHOVEL, ToolDefinition.SHOVEL.miningTag()),
                 () -> assertSame(BlockTags.MINEABLE_WITH_AXE, ToolDefinition.HATCHET.miningTag()), () -> assertSame(BlockTags.MINEABLE_WITH_PICKAXE, ToolDefinition.HAMMER.miningTag()),
-                () -> assertSame(BlockTags.MINEABLE_WITH_AXE, ToolDefinition.LUMBER_AXE.miningTag()));
+                () -> assertSame(BlockTags.MINEABLE_WITH_AXE, ToolDefinition.LUMBER_AXE.miningTag()), () -> assertSame(BlockTags.MINEABLE_WITH_SHOVEL, ToolDefinition.EXCAVATOR.miningTag()));
     }
 
     @Test
@@ -85,8 +87,8 @@ class ToolDefinitionTest {
         // mining tag at all. Null is the documented sentinel — pinned so a refactor doesn't
         // accidentally substitute a vanilla tag and silently change which blocks the tool
         // mines.
-        assertAll(() -> assertNull(ToolDefinition.MATTOCK.miningTag()), () -> assertNull(ToolDefinition.BROADSWORD.miningTag()), () -> assertNull(ToolDefinition.SHORTBOW.miningTag()),
-                () -> assertNull(ToolDefinition.CROSSBOW.miningTag()), () -> assertNull(ToolDefinition.ARROW.miningTag()));
+        assertAll(() -> assertNull(ToolDefinition.MATTOCK.miningTag()), () -> assertNull(ToolDefinition.BROADSWORD.miningTag()), () -> assertNull(ToolDefinition.SCYTHE.miningTag()),
+                () -> assertNull(ToolDefinition.SHORTBOW.miningTag()), () -> assertNull(ToolDefinition.CROSSBOW.miningTag()), () -> assertNull(ToolDefinition.ARROW.miningTag()));
     }
 
     @Test
@@ -95,6 +97,8 @@ class ToolDefinitionTest {
                 () -> assertEquals(ItemAbilities.DEFAULT_SHOVEL_ACTIONS, ToolDefinition.SHOVEL.abilities()), () -> assertEquals(ItemAbilities.DEFAULT_AXE_ACTIONS, ToolDefinition.HATCHET.abilities()),
                 () -> assertEquals(ItemAbilities.DEFAULT_PICKAXE_ACTIONS, ToolDefinition.HAMMER.abilities()),
                 () -> assertEquals(ItemAbilities.DEFAULT_AXE_ACTIONS, ToolDefinition.LUMBER_AXE.abilities()),
+                () -> assertEquals(ItemAbilities.DEFAULT_SHOVEL_ACTIONS, ToolDefinition.EXCAVATOR.abilities()),
+                () -> assertEquals(ItemAbilities.DEFAULT_SWORD_ACTIONS, ToolDefinition.SCYTHE.abilities()),
                 () -> assertEquals(ItemAbilities.DEFAULT_SWORD_ACTIONS, ToolDefinition.BROADSWORD.abilities()));
     }
 

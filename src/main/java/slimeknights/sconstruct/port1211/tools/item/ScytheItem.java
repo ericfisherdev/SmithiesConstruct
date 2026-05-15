@@ -49,6 +49,11 @@ public class ScytheItem extends AoeToolCore {
                 if (other.equals(target) || other.equals(attacker)) {
                     continue;
                 }
+                // Skip entities the attacker can't see — a sweep through a wall shouldn't hit
+                // mobs hidden behind cover, matching vanilla sword-sweep line-of-sight gating.
+                if (!attacker.hasLineOfSight(other)) {
+                    continue;
+                }
                 // Pick the damage source from the attacker's registry so kill credit,
                 // advancements, and aggro target route correctly: players use playerAttack so
                 // PvP statistics fire; non-player wielders fall through to mobAttack.
