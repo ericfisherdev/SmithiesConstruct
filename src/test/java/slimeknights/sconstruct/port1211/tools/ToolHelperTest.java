@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -215,8 +216,10 @@ class ToolHelperTest {
         ItemStack stack = nonEmptyStack();
         ToolHelper.setBroken(stack, true);
         ToolHelper.setBroken(stack, false);
-        verify(stack).set(eq(BROKEN), eq(ToolBroken.BROKEN));
-        verify(stack).set(eq(BROKEN), eq(ToolBroken.intact()));
+        // same(...) asserts reference identity — eq(...) would pass a defensive copy too. The
+        // contract is that the durability-tick path reuses the singletons, so identity matters.
+        verify(stack).set(eq(BROKEN), same(ToolBroken.BROKEN));
+        verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
     }
 
     @Test
