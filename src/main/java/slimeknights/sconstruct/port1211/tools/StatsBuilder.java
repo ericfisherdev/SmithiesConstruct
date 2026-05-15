@@ -178,7 +178,34 @@ public final class StatsBuilder {
         float bowRange = (float) averageOrDefault(bows, b -> (double) b.rangeMultiplier(), 0.0);
         float projectileBonus = (float) (averageOrDefault(bows, b -> (double) b.damageBonus(), 0.0) + sumD(arrows, a -> (double) a.weight()));
 
-        return new ToolStats(maxDurability, attackDamage, attackSpeedMod, miningSpeed, harvestLevel, freeModifiers, drawSpeed, bowRange, projectileBonus);
+        ToolStats baseline = new ToolStats(maxDurability, attackDamage, attackSpeedMod, miningSpeed, harvestLevel, freeModifiers, drawSpeed, bowRange, projectileBonus);
+        // Fold every material-granted trait's stat contribution on top of the modifier / part
+        // baseline. The trait grants are read off each material at the slot index it occupies,
+        // so the same material on a head and a binding slot can grant different traits.
+        return slimeknights.sconstruct.port1211.tools.trait.TraitRegistry.applyAll(baseline, gatherSlotTraits(materials, def));
+    }
+
+    /**
+     * Collect every {@link slimeknights.sconstruct.port1211.tools.material.MaterialTrait} grant
+     * whose slot matches the part slot the material occupies. Materials missing trait grants
+     * for the slot are skipped; out-of-bounds or null entries fold through silently so the
+     * caller doesn't have to filter the materials list first.
+     */
+    private static java.util.List<slimeknights.sconstruct.port1211.tools.material.MaterialTrait> gatherSlotTraits(List<Holder<Material>> materials, ToolDefinition def) {
+        java.util.List<slimeknights.sconstruct.port1211.tools.material.MaterialTrait> grants = new ArrayList<>();
+        for (int i = 0; i < def.getPartCount() && i < materials.size(); i++) {
+            Holder<Material> holder = materials.get(i);
+            if (holder == null || !holder.isBound()) {
+                continue;
+            }
+            PartType slot = def.getPartSlot(i);
+            for (slimeknights.sconstruct.port1211.tools.material.MaterialTrait grant : holder.value().traits()) {
+                if (grant.slot() == slot) {
+                    grants.add(grant);
+                }
+            }
+        }
+        return grants;
     }
 
     /**
