@@ -112,13 +112,25 @@ public final class PartBuilderMenu extends AbstractContainerMenu {
         return blockEntity;
     }
 
+    /** Identity comparison ({@code != this}) on the live block entity is intentional — vanilla
+     *  AbstractFurnaceBlockEntity#stillValid uses the same reference-equality gate to detect
+     *  BE replacement (world-edit overwrite, chunk reload), and value-equality on a BE is not
+     *  meaningful since two distinct BEs at the same pos with the same data should not be
+     *  treated as the same instance. */
     @Override
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public boolean stillValid(Player player) {
         if (blockEntity == null) {
             // Client stub — defer interaction validity to the server side.
             return true;
         }
+        // Liveness + identity check ahead of the distance check: a BE that has been removed
+        // (block broken, chunk unloaded) or replaced (e.g. world-edit overwrote the block)
+        // must not keep the menu open on the player.
         BlockPos pos = blockEntity.getBlockPos();
+        if (blockEntity.isRemoved() || blockEntity.getLevel() == null || blockEntity.getLevel().getBlockEntity(pos) != blockEntity) {
+            return false;
+        }
         return player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= INTERACT_DISTANCE_SQ;
     }
 
