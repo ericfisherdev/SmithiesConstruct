@@ -20,6 +20,7 @@ class BowProfileTest {
         // Shortbow exists for parity with the vanilla bow's fire rate and velocity ceiling so a
         // player coming from vanilla doesn't have to relearn the draw curve.
         assertEquals(BowToolCore.VANILLA_DRAW_TICKS, ShortbowItem.DRAW_TICKS, "shortbow draw must match vanilla bow draw");
+        assertEquals(BowToolCore.VANILLA_FULL_DRAW_VELOCITY, ShortbowItem.FULL_DRAW_VELOCITY, "shortbow velocity must match vanilla bow ceiling");
     }
 
     @Test

@@ -14,7 +14,10 @@ public class ShortbowItem extends BowToolCore {
     /** Full-draw tick count — matches vanilla bow for byte-for-byte fire-rate parity. */
     public static final int DRAW_TICKS = BowToolCore.VANILLA_DRAW_TICKS;
 
+    /** Full-draw arrow velocity — matches the vanilla bow ceiling. */
+    public static final float FULL_DRAW_VELOCITY = BowToolCore.VANILLA_FULL_DRAW_VELOCITY;
+
     public ShortbowItem(Item.Properties properties) {
-        super(properties, ToolDefinition.SHORTBOW, DRAW_TICKS, BowToolCore.VANILLA_FULL_DRAW_VELOCITY);
+        super(properties, ToolDefinition.SHORTBOW, DRAW_TICKS, FULL_DRAW_VELOCITY);
     }
 }
