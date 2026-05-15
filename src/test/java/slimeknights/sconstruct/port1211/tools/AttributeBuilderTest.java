@@ -54,6 +54,7 @@ class AttributeBuilderTest {
         assertEquals(EquipmentSlotGroup.MAINHAND, speedEntry.slot());
         assertTrue(speedEntry.attribute().is(Attributes.ATTACK_SPEED.unwrapKey().orElseThrow()), "must target the vanilla ATTACK_SPEED attribute");
         assertEquals(AttributeBuilder.VANILLA_ATTACK_SPEED_BASELINE + 0.4D, speedEntry.modifier().amount(), 0.0001D, "attack-speed amount must equal -2.4 + ToolStats.attackSpeed()");
+        assertEquals(AttributeModifier.Operation.ADD_VALUE, speedEntry.modifier().operation(), "speed delta must apply additively — Operation.ADD_VALUE matches vanilla DiggerItem");
     }
 
     @Test
@@ -70,9 +71,10 @@ class AttributeBuilderTest {
     @Test
     void buildRejectsNullStatsRatherThanLeakingNpe() {
         // Pin the null-guard contract: callers that hand in a null ToolStats must get a clear
-        // NullPointerException with the parameter name, not a surprise NPE deeper inside the
-        // builder.
-        assertThrows(NullPointerException.class, () -> AttributeBuilder.build(null));
+        // NullPointerException whose message names the parameter, not a surprise NPE deeper
+        // inside the builder. The message anchor lets log readers locate the caller fast.
+        NullPointerException thrown = assertThrows(NullPointerException.class, () -> AttributeBuilder.build(null));
+        assertTrue(thrown.getMessage() != null && thrown.getMessage().contains("stats"), "NPE message must name the 'stats' parameter; got: " + thrown.getMessage());
     }
 
     @Test
