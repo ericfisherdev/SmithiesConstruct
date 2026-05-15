@@ -114,7 +114,12 @@ public class BowToolCore extends ToolCore {
         }
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F);
         player.awardStat(Stats.ITEM_USED.get(this));
-        stack.hurtAndBreak(1, player, net.minecraft.world.entity.EquipmentSlot.MAINHAND);
+        // Report durability damage against the hand that actually fired the shot. Vanilla
+        // BowItem pulls EquipmentSlot from player.getUsedItemHand so off-hand draws charge
+        // the off-hand slot — mirror that here.
+        net.minecraft.world.entity.EquipmentSlot slot = player.getUsedItemHand() == InteractionHand.OFF_HAND ? net.minecraft.world.entity.EquipmentSlot.OFFHAND
+                : net.minecraft.world.entity.EquipmentSlot.MAINHAND;
+        stack.hurtAndBreak(1, player, slot);
     }
 
     /**
