@@ -34,12 +34,16 @@ public class ShurikenItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.SNOWBALL_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
         if (!level.isClientSide()) {
             ShurikenEntity shuriken = new ShurikenEntity(ToolEntities.SHURIKEN.get(), player, level, stack.copyWithCount(1));
             shuriken.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, LAUNCH_VELOCITY, 1.0F);
-            level.addFreshEntity(shuriken);
+            if (!level.addFreshEntity(shuriken)) {
+                // Spawn refused (level capped, dimension teleport in flight) — surface a sided
+                // fail so vanilla's use-handling doesn't decrement the stack or fire the stat.
+                return InteractionResultHolder.fail(stack);
+            }
         }
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.SNOWBALL_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
         player.awardStat(Stats.ITEM_USED.get(this));
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
