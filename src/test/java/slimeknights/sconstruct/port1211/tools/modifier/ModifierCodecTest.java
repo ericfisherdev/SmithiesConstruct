@@ -1,0 +1,101 @@
+package slimeknights.sconstruct.port1211.tools.modifier;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import net.minecraft.resources.ResourceLocation;
+
+import org.junit.jupiter.api.Test;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
+
+/**
+ * Pinned-behaviour tests for the {@link Modifier} / {@link ModifierType} dispatch codec.
+ * Covers SMTCON-82's acceptance criteria: a modifier JSON parses into the concrete subclass
+ * picked by the {@code type} discriminator, every {@link ModifierType} permit is reachable
+ * via {@link ModifierType#CODEC}, and an unknown {@code type} fails the parse with a
+ * {@link DataResult#error} rather than throwing.
+ */
+class ModifierCodecTest {
+
+    @Test
+    void registryKeyLandsInSconstructNamespace() {
+        // The datapack registry path is derived from the registry key — JSON entries land at
+        // data/<entry-namespace>/sconstruct/modifier/<entry-path>.json. Pin the registry side
+        // of that contract.
+        assertEquals("sconstruct", Modifier.REGISTRY_KEY.location().getNamespace());
+        assertEquals("modifier", Modifier.REGISTRY_KEY.location().getPath());
+    }
+
+    @Test
+    void modifierTypeCodecRoundTripsEveryPermit() {
+        // Every singleton in ModifierType.All.VALUES round-trips through CODEC by its id —
+        // protects against a future rename of a permit's id() that would silently break
+        // datapacks referencing the old name.
+        for (ModifierType type : ModifierType.All.VALUES) {
+            DataResult<ModifierType> decoded = ModifierType.CODEC.parse(JsonOps.INSTANCE, new JsonPrimitive(type.id()));
+            assertTrue(decoded.result().isPresent(), () -> "type " + type.id() + " must round-trip");
+            assertSame(type, decoded.result().get(), () -> "decoded singleton must equal source for " + type.id());
+        }
+    }
+
+    @Test
+    void modifierTypeCodecRejectsUnknownId() {
+        // Unknown ids must surface as DataResult.error rather than throwing — datapack JSON
+        // that ships a type the mod doesn't know fails gracefully.
+        DataResult<ModifierType> decoded = ModifierType.CODEC.parse(JsonOps.INSTANCE, new JsonPrimitive("totally_not_a_real_type"));
+        assertTrue(decoded.error().isPresent());
+    }
+
+    @Test
+    void modifierDirectCodecRoutesJsonThroughTheDispatchedType() {
+        // Acceptance: loading a modifier JSON instantiates the concrete subclass selected by
+        // the type discriminator. Build a canonical SimpleStatBoost JSON and parse it through
+        // the direct codec; the result must be a SimpleStatBoostType.Instance carrying the
+        // declared fields.
+        JsonObject json = JsonParser.parseString("""
+                {
+                    "type": "simple_stat_boost",
+                    "id": "sconstruct:sharpness",
+                    "max_level": 5,
+                    "slot_cost": 1
+                }
+                """).getAsJsonObject();
+
+        DataResult<Modifier> decoded = Modifier.DIRECT_CODEC.parse(JsonOps.INSTANCE, json);
+        assertTrue(decoded.result().isPresent(), () -> "parse must succeed: " + decoded.error().map(err -> err.message()).orElse(""));
+        Modifier modifier = decoded.result().get();
+        assertInstanceOf(SimpleStatBoostType.Instance.class, modifier, "dispatch must pick SimpleStatBoostType.Instance for type=simple_stat_boost");
+        assertEquals(ResourceLocation.fromNamespaceAndPath("sconstruct", "sharpness"), modifier.id());
+        assertEquals(5, modifier.maxLevel());
+        assertEquals(1, modifier.slotCost());
+        assertSame(SimpleStatBoostType.INSTANCE, modifier.type(), "concrete instance must report its singleton type");
+    }
+
+    @Test
+    void modifierDirectCodecRoutesEveryDispatchShape() {
+        // Every ModifierType permit must be reachable from a JSON payload — pin the routing
+        // for the other four shapes so a future change to dispatch doesn't silently break
+        // any single permit.
+        assertInstanceOf(AttackTriggerType.Instance.class, parse("attack_trigger"), "attack_trigger routes to AttackTriggerType");
+        assertInstanceOf(MiningTriggerType.Instance.class, parse("mining_trigger"), "mining_trigger routes to MiningTriggerType");
+        assertInstanceOf(RightClickType.Instance.class, parse("right_click"), "right_click routes to RightClickType");
+        assertInstanceOf(OnBuildType.Instance.class, parse("on_build"), "on_build routes to OnBuildType");
+    }
+
+    private static Modifier parse(String typeId) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", typeId);
+        json.addProperty("id", "sconstruct:test_" + typeId);
+        json.addProperty("max_level", 1);
+        json.addProperty("slot_cost", 1);
+        DataResult<Modifier> decoded = Modifier.DIRECT_CODEC.parse(JsonOps.INSTANCE, json);
+        return decoded.result().orElseThrow(() -> new AssertionError("parse failed for type " + typeId + ": " + decoded.error().map(err -> err.message()).orElse("")));
+    }
+}
