@@ -172,4 +172,15 @@ public class ToolCore extends DiggerItem {
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
         return ToolBehavior.processDurabilityTick(stack, amount);
     }
+
+    /**
+     * Resolve {@link net.neoforged.neoforge.common.extensions.IItemExtension#canPerformAction
+     * canPerformAction} against the tool's static {@link ToolDefinition#abilities} set. Broken
+     * tools decline every ability so vanilla's right-click handlers (axe-strip, shovel-flatten,
+     * sword-sweep, hoe-till) short-circuit before the side effect runs.
+     */
+    @Override
+    public boolean canPerformAction(ItemStack stack, net.neoforged.neoforge.common.ItemAbility action) {
+        return ToolBehavior.canPerformAction(stack, action, definition.abilities());
+    }
 }
