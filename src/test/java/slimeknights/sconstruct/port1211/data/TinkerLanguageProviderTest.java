@@ -99,6 +99,20 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void smtcon87SpecialtyModifierLabelsRegistered() {
+        // Pinned key/value assertions for SMTCON-87 — the size check below would still pass if
+        // a key were mistyped (e.g. "auto-repair" vs "auto_repair") as long as the count stayed
+        // at 113, so verify each key + display value directly.
+        JsonObject lang = lang();
+        assertAll(() -> assertTrue(lang.has("modifier.tconstruct.fiery"), "fiery key missing"), () -> assertEquals("Fiery %s", lang.get("modifier.tconstruct.fiery").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.necrotic"), "necrotic key missing"), () -> assertEquals("Necrotic %s", lang.get("modifier.tconstruct.necrotic").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.moss"), "moss key missing"), () -> assertEquals("Mossy", lang.get("modifier.tconstruct.moss").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.mending"), "mending key missing"), () -> assertEquals("Mending Moss", lang.get("modifier.tconstruct.mending").getAsString()),
+                () -> assertTrue(lang.has("modifier.tconstruct.auto_repair"), "auto_repair key missing"),
+                () -> assertEquals("Auto-Repair %s", lang.get("modifier.tconstruct.auto_repair").getAsString()));
+    }
+
+    @Test
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
