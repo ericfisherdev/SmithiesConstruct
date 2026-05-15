@@ -87,6 +87,28 @@ public final class TinkerModifierBootstrap {
         context.register(key("mending"), new SimpleStatBoostType.Instance(rl("mending"), 1, 1));
         // Auto-Repair: passive durability regen at idle, cap 5, 1 slot.
         context.register(key("auto_repair"), new SimpleStatBoostType.Instance(rl("auto_repair"), 5, 1));
+
+        // SMTCON-88: cap-tier / rarity modifier roster. Same metadata-only contract as
+        // SMTCON-86 / SMTCON-87 — the per-modifier behaviour (gilded harvest-tier bump,
+        // reinforced durability-skip RNG, haste / luck vanilla effect application while held)
+        // is the follow-up integration on the SMTCON-83 hooks dispatcher. The JSON entries
+        // here pin the cap and slot cost so the tool-station UI can surface and gate them.
+        // Gilded: cap-tier modifier per SMTCON-88 ticket spec — one-shot, 1 slot. The runtime
+        // behaviour (harvest-tier bump per the ticket implementation plan, vs. the slot-trade
+        // semantic Gilded carries in later TC variants) is the follow-up integration on the
+        // SMTCON-83 hooks dispatcher; the JSON entry here pins only the cap and slot cost.
+        context.register(key("gilded"), new SimpleStatBoostType.Instance(rl("gilded"), 1, 1));
+        // Reinforced: 10% chance per level to skip durability damage, cap 5, 1 slot (legacy
+        // 1.12 parity — caps at 50% skip chance).
+        context.register(key("reinforced"), new SimpleStatBoostType.Instance(rl("reinforced"), 5, 1));
+        // Haste (effect-based): applies vanilla HASTE while held, +20% mining speed per
+        // level, cap 5, 1 slot. Distinct from the redstone modifier (stat-based mining-speed
+        // boost) — see SMTCON-85 redstone entry.
+        context.register(key("haste"), new SimpleStatBoostType.Instance(rl("haste"), 5, 1));
+        // Luck (effect-based): applies vanilla LUCK while held, +1 luck per level, cap 3,
+        // 1 slot — matches legacy 1.12 Fortune/Looting III ceiling. Distinct from the lapis
+        // modifier (Fortune-equivalent on block drops) — see SMTCON-85 lapis entry.
+        context.register(key("luck"), new SimpleStatBoostType.Instance(rl("luck"), 3, 1));
     }
 
     private static ResourceLocation rl(String path) {

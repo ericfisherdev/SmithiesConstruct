@@ -73,6 +73,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("modifier.tconstruct.moss", "Mossy");
         add("modifier.tconstruct.mending", "Mending Moss");
         add("modifier.tconstruct.auto_repair", "Auto-Repair %s");
+        // SMTCON-88 cap-tier / rarity modifier labels. Gilded is a one-shot harvest-tier bump
+        // (no level suffix); reinforced / haste / luck carry per-level numbering.
+        add("modifier.tconstruct.gilded", "Gilded");
+        add("modifier.tconstruct.reinforced", "Reinforced %s");
+        add("modifier.tconstruct.haste", "Hasty %s");
+        add("modifier.tconstruct.luck", "Lucky %s");
 
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
