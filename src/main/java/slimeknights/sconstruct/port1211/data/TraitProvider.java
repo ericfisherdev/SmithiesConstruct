@@ -6,7 +6,6 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 
 import com.google.gson.JsonObject;
 
@@ -44,7 +43,8 @@ public class TraitProvider implements DataProvider {
         json.addProperty("id", id.toString());
         // Surface a static stat-impact descriptor so a datapack consumer (JEI, tooltip cache)
         // can preview the trait's contribution without instantiating the code-side singleton.
-        json.addProperty("static_stats", GsonHelper.toStableString(new JsonObject()));
+        // Emit as a JSON object (not a string) so consumers see a nested node, not a quoted "{}".
+        json.add("static_stats", new JsonObject());
         return DataProvider.saveStable(cache, json, pathProvider.json(id));
     }
 
