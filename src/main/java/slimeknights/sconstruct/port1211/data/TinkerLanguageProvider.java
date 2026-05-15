@@ -50,6 +50,15 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // Component.translatable(key, level). Datapacks that ship their own modifier roster
         // override these by shipping a competing translation.
         add("modifier.tconstruct.sharpness", "Sharpness %s");
+        // SMTCON-85 vanilla-equivalent modifier labels. Redstone reads as "Haste", quartz as
+        // "Sharper" (smaller-per-level sibling), lapis as "Luck" (fortune-equivalent). Diamond
+        // and emerald are one-shot modifiers with no per-level number to surface, so their
+        // labels omit the level substitution.
+        add("modifier.tconstruct.redstone", "Haste %s");
+        add("modifier.tconstruct.quartz", "Sharper %s");
+        add("modifier.tconstruct.lapis", "Luck %s");
+        add("modifier.tconstruct.diamond", "Diamond");
+        add("modifier.tconstruct.emerald", "Emerald");
 
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".

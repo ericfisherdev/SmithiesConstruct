@@ -1,0 +1,6 @@
+{
+  "type": "simple_stat_boost",
+  "id": "tconstruct:redstone",
+  "max_level": 50,
+  "slot_cost": 1
+}

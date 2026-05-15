@@ -1,0 +1,6 @@
+{
+  "type": "simple_stat_boost",
+  "id": "tconstruct:diamond",
+  "max_level": 1,
+  "slot_cost": 2
+}

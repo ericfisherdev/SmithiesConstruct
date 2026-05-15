@@ -8,7 +8,6 @@ import java.util.Objects;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 
-import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.data.ToolModifiers;
 import slimeknights.sconstruct.port1211.common.data.ToolStats;
 import slimeknights.sconstruct.port1211.tools.material.ArrowStats;
@@ -70,7 +69,16 @@ public final class StatsBuilder {
      */
     static final ResourceLocation SHARPNESS_ID = ResourceLocation.fromNamespaceAndPath("tconstruct", "sharpness");
 
-    static final ResourceLocation REDSTONE_ID = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "haste");
+    static final ResourceLocation REDSTONE_ID = ResourceLocation.fromNamespaceAndPath("tconstruct", "redstone");
+
+    /** SMTCON-85 quartz id — additional attack-damage modifier sibling to sharpness. */
+    static final ResourceLocation QUARTZ_ID = ResourceLocation.fromNamespaceAndPath("tconstruct", "quartz");
+
+    /** SMTCON-85 diamond id — durability-boost modifier (1-time application). */
+    static final ResourceLocation DIAMOND_ID = ResourceLocation.fromNamespaceAndPath("tconstruct", "diamond");
+
+    /** SMTCON-85 emerald id — free-modifier-slot expander (1-time application). */
+    static final ResourceLocation EMERALD_ID = ResourceLocation.fromNamespaceAndPath("tconstruct", "emerald");
 
     /** +1.25 attack damage per Sharpness level (SMTCON-84). Replaces the legacy 1.12 +0.5
      *  baseline — the 1.25 value matches the Sharpness modifier JSON shipped under
@@ -78,8 +86,22 @@ public final class StatsBuilder {
      *  gains +6.25 attack damage on top of the head's contribution. */
     static final float SHARPNESS_DAMAGE_PER_LEVEL = 1.25F;
 
-    /** Legacy +0.08 mining speed per Redstone level (TConstruct 1.12). */
-    static final float REDSTONE_SPEED_PER_LEVEL = 0.08F;
+    /** +0.05 mining speed per Redstone level (SMTCON-85). Caps at level 50 per the modifier
+     *  registry; max-stacked grants +2.5 mining speed on top of the head's contribution. */
+    static final float REDSTONE_SPEED_PER_LEVEL = 0.05F;
+
+    /** +0.5 attack damage per Quartz level (SMTCON-85). Sibling to Sharpness with a smaller
+     *  per-level bonus but the same cap (5). */
+    static final float QUARTZ_DAMAGE_PER_LEVEL = 0.5F;
+
+    /** +500 max-durability per Diamond level (SMTCON-85). Maxes at level 1 — a one-shot
+     *  durability boost rather than a stackable enchantment. */
+    static final int DIAMOND_DURABILITY_PER_LEVEL = 500;
+
+    /** +1 free modifier slot per Emerald level (SMTCON-85). Maxes at level 1; lifts the
+     *  per-tool {@code baseModifierSlots} ceiling so a downstream modifier application that
+     *  exceeded the default slot budget can land. */
+    static final int EMERALD_SLOTS_PER_LEVEL = 1;
 
     private StatsBuilder() {
     }
@@ -133,13 +155,23 @@ public final class StatsBuilder {
         // ── Modifier bonuses ───────────────────────────────────────────────────────────────
         int sharpness = mods.levels().getOrDefault(SHARPNESS_ID, 0);
         int redstone = mods.levels().getOrDefault(REDSTONE_ID, 0);
+        int quartz = mods.levels().getOrDefault(QUARTZ_ID, 0);
+        int diamond = mods.levels().getOrDefault(DIAMOND_ID, 0);
+        int emerald = mods.levels().getOrDefault(EMERALD_ID, 0);
 
         // ── Combine ────────────────────────────────────────────────────────────────────────
-        int maxDurability = Math.max(1, Math.round((float) headDurability * durabilityMod) + extraDurability);
-        float attackDamage = headAttackDamage + sharpness * SHARPNESS_DAMAGE_PER_LEVEL;
+        // Diamond adds a flat durability boost; sums on top of the head-derived durability so
+        // a single application is the +500 cap.
+        int maxDurability = Math.max(1, Math.round((float) headDurability * durabilityMod) + extraDurability + diamond * DIAMOND_DURABILITY_PER_LEVEL);
+        // Sharpness and Quartz both add attack damage. Quartz is the smaller per-level boost;
+        // a tool with both maxed (5 each) gains +6.25 + 2.5 = +8.75 attack damage total.
+        float attackDamage = headAttackDamage + sharpness * SHARPNESS_DAMAGE_PER_LEVEL + quartz * QUARTZ_DAMAGE_PER_LEVEL;
         float miningSpeed = headMiningSpeed * miningSpeedMod + redstone * REDSTONE_SPEED_PER_LEVEL;
         int totalSlotCost = mods.levels().values().stream().mapToInt(Integer::intValue).sum();
-        int freeModifiers = Math.max(0, def.baseModifierSlots() - totalSlotCost);
+        // Emerald lifts the baseline modifier-slot ceiling before the slot-cost aggregation
+        // runs against it. A single application grants +1 free slot so a sixth modifier can
+        // land on a tool that would otherwise have been at its default-3 ceiling.
+        int freeModifiers = Math.max(0, def.baseModifierSlots() + emerald * EMERALD_SLOTS_PER_LEVEL - totalSlotCost);
 
         // ── Bow / arrow lanes ──────────────────────────────────────────────────────────────
         float drawSpeed = (float) averageOrDefault(bows, b -> (double) b.drawSpeed(), 0.0);

@@ -104,8 +104,9 @@ class TinkerLanguageProviderTest {
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
         // (block, bucket, fluid descriptionId) + 4 slime blocks + 4 plant sets × 4 entries
         // each (dirt, grass, leaves, sapling) + 4 slime logs + 4 stripped slime logs + 2 slime
-        // mobs (blueslime + hugeslime) + 1 sharpness modifier label (SMTCON-84) = 98.
-        assertEquals(98, lang().entrySet().size());
+        // mobs (blueslime + hugeslime) + 1 sharpness + 5 SMTCON-85 vanilla modifier labels
+        // (redstone, quartz, lapis, diamond, emerald) = 103.
+        assertEquals(103, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

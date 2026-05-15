@@ -100,11 +100,39 @@ class StatsBuilderTest {
     }
 
     @Test
-    void hasteRaisesMiningSpeedByEightHundredthsPerLevel() {
-        ToolModifiers withHaste = ToolModifiers.empty().with(StatsBuilder.REDSTONE_ID, 5);
-        ToolStats stats = StatsBuilder.compute(parts(WOOD, IRON, WOOD), withHaste, ToolDefinition.PICKAXE);
-        // 6.0 base + 5 * 0.08 = 6.4
-        assertEquals(6.4F, stats.miningSpeed(), 1e-4);
+    void redstoneRaisesMiningSpeedByOneTwentiethPerLevel() {
+        // SMTCON-85: redstone now sits at +0.05 per level (replacing the legacy +0.08 baseline).
+        // 6.0 base + 5 × 0.05 = 6.25.
+        ToolModifiers withRedstone = ToolModifiers.empty().with(StatsBuilder.REDSTONE_ID, 5);
+        ToolStats stats = StatsBuilder.compute(parts(WOOD, IRON, WOOD), withRedstone, ToolDefinition.PICKAXE);
+        assertEquals(6.25F, stats.miningSpeed(), 1e-4);
+    }
+
+    @Test
+    void quartzRaisesAttackDamageByHalfPerLevel() {
+        // SMTCON-85: quartz is the sharpness sibling with a smaller +0.5 per-level bonus.
+        // 4.0 base + 3 × 0.5 = 5.5.
+        ToolModifiers withQuartz = ToolModifiers.empty().with(StatsBuilder.QUARTZ_ID, 3);
+        ToolStats stats = StatsBuilder.compute(parts(WOOD, IRON, WOOD), withQuartz, ToolDefinition.PICKAXE);
+        assertEquals(5.5F, stats.attackDamage(), 1e-4);
+    }
+
+    @Test
+    void diamondAddsFlatFiveHundredDurabilityAsAOneShot() {
+        // SMTCON-85: diamond is a one-shot modifier with a flat +500 max durability boost.
+        // Iron pickaxe baseline durability = 275; diamond level 1 lifts that to 775.
+        ToolModifiers withDiamond = ToolModifiers.empty().with(StatsBuilder.DIAMOND_ID, 1);
+        ToolStats stats = StatsBuilder.compute(parts(IRON, IRON, IRON), withDiamond, ToolDefinition.PICKAXE);
+        assertEquals(775, stats.maxDurability());
+    }
+
+    @Test
+    void emeraldGrantsAnExtraFreeModifierSlot() {
+        // SMTCON-85: emerald is a one-shot modifier that lifts the modifier-slot ceiling by 1.
+        // base=3 + emerald=1 = 4 ceiling; emerald itself costs 1 slot → freeModifiers = 3.
+        ToolModifiers withEmerald = ToolModifiers.empty().with(StatsBuilder.EMERALD_ID, 1);
+        ToolStats stats = StatsBuilder.compute(parts(WOOD, WOOD, WOOD), withEmerald, ToolDefinition.PICKAXE);
+        assertEquals(3, stats.freeModifiers());
     }
 
     @Test
