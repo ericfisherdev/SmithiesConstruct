@@ -78,8 +78,9 @@ public final class TinkerModifierBootstrap {
         // surface each modifier and gate application against the cap and slot cost.
         // Fiery: set target on fire 5s per level on attack, cap 5, 1 slot (legacy 1.12 parity).
         context.register(key("fiery"), new SimpleStatBoostType.Instance(rl("fiery"), 5, 1));
-        // Necrotic: heal attacker on hit, chance scales with level, one-shot, 1 slot.
-        context.register(key("necrotic"), new SimpleStatBoostType.Instance(rl("necrotic"), 1, 1));
+        // Necrotic: heal attacker on hit, chance scales with level (+10%/level legacy parity),
+        // cap 5, 1 slot.
+        context.register(key("necrotic"), new SimpleStatBoostType.Instance(rl("necrotic"), 5, 1));
         // Moss: passive durability regen tied to day cycle, one-shot, 1 slot.
         context.register(key("moss"), new SimpleStatBoostType.Instance(rl("moss"), 1, 1));
         // Mending: XP absorb repairs durability, one-shot, 1 slot.

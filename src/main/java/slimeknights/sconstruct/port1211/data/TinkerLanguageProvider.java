@@ -66,10 +66,10 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("modifier.tconstruct.smite", "Smite %s");
         add("modifier.tconstruct.bane_of_arthropods", "Bane of Arthropods %s");
         add("modifier.tconstruct.knockback", "Knockback %s");
-        // SMTCON-87 specialty modifier labels. Necrotic / moss / mending are one-shots
-        // (no level suffix); fiery and auto_repair carry per-level numbering.
+        // SMTCON-87 specialty modifier labels. Moss / mending are one-shots (no level suffix);
+        // fiery / necrotic / auto_repair carry per-level numbering.
         add("modifier.tconstruct.fiery", "Fiery %s");
-        add("modifier.tconstruct.necrotic", "Necrotic");
+        add("modifier.tconstruct.necrotic", "Necrotic %s");
         add("modifier.tconstruct.moss", "Mossy");
         add("modifier.tconstruct.mending", "Mending Moss");
         add("modifier.tconstruct.auto_repair", "Auto-Repair %s");
