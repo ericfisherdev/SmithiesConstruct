@@ -91,8 +91,20 @@ public class ToolCore extends DiggerItem {
      *     {@link #EMPTY_MINING_TAG} is passed to vanilla.
      */
     public ToolCore(Item.Properties properties, ToolDefinition definition) {
-        super(Tiers.WOOD, definition.miningTag() != null ? definition.miningTag() : EMPTY_MINING_TAG, withDefaultToolComponents(properties));
-        this.definition = Objects.requireNonNull(definition, "definition");
+        super(Tiers.WOOD, resolveMiningTag(definition), withDefaultToolComponents(properties));
+        this.definition = definition;
+    }
+
+    /**
+     * Extract the mining tag from a non-null {@link ToolDefinition}. Kept as a static helper so
+     * the {@code super(...)} call site never dereferences a null definition — a {@code null}
+     * argument raises {@link NullPointerException} here with a {@code "definition"} message
+     * before the {@link DiggerItem} constructor runs, rather than a bare implicit NPE on
+     * {@code definition.miningTag()}.
+     */
+    private static TagKey<Block> resolveMiningTag(ToolDefinition definition) {
+        Objects.requireNonNull(definition, "definition");
+        return definition.miningTag() != null ? definition.miningTag() : EMPTY_MINING_TAG;
     }
 
     /**
