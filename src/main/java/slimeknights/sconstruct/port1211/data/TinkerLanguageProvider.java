@@ -109,6 +109,14 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("block.sconstruct.part_builder", "Part Builder");
         add("container.sconstruct.part_builder", "Part Builder");
 
+        // SMTCON-93 tool station + tool forge. Four keys total: each block name (placed-block
+        // tooltip + inventory BlockItem) and each container title (GUI header — resolved by
+        // ToolStationBlockEntity#getDisplayName / ToolForgeBlockEntity#getDisplayName).
+        add("block.sconstruct.tool_station", "Tool Station");
+        add("container.sconstruct.tool_station", "Tool Station");
+        add("block.sconstruct.tool_forge", "Tool Forge");
+        add("container.sconstruct.tool_forge", "Tool Forge");
+
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();

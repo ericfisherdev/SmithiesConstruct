@@ -45,5 +45,11 @@ public final class ToolCapabilities {
         // (see PartBuilderBlockEntity#isItemValid), so hoppers can feed typed patterns +
         // material stacks but cannot bypass the resolve step by pre-stamping the output slot.
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, PartBuilderRegistry.PART_BUILDER_BE.get(), (be, side) -> be.getHandler());
+        // SMTCON-93: tool station + tool forge. Both BEs share the same 7-slot handler shape
+        // (6 inputs + 1 output). The handler rejects insertion to the output slot at the
+        // handler layer (see ToolStationBlockEntity#isItemValid), so hoppers feeding the
+        // station cannot pre-stamp the output and bypass the build / modify resolution.
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ToolStationRegistry.TOOL_STATION_BE.get(), (be, side) -> be.getHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ToolStationRegistry.TOOL_FORGE_BE.get(), (be, side) -> be.getHandler());
     }
 }

@@ -17,6 +17,7 @@ import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
+import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
 import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.WorldFluids;
@@ -112,6 +113,11 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // SMTCON-92 part builder: inventory icon parents the cube_all block model emitted
         // by TinkerBlockStateProvider above.
         registerBlockItemFromBlockModel(PartBuilderRegistry.PART_BUILDER);
+
+        // SMTCON-93 tool station + tool forge: inventory icons parent the cube_all block
+        // models emitted by TinkerBlockStateProvider above.
+        registerBlockItemFromBlockModel(ToolStationRegistry.TOOL_STATION);
+        registerBlockItemFromBlockModel(ToolStationRegistry.TOOL_FORGE);
     }
 
     /**
