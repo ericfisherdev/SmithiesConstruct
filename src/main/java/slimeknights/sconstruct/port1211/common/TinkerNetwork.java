@@ -11,6 +11,7 @@ import com.mojang.logging.LogUtils;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.network.StencilTablePartPayload;
+import slimeknights.sconstruct.port1211.common.network.ToolStationActionPayload;
 
 /**
  * Central registration point for the mod's network payloads. Phase 1 ships only the registrar
@@ -62,5 +63,7 @@ public final class TinkerNetwork {
         LOGGER.info("SConstruct: network payload registrar version {} created", VERSION);
         // SMTCON-91: client→server cycle-button packet for the Stencil Table.
         registrar.playToServer(StencilTablePartPayload.TYPE, StencilTablePartPayload.STREAM_CODEC, StencilTablePartPayload::handleServer);
+        // SMTCON-94: client→server action-button packet for the Tool Station / Tool Forge.
+        registrar.playToServer(ToolStationActionPayload.TYPE, ToolStationActionPayload.STREAM_CODEC, ToolStationActionPayload::handleServer);
     }
 }

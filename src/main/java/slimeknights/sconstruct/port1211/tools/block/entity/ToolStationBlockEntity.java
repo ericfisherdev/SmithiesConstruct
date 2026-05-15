@@ -121,6 +121,15 @@ public class ToolStationBlockEntity extends BlockEntity implements MenuProvider 
      *       the output preview carries the real durability / attack numbers.</li>
      * </ul>
      */
+    /**
+     * Public-facing entry point for the SMTCON-94 action-payload BUILD button. Calls the
+     * (otherwise package-private) {@link #refreshOutput} so the payload handler doesn't need
+     * to live in the same package as the BE.
+     */
+    public void refreshOutputFromAction() {
+        refreshOutput();
+    }
+
     void refreshOutput() {
         List<ItemStack> inputs = snapshotInputs();
         // Modify path: built tool in slot 0 takes priority over the build path. A built tool's

@@ -202,8 +202,9 @@ class TinkerLanguageProviderTest {
         // pattern chest keys (block + container title) + 4 SMTCON-91 stencil table keys
         // (block + container title + blank_pattern item + typed pattern name format)
         // + 2 SMTCON-92 part builder keys (block + container title) + 4 SMTCON-93 tool
-        // station / tool forge keys (2 blocks × {block name + container title}) = 130.
-        assertEquals(130, lang().entrySet().size());
+        // station / tool forge keys (2 blocks × {block name + container title}) + 2
+        // SMTCON-94 action-button keys (Build, Modify) = 132.
+        assertEquals(132, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

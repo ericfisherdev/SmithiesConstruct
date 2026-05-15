@@ -1,13 +1,17 @@
 package slimeknights.sconstruct.port1211.tools.inventory.client;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import slimeknights.sconstruct.port1211.common.network.ToolStationActionPayload;
+import slimeknights.sconstruct.port1211.tools.block.entity.ToolStationBlockEntity;
 import slimeknights.sconstruct.port1211.tools.inventory.ToolStationMenu;
 
 /**
@@ -35,6 +39,29 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
         super(menu, playerInventory, title);
         this.imageWidth = 176;
         this.imageHeight = 166;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        // SMTCON-94 action buttons. Build commits the input-derived tool; Modify clears the
+        // slot-0 input tool. Reach + open-menu validation runs server-side in
+        // {@link ToolStationActionPayload#handleServer}; the buttons only fire if the menu's
+        // cached BE reference is non-null (the open-screen sync populated it).
+        ToolStationBlockEntity be = menu.getBlockEntity();
+        if (be == null) {
+            return;
+        }
+        int baseX = this.leftPos + 6;
+        int baseY = this.topPos + 50;
+        addRenderableWidget(
+                Button.builder(Component.translatable("button.sconstruct.tool_station.build"), btn -> sendAction(be, ToolStationActionPayload.Action.BUILD)).bounds(baseX, baseY, 56, 20).build());
+        addRenderableWidget(Button.builder(Component.translatable("button.sconstruct.tool_station.modify"), btn -> sendAction(be, ToolStationActionPayload.Action.MODIFY))
+                .bounds(baseX, baseY + 22, 56, 20).build());
+    }
+
+    private static void sendAction(ToolStationBlockEntity be, ToolStationActionPayload.Action action) {
+        PacketDistributor.sendToServer(new ToolStationActionPayload(be.getBlockPos(), action));
     }
 
     /** Top section height — vanilla 17px border + 1 slot row + a small buffer. The bottom
