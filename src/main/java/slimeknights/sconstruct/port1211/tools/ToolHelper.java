@@ -22,6 +22,7 @@ import slimeknights.sconstruct.port1211.common.data.ToolMaterials;
 import slimeknights.sconstruct.port1211.common.data.ToolModifiers;
 import slimeknights.sconstruct.port1211.common.data.ToolStats;
 import slimeknights.sconstruct.port1211.tools.material.Material;
+import slimeknights.sconstruct.port1211.tools.modifier.ModifierHookDispatcher;
 
 /**
  * Read / write façade over the five tool {@link net.minecraft.core.component.DataComponentType
@@ -235,6 +236,13 @@ public final class ToolHelper {
         // leave a UI / damage-handler that branches on isBroken reading stale state.
         boolean shouldBeBroken = computed.maxDurability() > 0 && clampedDamage >= computed.maxDurability();
         stack.set(TinkerDataComponents.TOOL_BROKEN.get(), shouldBeBroken ? ToolBroken.BROKEN : ToolBroken.intact());
+
+        // Stamp per-modifier persistent state via the onBuild hook now that the stat / broken
+        // snapshot is fully resolved — modifiers that depend on the post-rebuild maxDurability
+        // (mossy auto-repair seed, soulbound-owner stamp) read it back through the cached
+        // TOOL_STATS component. The dispatcher's broken-state guard ensures a tool that just
+        // flipped to broken doesn't run onBuild side effects against a zero-budget snapshot.
+        ModifierHookDispatcher.dispatchOnBuild(stack);
     }
 
     /**

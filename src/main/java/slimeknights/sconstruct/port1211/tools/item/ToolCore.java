@@ -5,16 +5,20 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
@@ -25,6 +29,8 @@ import slimeknights.sconstruct.port1211.common.data.ToolPersistentData;
 import slimeknights.sconstruct.port1211.common.data.ToolStats;
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.ToolHelper;
+import slimeknights.sconstruct.port1211.tools.modifier.ModifierHookDispatcher;
+import slimeknights.sconstruct.port1211.tools.modifier.ToolEvents;
 
 /**
  * Abstract base item for every Smithies' Construct tool. Extends vanilla {@link DiggerItem} so
@@ -155,7 +161,41 @@ public class ToolCore extends DiggerItem {
      */
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        return ToolBehavior.canHurtEnemy(stack) && super.hurtEnemy(stack, target, attacker);
+        if (!ToolBehavior.canHurtEnemy(stack) || !super.hurtEnemy(stack, target, attacker)) {
+            return false;
+        }
+        // Dispatch onAttack to every applied modifier in insertion order. The dispatcher
+        // skips on the client side and on broken tools — the canHurtEnemy guard above already
+        // handles the broken case, but the dispatcher's defence-in-depth covers a stack whose
+        // broken flag flipped between the guard and the dispatch (e.g. by a previous modifier
+        // hook on the same swing).
+        if (attacker instanceof Player player) {
+            // baseDamage feeds the OnHitContext for modifiers that scale their side effects
+            // (fiery duration, knockback magnitude) against the actual strike. Read off the
+            // cached ToolStats.attackDamage — the same value the ATTRIBUTE_MODIFIERS component
+            // (set by AttributeBuilder in SMTCON-77's rebuildStats) feeds the player's
+            // ATTACK_DAMAGE attribute, so the modifier hooks see the same figure vanilla
+            // applied to the actual damage roll.
+            float baseDamage = ToolHelper.getStats(stack).attackDamage();
+            ModifierHookDispatcher.dispatchOnAttack(stack, new ToolEvents.OnHitContext(player, target, target.level(), baseDamage));
+        }
+        return true;
+    }
+
+    /**
+     * Vanilla {@code Item.mineBlock} fires once per successful block break. The {@code super}
+     * call drives the damage-per-block durability tick via the Tool data component; afterwards
+     * the dispatcher routes {@link slimeknights.sconstruct.port1211.tools.modifier.Modifier#onMine}
+     * to every applied modifier. The broken-state / client-side / unknown-id guards live in the
+     * dispatcher itself.
+     */
+    @Override
+    public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
+        boolean handled = super.mineBlock(stack, level, state, pos, miningEntity);
+        if (miningEntity instanceof Player player) {
+            ModifierHookDispatcher.dispatchOnMine(stack, new ToolEvents.OnMineContext(player, state, pos, level));
+        }
+        return handled;
     }
 
     /**
@@ -180,7 +220,7 @@ public class ToolCore extends DiggerItem {
      * sword-sweep, hoe-till) short-circuit before the side effect runs.
      */
     @Override
-    public boolean canPerformAction(ItemStack stack, net.neoforged.neoforge.common.ItemAbility action) {
+    public boolean canPerformAction(ItemStack stack, ItemAbility action) {
         return ToolBehavior.canPerformAction(stack, action, definition.abilities());
     }
 }
