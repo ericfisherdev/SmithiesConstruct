@@ -67,6 +67,7 @@ public final class AoeHelper {
      *         broken — so callers don't have to thread the haul count back through their own
      *         damage path.
      */
+    @SuppressWarnings("PMD.CloseResource") // Level/ServerLevel are not closable resources; PMD false-positive on pattern matching.
     public static int aoeMine(ItemStack stack, Player player, BlockPos centre, BlockState preBreakState, Direction hitFace, AoePattern pattern) {
         if (ToolHelper.isBroken(stack)) {
             return 0;
