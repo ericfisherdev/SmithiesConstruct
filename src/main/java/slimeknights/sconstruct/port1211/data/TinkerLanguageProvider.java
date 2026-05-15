@@ -103,6 +103,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("item.sconstruct.blank_pattern", "Blank Pattern");
         add("item.sconstruct.pattern", "Pattern: %s");
 
+        // SMTCON-92 part builder. Two keys: the block name (shown on the placed block + the
+        // inventory BlockItem) and the container title (shown on the GUI header bar — resolved
+        // by PartBuilderBlockEntity#getDisplayName).
+        add("block.sconstruct.part_builder", "Part Builder");
+        add("container.sconstruct.part_builder", "Part Builder");
+
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();
