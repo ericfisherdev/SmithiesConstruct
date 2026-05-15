@@ -93,6 +93,16 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("block.sconstruct.pattern_chest", "Pattern Chest");
         add("container.sconstruct.pattern_chest", "Pattern Chest");
 
+        // SMTCON-91 stencil table. Four keys: the block name (placed-block tooltip + inventory
+        // BlockItem), the container title (GUI header — resolved by
+        // StencilTableBlockEntity#getDisplayName), the blank pattern item name (fallback when
+        // the typed component is absent), and the typed-pattern name format (substituted by
+        // PatternItem#getName with the PartType display name).
+        add("block.sconstruct.stencil_table", "Stencil Table");
+        add("container.sconstruct.stencil_table", "Stencil Table");
+        add("item.sconstruct.blank_pattern", "Blank Pattern");
+        add("item.sconstruct.pattern", "Pattern: %s");
+
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();
