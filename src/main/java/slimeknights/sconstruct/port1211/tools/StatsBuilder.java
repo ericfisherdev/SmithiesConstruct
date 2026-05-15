@@ -68,7 +68,7 @@ public final class StatsBuilder {
      * {@code Modifier} entry in <a href="https://ericfisherdev.atlassian.net/browse/SMTCON-83">SMTCON-83</a>'s
      * registry would silently shift base stats away from legacy parity.
      */
-    static final ResourceLocation SHARPNESS_ID = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "sharpness");
+    static final ResourceLocation SHARPNESS_ID = ResourceLocation.fromNamespaceAndPath("tconstruct", "sharpness");
 
     static final ResourceLocation REDSTONE_ID = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "haste");
 
