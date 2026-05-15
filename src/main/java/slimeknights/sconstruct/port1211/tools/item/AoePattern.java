@@ -53,8 +53,6 @@ public enum AoePattern {
         case TREE:
             // Empty here — AoeHelper.walkConnectedLogs replaces this generator for trees.
             break;
-        default:
-            throw new IllegalStateException("Unhandled AoePattern: " + this);
         }
         return List.copyOf(positions);
     }
