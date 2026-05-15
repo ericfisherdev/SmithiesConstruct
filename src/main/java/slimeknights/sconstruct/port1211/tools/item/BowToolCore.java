@@ -11,6 +11,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 
@@ -103,14 +104,29 @@ public class BowToolCore extends ToolCore {
         if (power < MIN_RELEASE_POWER) {
             return;
         }
+        // Find an arrow in the player's inventory to feed the shot. Creative players (and a
+        // future infinity-modifier hook) skip the consume step but still spawn the arrow;
+        // survival players with no ammo silently no-op so the bow doesn't fire for free.
+        ItemStack ammo = findAmmo(player);
+        boolean freeShot = player.getAbilities().instabuild;
+        if (ammo.isEmpty() && !freeShot) {
+            return;
+        }
         if (!level.isClientSide()) {
-            Arrow arrow = new Arrow(level, player, new ItemStack(net.minecraft.world.item.Items.ARROW), stack);
+            ItemStack arrowStack = ammo.isEmpty() ? new ItemStack(Items.ARROW) : ammo;
+            Arrow arrow = new Arrow(level, player, arrowStack, stack);
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * fullDrawVelocity, 1.0F);
             if (power >= FULL_DRAW_THRESHOLD) {
                 arrow.setCritArrow(true);
             }
             arrow.setBaseDamage(arrow.getBaseDamage() + ToolHelper.getStats(stack).attackDamage());
+            if (freeShot && ammo.isEmpty()) {
+                arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
+            }
             level.addFreshEntity(arrow);
+        }
+        if (!freeShot && !ammo.isEmpty()) {
+            ammo.shrink(1);
         }
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F);
         player.awardStat(Stats.ITEM_USED.get(this));
@@ -123,6 +139,28 @@ public class BowToolCore extends ToolCore {
     }
 
     /**
+     * Scan the player's hands and inventory for the first arrow stack. Returns
+     * {@link ItemStack#EMPTY} when none is found. The minimal port here only honours plain
+     * vanilla arrows — tipped / spectral support can be added in a follow-up ticket without
+     * changing the caller's contract since the empty sentinel is preserved.
+     */
+    private static ItemStack findAmmo(Player player) {
+        if (player.getMainHandItem().is(Items.ARROW)) {
+            return player.getMainHandItem();
+        }
+        if (player.getOffhandItem().is(Items.ARROW)) {
+            return player.getOffhandItem();
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack candidate = player.getInventory().getItem(i);
+            if (candidate.is(Items.ARROW)) {
+                return candidate;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    /**
      * Vanilla bow power curve, parameterised by this bow's {@link #drawTicks}: a quadratic ramp
      * from 0 to 1 over {@code drawTicks} ticks, clamped at 1. The longbow's longer ramp produces
      * a visibly slower draw at the player's bow animation hooked into the same curve.
@@ -131,16 +169,6 @@ public class BowToolCore extends ToolCore {
         float f = (float) charge / drawTicks;
         f = (f * f + f * 2.0F) / 3.0F;
         return Math.min(f, 1.0F);
-    }
-
-    /**
-     * NeoForge hook — controls the bow's apparent draw-bar fill rate in the player HUD. Map
-     * the per-class {@link #drawTicks} to the vanilla baseline so the longbow's slow draw
-     * surfaces visually in the bow-pull animation, not just in the damage curve.
-     */
-    @Override
-    public boolean isBarVisible(ItemStack stack) {
-        return super.isBarVisible(stack);
     }
 
     /**
