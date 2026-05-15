@@ -149,7 +149,10 @@ public class BowToolCore extends ToolCore {
      * the bow-pull HUD rather than the velocity-scaling curve.
      */
     public float drawProgressFraction(int useTicks) {
-        return Math.min((float) useTicks / drawTicks, 1.0F);
+        // Clamp to 0..1 — a negative useTicks (caller bug or pre-use tick) shouldn't surface
+        // as a negative bow-pull fraction and run the HUD predicate off the bottom of the
+        // texture, just as exceeding drawTicks shouldn't run it off the top.
+        return Math.max(0.0F, Math.min((float) useTicks / drawTicks, 1.0F));
     }
 
     /** Returns a freshly-shot arrow for testing — does not add to the level. */
