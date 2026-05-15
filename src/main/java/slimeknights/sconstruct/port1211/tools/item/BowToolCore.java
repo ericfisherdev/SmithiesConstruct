@@ -20,6 +20,8 @@ import net.neoforged.neoforge.event.entity.player.ArrowNockEvent;
 
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.ToolHelper;
+import slimeknights.sconstruct.port1211.tools.entity.TinkerArrowEntity;
+import slimeknights.sconstruct.port1211.tools.entity.ToolEntities;
 
 /**
  * Base class for held-draw ranged weapons (shortbow, longbow). Extends {@link ToolCore} so the
@@ -132,7 +134,10 @@ public class BowToolCore extends ToolCore {
         }
         if (!level.isClientSide()) {
             ItemStack arrowStack = ammo.isEmpty() ? new ItemStack(Items.ARROW) : ammo;
-            Arrow arrow = new Arrow(level, player, arrowStack, stack);
+            // Route TinkerArrow stacks to TinkerArrowEntity so the per-stack ToolStats damage
+            // drives the impact figure; plain vanilla arrows keep going through vanilla Arrow.
+            Arrow arrow = arrowStack.getItem() instanceof TinkerArrowItem ? new TinkerArrowEntity(ToolEntities.TINKER_ARROW.get(), player, level, arrowStack, stack)
+                    : new Arrow(level, player, arrowStack, stack);
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * fullDrawVelocity, 1.0F);
             if (power >= FULL_DRAW_THRESHOLD) {
                 arrow.setCritArrow(true);
@@ -166,19 +171,28 @@ public class BowToolCore extends ToolCore {
      * changing the caller's contract since the empty sentinel is preserved.
      */
     private static ItemStack findAmmo(Player player) {
-        if (player.getMainHandItem().is(Items.ARROW)) {
+        if (isArrow(player.getMainHandItem())) {
             return player.getMainHandItem();
         }
-        if (player.getOffhandItem().is(Items.ARROW)) {
+        if (isArrow(player.getOffhandItem())) {
             return player.getOffhandItem();
         }
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack candidate = player.getInventory().getItem(i);
-            if (candidate.is(Items.ARROW)) {
+            if (isArrow(candidate)) {
                 return candidate;
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    /**
+     * Recognise both the vanilla arrow item and SMTCON's part-built
+     * {@link TinkerArrowItem} as valid bow ammo. Tipped / spectral support remains a follow-up
+     * ticket — those stacks fall through to "no ammo" here, matching the legacy 1.12 behaviour.
+     */
+    private static boolean isArrow(ItemStack stack) {
+        return stack.is(Items.ARROW) || stack.getItem() instanceof TinkerArrowItem;
     }
 
     /**

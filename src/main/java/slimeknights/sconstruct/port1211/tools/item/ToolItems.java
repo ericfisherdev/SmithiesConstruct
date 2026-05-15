@@ -94,9 +94,12 @@ public final class ToolItems {
      */
     public static final DeferredItem<ShurikenItem> SHURIKEN = TinkerRegistries.ITEMS.registerItem("shuriken", ShurikenItem::new);
 
+    /** Part-built arrow — built at the tool station against the ARROW definition, fired by bows. */
+    public static final DeferredItem<TinkerArrowItem> TINKER_ARROW = TinkerRegistries.ITEMS.registerItem("tinker_arrow", TinkerArrowItem::new);
+
     /** Iteration surface for the creative-tab listener and any future "all tools" hook. */
     public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK, CLEAVER, LONGSWORD, RAPIER, FROE,
-            SHORTBOW, LONGBOW, CROSSBOW);
+            SHORTBOW, LONGBOW, CROSSBOW, TINKER_ARROW);
 
     private ToolItems() {
     }
