@@ -179,6 +179,15 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
     public static final ToolDefinition SHORTBOW = new ToolDefinition("shortbow", List.of(PartType.BOWLIMB, PartType.BOWLIMB, PartType.BOWSTRING), null, Set.of(), DEFAULT_MODIFIER_SLOTS);
 
     /**
+     * {@code LongBow}: toughHandle + bowLimb × 2 + bowString. Heavier 4-part bow variant whose
+     * draw is longer and whose arrow velocity / range scale higher than the shortbow. Same
+     * empty ability set as {@link #SHORTBOW} — bow shooting is item-class behaviour, not a
+     * vanilla ItemAbility.
+     */
+    public static final ToolDefinition LONGBOW = new ToolDefinition("longbow", List.of(PartType.TOUGHHANDLE, PartType.BOWLIMB, PartType.BOWLIMB, PartType.BOWSTRING), null, Set.of(),
+            DEFAULT_MODIFIER_SLOTS);
+
+    /**
      * {@code CrossBow}: toughHandle + bowLimb + toughBinding + bowString
      * ({@code TinkerRangedWeapons:103}). Same ability-set rationale as {@link #SHORTBOW}.
      */
@@ -208,5 +217,5 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
      * weapons (shortbow, crossbow, arrow) whose legacy 1.12 line required the Tool Forge.
      */
     public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, LONGSWORD, RAPIER, FROE, CLEAVER, HAMMER, EXCAVATOR, LUMBER_AXE, SHORTBOW,
-            CROSSBOW, ARROW);
+            LONGBOW, CROSSBOW, ARROW);
 }

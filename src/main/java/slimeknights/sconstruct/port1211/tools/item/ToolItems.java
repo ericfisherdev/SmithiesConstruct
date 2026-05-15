@@ -78,8 +78,15 @@ public final class ToolItems {
     /** Utility melee weapon — doubles damage against leather / wood-armoured targets. */
     public static final DeferredItem<FroeItem> FROE = TinkerRegistries.ITEMS.registerItem("froe", FroeItem::new);
 
+    /** Three-part bow — fast draw at vanilla bow velocity. */
+    public static final DeferredItem<ShortbowItem> SHORTBOW = TinkerRegistries.ITEMS.registerItem("shortbow", ShortbowItem::new);
+
+    /** Heavy 4-part bow — slower draw, higher velocity and damage. */
+    public static final DeferredItem<LongbowItem> LONGBOW = TinkerRegistries.ITEMS.registerItem("longbow", LongbowItem::new);
+
     /** Iteration surface for the creative-tab listener and any future "all tools" hook. */
-    public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK, CLEAVER, LONGSWORD, RAPIER, FROE);
+    public static final List<DeferredItem<? extends ToolCore>> ALL_TOOLS = List.of(PICKAXE, SHOVEL, AXE, SWORD, HAMMER, EXCAVATOR, LUMBER_AXE, SCYTHE, MATTOCK, CLEAVER, LONGSWORD, RAPIER, FROE,
+            SHORTBOW, LONGBOW);
 
     private ToolItems() {
     }
