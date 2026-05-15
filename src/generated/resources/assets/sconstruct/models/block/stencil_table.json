@@ -1,6 +1,8 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "all": "sconstruct:block/stencil_table"
+    "bottom": "sconstruct:block/table_side",
+    "side": "sconstruct:block/table_side",
+    "top": "sconstruct:block/stencil_table_top"
   }
 }

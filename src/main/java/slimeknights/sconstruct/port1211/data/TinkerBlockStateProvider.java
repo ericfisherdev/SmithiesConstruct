@@ -74,25 +74,24 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
             registerLog(holder.get());
         }
 
-        // SMTCON-90: pattern chest renders as a cube_all referencing sconstruct:block/pattern_chest.
-        // The texture PNG is a follow-up per the ticket plan; the model JSON is well-formed so
-        // vanilla won't log a missing-model warning.
-        registerCubeAll(PatternChestRegistry.PATTERN_CHEST.get());
+        // SMTCON-95: pattern chest renders as a cube_bottom_top with a dedicated top sprite
+        // (chest lid) and a side sprite (chest body wood). The legacy 1.12 mod ships a separate
+        // "front" texture, but PatternChestBlock has no HORIZONTAL_FACING property in this port
+        // — so we collapse the front into the side variant (every face of the body uses
+        // pattern_chest_side). Bottom mirrors the top to keep the chest "lidded" on both
+        // y-faces, matching the legacy look when placed on a transparent floor.
+        registerCubeBottomTop(PatternChestRegistry.PATTERN_CHEST.get(), "block/pattern_chest_side", "block/pattern_chest_top", "block/pattern_chest_top");
 
-        // SMTCON-91: stencil table renders as a cube_all referencing sconstruct:block/stencil_table.
-        // The texture PNG is a follow-up per the ticket plan.
-        registerCubeAll(StencilTableRegistry.STENCIL_TABLE.get());
-
-        // SMTCON-92: part builder renders as a cube_all referencing sconstruct:block/part_builder.
-        // Texture PNG is a follow-up per the ticket plan.
-        registerCubeAll(PartBuilderRegistry.PART_BUILDER.get());
-
-        // SMTCON-93: tool station + tool forge render as cube_all referencing
-        // sconstruct:block/tool_station and sconstruct:block/tool_forge respectively. Texture
-        // PNGs are a follow-up per the ticket plan; the JSON model side is well-formed so
-        // vanilla won't log a missing-model warning.
-        registerCubeAll(ToolStationRegistry.TOOL_STATION.get());
-        registerCubeAll(ToolStationRegistry.TOOL_FORGE.get());
+        // SMTCON-95: the four wood-clad workstations (stencil table, part builder, tool
+        // station, tool forge) share the same shape — a dedicated top sprite paired with a
+        // shared "table_side" plank sprite on the four sides and the bottom. The legacy mod
+        // ships a single table_side.png used by all four tables; copying it once and referring
+        // to it from every table model is consistent with the legacy asset layout.
+        String tableSide = "block/table_side";
+        registerCubeBottomTop(StencilTableRegistry.STENCIL_TABLE.get(), tableSide, "block/stencil_table_top", tableSide);
+        registerCubeBottomTop(PartBuilderRegistry.PART_BUILDER.get(), tableSide, "block/part_builder_top", tableSide);
+        registerCubeBottomTop(ToolStationRegistry.TOOL_STATION.get(), tableSide, "block/tool_station_top", tableSide);
+        registerCubeBottomTop(ToolStationRegistry.TOOL_FORGE.get(), tableSide, "block/tool_forge_top", tableSide);
     }
 
     /**
@@ -130,6 +129,51 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
      * SMTCON-45 AC; until then, in-game render falls back to the missing-texture sprite, but
      * the model side is complete and well-formed.
      */
+    /**
+     * Emit a {@code cube_bottom_top}-shaped blockstate + model for {@code block}, parented to
+     * the vanilla {@code minecraft:block/cube_bottom_top} template. The three texture paths are
+     * passed as plain strings ({@code "block/<name>"}) and resolved against the mod namespace —
+     * each one is pre-registered with the {@link ExistingFileHelper} so validation doesn't
+     * reject the model JSON before the texture PNGs land on the test classpath.
+     *
+     * <p>The block model's name is the block's registry path; the resulting JSON has the
+     * standard {@code textures: { side, top, bottom }} keys plus a {@code particle} entry
+     * defaulting to the side sprite (matches vanilla furnace/lectern/etc. shape).
+     */
+    private void registerCubeBottomTop(Block block, String sidePath, String topPath, String bottomPath) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation side = textureRef(blockId.getNamespace(), sidePath);
+        ResourceLocation top = textureRef(blockId.getNamespace(), topPath);
+        ResourceLocation bottom = textureRef(blockId.getNamespace(), bottomPath);
+        // Vanilla textures live in the minecraft namespace; mod-tree textures live in our own.
+        // Either way the path string carries the namespace already (e.g. "minecraft:block/oak_planks"
+        // or just "block/<name>" for sconstruct), so trackGenerated only fires for our namespace.
+        if (SConstruct.MOD_ID.equals(side.getNamespace())) {
+            models().existingFileHelper.trackGenerated(side, PackType.CLIENT_RESOURCES, ".png", "textures");
+        }
+        if (SConstruct.MOD_ID.equals(top.getNamespace())) {
+            models().existingFileHelper.trackGenerated(top, PackType.CLIENT_RESOURCES, ".png", "textures");
+        }
+        if (SConstruct.MOD_ID.equals(bottom.getNamespace())) {
+            models().existingFileHelper.trackGenerated(bottom, PackType.CLIENT_RESOURCES, ".png", "textures");
+        }
+        simpleBlock(block, models().cubeBottomTop(blockId.getPath(), side, bottom, top));
+    }
+
+    /**
+     * Parse a texture path that may or may not carry an explicit namespace prefix. Plain paths
+     * like {@code "block/table_side"} resolve to the supplied {@code defaultNamespace};
+     * fully-qualified paths like {@code "minecraft:block/oak_planks"} keep their declared
+     * namespace verbatim.
+     */
+    private static ResourceLocation textureRef(String defaultNamespace, String path) {
+        int colon = path.indexOf(':');
+        if (colon >= 0) {
+            return ResourceLocation.fromNamespaceAndPath(path.substring(0, colon), path.substring(colon + 1));
+        }
+        return ResourceLocation.fromNamespaceAndPath(defaultNamespace, path);
+    }
+
     private void registerCubeAll(Block block) {
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
