@@ -19,16 +19,21 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
@@ -384,6 +389,130 @@ class ToolHelperTest {
         verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
     }
 
+    // ----------------------------------------------------------------- repair (SMTCON-80)
+
+    @Test
+    void repairThrowsOffServerThread() {
+        ItemStack stack = nonEmptyStack();
+        ItemStack repairItem = nonEmptyStack();
+        MinecraftServer server = mock(MinecraftServer.class);
+        when(server.isSameThread()).thenReturn(false);
+        assertThrows(IllegalStateException.class, () -> ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE));
+    }
+
+    @Test
+    void repairRejectsNullArguments() {
+        ItemStack stack = nonEmptyStack();
+        ItemStack repairItem = nonEmptyStack();
+        MinecraftServer server = mock(MinecraftServer.class);
+        assertAll(() -> assertThrows(NullPointerException.class, () -> ToolHelper.repair(null, repairItem, server, ToolDefinition.PICKAXE)),
+                () -> assertThrows(NullPointerException.class, () -> ToolHelper.repair(stack, null, server, ToolDefinition.PICKAXE)),
+                () -> assertThrows(NullPointerException.class, () -> ToolHelper.repair(stack, repairItem, null, ToolDefinition.PICKAXE)),
+                () -> assertThrows(NullPointerException.class, () -> ToolHelper.repair(stack, repairItem, server, null)));
+    }
+
+    @Test
+    void repairIsNoOpForEmptyStacks() {
+        ItemStack emptyStack = mock(ItemStack.class);
+        when(emptyStack.isEmpty()).thenReturn(true);
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+        assertEquals(0, ToolHelper.repair(emptyStack, nonEmptyStack(), server, ToolDefinition.PICKAXE));
+    }
+
+    @Test
+    void repairIsNoOpWhenToolIsAlreadyAtFullDurability() {
+        // Damage 0 means nothing to repair — return 0 items consumed so the caller doesn't shrink
+        // the repair stack for a no-op interaction.
+        ItemStack stack = nonEmptyStack();
+        when(stack.getMaxDamage()).thenReturn(250);
+        when(stack.getDamageValue()).thenReturn(0);
+        ItemStack repairItem = nonEmptyStack();
+        MinecraftServer server = serverWithIronMaterial();
+        assertEquals(0, ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE));
+    }
+
+    @Test
+    void repairIsNoOpWhenMaterialNotInRegistry() {
+        // Head material id resolves to no Material entry — registry desync between server save
+        // and reload; bail out rather than NPE.
+        ItemStack stack = builtPickaxeStack(250, 100, IRON);
+        ItemStack repairItem = nonEmptyStack();
+        MinecraftServer server = serverOnServerThreadWithEmptyMaterials();
+        assertEquals(0, ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE));
+    }
+
+    @Test
+    void repairIsNoOpWhenRepairItemDoesNotMatchTag() {
+        // The supplied repair item is in a different tag than the head material's repair tag —
+        // wrong fuel for this material's repair binding.
+        ItemStack stack = builtPickaxeStack(250, 100, IRON);
+        ItemStack repairItem = nonEmptyStack();
+        when(repairItem.is(any(TagKey.class))).thenReturn(false);
+        MinecraftServer server = serverWithIronMaterial();
+        assertEquals(0, ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE));
+    }
+
+    @Test
+    void repairConsumesOneItemAndRestoresOneQuarterOfMaxDurability() {
+        // Legacy 1.12 parity: each item restores 25% of maxDurability. 250 × 0.25 = 62.5
+        // rounded to 63 — one consumed item against ~63 damage fully restores the tool, and
+        // the helper consumes only the single item needed (not the rest of the stack).
+        ItemStack stack = builtPickaxeStack(250, 63, IRON);
+        ItemStack repairItem = repairItemMatchingTag(4);
+        MinecraftServer server = serverWithIronMaterial();
+
+        int consumed = ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE);
+
+        assertEquals(1, consumed);
+        verify(stack).setDamageValue(0);
+        verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
+    }
+
+    @Test
+    void repairConsumesOnlyAsManyItemsAsNeededToFullyRestore() {
+        // Damage 70, repairPerItem = 63 — two items would over-repair (consume 126 > damage 70).
+        // The helper must cap consumption at the items-needed ceiling.
+        ItemStack stack = builtPickaxeStack(250, 70, IRON);
+        ItemStack repairItem = repairItemMatchingTag(4);
+        MinecraftServer server = serverWithIronMaterial();
+
+        int consumed = ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE);
+
+        assertEquals(2, consumed); // ceil(70 / 63) = 2
+        verify(stack).setDamageValue(0); // capped at full restoration
+        verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
+    }
+
+    @Test
+    void repairUnbreaksToolWhenAnyDamageBudgetIsRestored() {
+        // Single repair item against a fully-broken tool restores the broken bit even if the
+        // tool isn't fully repaired — legacy parity, lets the player swing again.
+        ItemStack stack = builtPickaxeStack(250, 250, IRON);
+        ItemStack repairItem = repairItemMatchingTag(1);
+        MinecraftServer server = serverWithIronMaterial();
+
+        int consumed = ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE);
+
+        assertEquals(1, consumed);
+        verify(stack).setDamageValue(187); // 250 - 63
+        verify(stack).set(eq(BROKEN), same(ToolBroken.intact()));
+    }
+
+    @Test
+    void repairCapsConsumptionAtAvailableStackSize() {
+        // 200 damage, repairPerItem = 63 → 4 items would fully repair, but the stack only has 1.
+        // The helper must consume 1 and restore proportionally rather than mutating beyond the
+        // stack's available count.
+        ItemStack stack = builtPickaxeStack(250, 200, IRON);
+        ItemStack repairItem = repairItemMatchingTag(1);
+        MinecraftServer server = serverWithIronMaterial();
+
+        int consumed = ToolHelper.repair(stack, repairItem, server, ToolDefinition.PICKAXE);
+
+        assertEquals(1, consumed);
+        verify(stack).setDamageValue(137); // 200 - 63
+    }
+
     /**
      * Server mock pre-wired so {@link MinecraftServer#isSameThread} returns {@code true} and the
      * material registry lookup returns an empty {@link Optional} for every id — drives the
@@ -409,5 +538,59 @@ class ToolHelperTest {
         ItemStack stack = mock(ItemStack.class);
         when(stack.isEmpty()).thenReturn(false);
         return stack;
+    }
+
+    /**
+     * A non-empty stack stubbed to look like a built {@link slimeknights.sconstruct.port1211.tools.ToolDefinition#PICKAXE}
+     * with the supplied head material at slot 1 ({@link slimeknights.sconstruct.port1211.tools.PartType#PICKHEAD}).
+     * The materials list mirrors the pickaxe's positional part order: handle / pickhead /
+     * binding — wood for the non-head slots, the supplied id for the head.
+     */
+    private static ItemStack builtPickaxeStack(int maxDurability, int currentDamage, ResourceLocation headMaterial) {
+        ItemStack stack = nonEmptyStack();
+        when(stack.getMaxDamage()).thenReturn(maxDurability);
+        when(stack.getDamageValue()).thenReturn(currentDamage);
+        when(stack.get(eq(MATERIALS))).thenReturn(new ToolMaterials(List.of(WOOD, headMaterial, WOOD)));
+        return stack;
+    }
+
+    /**
+     * A repair-item stack that matches every {@link TagKey} membership probe. Lets repair tests
+     * pin the "tag matched" branch without standing up a real ItemTags registry.
+     */
+    private static ItemStack repairItemMatchingTag(int count) {
+        ItemStack repairItem = mock(ItemStack.class);
+        when(repairItem.isEmpty()).thenReturn(false);
+        when(repairItem.getCount()).thenReturn(count);
+        when(repairItem.is(any(TagKey.class))).thenReturn(true);
+        return repairItem;
+    }
+
+    /**
+     * Server mock pre-wired with a {@link slimeknights.sconstruct.port1211.tools.material.Material}
+     * keyed at {@link #IRON}. The material's repair tag is non-empty; the test seam
+     * {@link #repairItemMatchingTag} returns {@code true} for every tag probe so the supplied
+     * repair item resolves as a match.
+     */
+    @SuppressWarnings("unchecked")
+    private static MinecraftServer serverWithIronMaterial() {
+        MinecraftServer server = mock(MinecraftServer.class);
+        when(server.isSameThread()).thenReturn(true);
+        RegistryAccess.Frozen registryAccess = mock(RegistryAccess.Frozen.class);
+        HolderLookup.RegistryLookup<Material> lookup = mock(HolderLookup.RegistryLookup.class);
+        when(server.registryAccess()).thenReturn(registryAccess);
+        when(registryAccess.lookupOrThrow(eq(Material.REGISTRY_KEY))).thenReturn(lookup);
+
+        // Materials registry holds one entry — iron — whose repair tag is the iron-ingot tag.
+        // The actual TagKey value is irrelevant because repairItemMatchingTag's mock answers
+        // true for any TagKey probe; we just need the Optional to be non-empty so the helper
+        // doesn't short-circuit on a missing tag.
+        TagKey<Item> ironRepairTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ingots/iron"));
+        Material iron = new Material(IRON, 2, Optional.of(ironRepairTag), Map.of(), List.of(), 0xFFFFFFFF);
+        @SuppressWarnings("rawtypes")
+        Holder.Reference holder = mock(Holder.Reference.class);
+        when(holder.value()).thenReturn(iron);
+        when(lookup.get(any(ResourceKey.class))).thenReturn(Optional.of(holder));
+        return server;
     }
 }
