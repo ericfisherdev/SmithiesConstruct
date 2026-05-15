@@ -53,12 +53,17 @@ public class AoeToolCore extends ToolCore {
      */
     @Override
     public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
+        // Cache the struck face BEFORE super.mineBlock so the ray-trace still hits the centre
+        // block. Vanilla clears the broken block during super.mineBlock, so a post-call retrace
+        // would land in air on most swings and the AOE plane would silently drift to the gaze
+        // fallback for floor / wall breaks.
+        Direction hitFace = miningEntity instanceof Player aimingPlayer ? resolveHitFace(aimingPlayer, pos) : Direction.UP;
         boolean handled = super.mineBlock(stack, level, state, pos, miningEntity);
         if (handled && miningEntity instanceof Player player) {
             // {@code state} is the pre-break BlockState — vanilla copies it before clearing the
             // block, so threading it through gates the TREE pattern on whether the centre was
             // actually a log and feeds an accurate isCorrectToolForDrops baseline elsewhere.
-            AoeHelper.aoeMine(stack, player, pos, state, resolveHitFace(player, pos), aoePattern);
+            AoeHelper.aoeMine(stack, player, pos, state, hitFace, aoePattern);
         }
         return handled;
     }

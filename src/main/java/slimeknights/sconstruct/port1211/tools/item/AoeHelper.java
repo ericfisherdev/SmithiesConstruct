@@ -20,6 +20,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.BlockEvent;
 
 import slimeknights.sconstruct.port1211.tools.ToolHelper;
 
@@ -116,6 +118,14 @@ public final class AoeHelper {
             return false;
         }
         if (!stack.isCorrectToolForDrops(state)) {
+            return false;
+        }
+        // Fire the Forge BlockEvent.BreakEvent so protection plugins / claim mods can veto an
+        // AOE break the same way they veto a single-block break. The event runs against each
+        // AOE candidate (not just the centre) so a 3x3 hammer swing that clips a protected
+        // claim only breaks the unprotected blocks.
+        BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(level, pos, state, player);
+        if (NeoForge.EVENT_BUS.post(breakEvent).isCanceled()) {
             return false;
         }
         Block block = state.getBlock();
