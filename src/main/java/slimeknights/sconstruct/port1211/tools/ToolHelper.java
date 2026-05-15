@@ -216,7 +216,14 @@ public final class ToolHelper {
 
         stack.set(TinkerDataComponents.TOOL_STATS.get(), computed);
         stack.set(DataComponents.MAX_DAMAGE, computed.maxDurability());
-        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, AttributeBuilder.build(computed));
+        // Subclass hook: melee variants (longsword, rapier) layer reach / attack-speed
+        // boosts on top of the stats-driven baseline so per-class behaviour participates in
+        // the same rebuild path as the generic stats.
+        net.minecraft.world.item.component.ItemAttributeModifiers baseline = AttributeBuilder.build(computed);
+        net.minecraft.world.item.component.ItemAttributeModifiers augmented = stack.getItem() instanceof slimeknights.sconstruct.port1211.tools.item.ToolCore tool
+                ? tool.augmentAttributes(baseline, computed)
+                : baseline;
+        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, augmented);
 
         // Damage value is held in vanilla DataComponents.DAMAGE (not our component map). A
         // stat recompute that lowers maxDurability under the current damage would otherwise
