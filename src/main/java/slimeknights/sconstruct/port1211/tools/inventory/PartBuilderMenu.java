@@ -237,7 +237,11 @@ public final class PartBuilderMenu extends AbstractContainerMenu {
         @Override
         public void onTake(Player player, ItemStack stack) {
             super.onTake(player, stack);
-            if (blockEntity != null) {
+            // Server-only mutation: consumeInputs() decrements stacks and re-runs the registry
+            // lookup that powers refreshOutput(), both of which are authoritative server state.
+            // The client menu carries a cached BE reference from the open-screen sync but must
+            // not mutate it — wait for the server to broadcast the slot updates instead.
+            if (blockEntity != null && !player.level().isClientSide()) {
                 blockEntity.consumeInputs();
             }
         }
