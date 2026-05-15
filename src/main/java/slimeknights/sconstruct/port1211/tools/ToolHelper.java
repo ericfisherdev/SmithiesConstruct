@@ -102,10 +102,10 @@ public final class ToolHelper {
      * mutation on the caller's list can't leak into the stack's component state.
      */
     public static void setMaterials(ItemStack stack, List<ResourceLocation> parts) {
-        Objects.requireNonNull(parts, "parts");
         if (stack.isEmpty()) {
             return;
         }
+        Objects.requireNonNull(parts, "parts");
         stack.set(TinkerDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(parts));
         rebuildStats(stack);
     }
@@ -123,12 +123,12 @@ public final class ToolHelper {
      * modifier.
      */
     public static void addModifier(ItemStack stack, ResourceLocation modId, int level) {
+        if (stack.isEmpty()) {
+            return;
+        }
         Objects.requireNonNull(modId, "modId");
         if (level < 0) {
             throw new IllegalArgumentException("modifier level must be non-negative (got " + level + " for " + modId + ")");
-        }
-        if (stack.isEmpty()) {
-            return;
         }
         ToolModifiers current = stack.getOrDefault(TinkerDataComponents.TOOL_MODIFIERS.get(), ToolModifiers.empty());
         stack.set(TinkerDataComponents.TOOL_MODIFIERS.get(), current.with(modId, level));
