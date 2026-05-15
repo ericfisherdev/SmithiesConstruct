@@ -2,12 +2,14 @@ package slimeknights.sconstruct.port1211;
 
 import java.util.List;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -22,6 +24,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
+import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
@@ -77,6 +80,15 @@ public final class SConstruct {
         // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary
         // home as the ToolParts wiring above — moves into TinkerToolsPulse when that lands.
         MaterialRegistry.register(modBus, NeoForge.EVENT_BUS);
+
+        // Client-only: ItemColors handler that tints MaterialItem part icons by the material's
+        // packed ARGB colour, plus a ClientPlayerNetworkEvent.LoggingIn refresh that rebuilds the
+        // MaterialClientCache from the freshly-synced datapack registry (SMTCON-72). Guarded by
+        // FMLEnvironment.dist so the client-only class never resolves on a dedicated server —
+        // the JVM does not load types inside an unreached branch.
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ToolColorHandlers.register(modBus);
+        }
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
