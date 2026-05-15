@@ -116,6 +116,9 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("container.sconstruct.tool_station", "Tool Station");
         add("block.sconstruct.tool_forge", "Tool Forge");
         add("container.sconstruct.tool_forge", "Tool Forge");
+        // SMTCON-94 action buttons rendered in ToolStationScreen.
+        add("button.sconstruct.tool_station.build", "Build");
+        add("button.sconstruct.tool_station.modify", "Modify");
 
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
