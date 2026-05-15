@@ -50,10 +50,14 @@ class TinkerModifierBootstrapTest {
         Modifier sharpness = registered.get(ResourceLocation.fromNamespaceAndPath("tconstruct", "sharpness"));
         net.minecraft.network.chat.Component description = sharpness.description(3);
         assertNotNull(description);
-        // Description is a TranslatableContents-backed Component — verify by checking the
-        // serialised key and args via the contents() accessor.
-        assertTrue(description.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents tc && "modifier.tconstruct.sharpness".equals(tc.getKey()),
-                "tooltip must use the modifier.<namespace>.<path> translation key");
+        // Description is a TranslatableContents-backed Component — verify the key, then the
+        // args carry the level so the lang entry "Sharpness %s" formats correctly.
+        assertTrue(description.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents, "description must surface as a TranslatableContents Component");
+        net.minecraft.network.chat.contents.TranslatableContents tc = (net.minecraft.network.chat.contents.TranslatableContents) description.getContents();
+        assertEquals("modifier.tconstruct.sharpness", tc.getKey(), "tooltip must use the modifier.<namespace>.<path> translation key");
+        Object[] args = tc.getArgs();
+        assertEquals(1, args.length, "translation must carry exactly the level argument");
+        assertEquals(3, args[0], "level value must be passed through to the translation args");
     }
 
     /**

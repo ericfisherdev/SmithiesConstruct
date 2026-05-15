@@ -27,10 +27,14 @@ public final class TinkerModifierBootstrap {
     /** Bootstrap callback registered against {@link Modifier#REGISTRY_KEY} in the datagen
      *  wiring. */
     public static void bootstrap(BootstrapContext<Modifier> context) {
-        // Sharpness: +1.25 attack damage per level, cap 5, 1 slot cost. The numeric values are
-        // mirrored as constants in {@link slimeknights.sconstruct.port1211.tools.StatsBuilder}
-        // so a future shift in the per-level value lands in both the JSON-side metadata and
-        // the runtime stat math at once.
+        // Sharpness: +1.25 attack damage per level, cap 5, 1 slot cost. Only the per-level
+        // damage value is mirrored runtime-side — {@code StatsBuilder.SHARPNESS_DAMAGE_PER_LEVEL}
+        // holds the +1.25 constant the {@code compute} method multiplies against the stack's
+        // sharpness level. The {@code maxLevel} and {@code slotCost} arguments to
+        // {@link SimpleStatBoostType.Instance} below are the JSON-side metadata only — they
+        // are not mirrored as constants in {@code StatsBuilder} (the cap is enforced at
+        // application time by the tool-station UI; the slot cost feeds the {@code freeModifiers}
+        // math through the general {@code Σ levels} aggregation).
         context.register(key("sharpness"), new SimpleStatBoostType.Instance(rl("sharpness"), 5, 1));
     }
 
