@@ -223,6 +223,20 @@ class ToolHelperTest {
     }
 
     @Test
+    void mutatorsSwallowInvalidInputsOnEmptyStacks() {
+        // Empty-stack short-circuit must fire ahead of argument validation — a future guard
+        // reorder would otherwise crack the "no-op on empty stacks" contract for the worst-case
+        // calling pattern (uninitialised drops in inventory pipelines, where the caller hasn't
+        // verified its arguments yet).
+        ItemStack stack = mock(ItemStack.class);
+        when(stack.isEmpty()).thenReturn(true);
+        ToolHelper.setMaterials(stack, null);
+        ToolHelper.addModifier(stack, null, -1);
+        ToolHelper.addModifier(stack, SHARPNESS, -1);
+        verify(stack, never()).set(any(DataComponentType.class), any());
+    }
+
+    @Test
     void mutatorsAreNoOpsOnEmptyStacks() {
         ItemStack stack = mock(ItemStack.class);
         when(stack.isEmpty()).thenReturn(true);
