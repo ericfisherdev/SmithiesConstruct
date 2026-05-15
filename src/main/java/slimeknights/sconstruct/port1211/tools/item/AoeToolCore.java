@@ -1,12 +1,17 @@
 package slimeknights.sconstruct.port1211.tools.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 
@@ -50,8 +55,27 @@ public class AoeToolCore extends ToolCore {
     public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
         boolean handled = super.mineBlock(stack, level, state, pos, miningEntity);
         if (handled && miningEntity instanceof Player player) {
-            AoeHelper.aoeMine(stack, player, pos, aoePattern);
+            // {@code state} is the pre-break BlockState — vanilla copies it before clearing the
+            // block, so threading it through gates the TREE pattern on whether the centre was
+            // actually a log and feeds an accurate isCorrectToolForDrops baseline elsewhere.
+            AoeHelper.aoeMine(stack, player, pos, state, resolveHitFace(player, pos), aoePattern);
         }
         return handled;
+    }
+
+    /**
+     * Resolve the {@link Direction} the player struck via a server-side ray from the player's
+     * eye to the broken block. Falls back to the player's view direction if the trace doesn't
+     * resolve to a block face (a player who has already moved off the dig face by the time
+     * mineBlock fires) — keeps the AOE plane oriented sensibly rather than defaulting to UP.
+     */
+    private static Direction resolveHitFace(Player player, BlockPos broken) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 reach = eye.add(player.getLookAngle().scale(player.blockInteractionRange() + 1.0D));
+        BlockHitResult hit = player.level().clip(new ClipContext(eye, reach, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+        if (hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(broken)) {
+            return hit.getDirection();
+        }
+        return Direction.getNearest(player.getLookAngle().x, player.getLookAngle().y, player.getLookAngle().z).getOpposite();
     }
 }

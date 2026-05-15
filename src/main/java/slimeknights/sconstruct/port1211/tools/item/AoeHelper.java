@@ -62,12 +62,12 @@ public final class AoeHelper {
      * position so the player doesn't have to chase the AOE drops across the dig face.
      *
      * @return the number of blocks broken (excluding the centre, which vanilla's {@code mineBlock}
-     *         hook has already handled by the time this helper fires). Durability deduction is
-     *         the caller's responsibility — returned so the caller can {@code hurtAndBreak}
-     *         proportional to the AOE haul.
+     *         hook has already handled by the time this helper fires). Durability is deducted
+     *         internally via {@link ItemStack#hurtAndBreak} — one point per additional block
+     *         broken — so callers don't have to thread the haul count back through their own
+     *         damage path.
      */
-    @SuppressWarnings("PMD.CloseResource")
-    public static int aoeMine(ItemStack stack, Player player, BlockPos centre, AoePattern pattern) {
+    public static int aoeMine(ItemStack stack, Player player, BlockPos centre, BlockState preBreakState, Direction hitFace, AoePattern pattern) {
         if (ToolHelper.isBroken(stack)) {
             return 0;
         }
@@ -75,7 +75,16 @@ public final class AoeHelper {
         if (rawLevel.isClientSide() || !(rawLevel instanceof ServerLevel level)) {
             return 0;
         }
-        List<BlockPos> targets = pattern == AoePattern.TREE ? walkConnectedLogs(level, centre) : pattern.positions(centre, lookFace(player));
+        // TREE walk only fires when the centre itself was a log — otherwise the BFS would
+        // wastefully explore the 26-neighbourhood of a non-log block before bailing out, and a
+        // canopy mined sideways shouldn't sympathy-fell a stray neighbouring trunk.
+        List<BlockPos> targets;
+        if (pattern == AoePattern.TREE) {
+            targets = preBreakState.is(BlockTags.LOGS) ? walkConnectedLogs(level, centre) : List.of();
+        }
+        else {
+            targets = pattern.positions(centre, hitFace);
+        }
         int broken = 0;
         for (BlockPos pos : targets) {
             if (pos.equals(centre)) {
@@ -132,17 +141,6 @@ public final class AoeHelper {
             serverPlayer.awardStat(net.minecraft.stats.Stats.BLOCK_MINED.get(block));
         }
         return true;
-    }
-
-    /**
-     * Approximate "face the player struck" lookup for AOE pattern orientation. The vanilla
-     * {@code mineBlock} callback doesn't pass the {@link Direction} the player hit, so derive it
-     * from the player's view vector — the dominant axis of the view direction picks the face
-     * that's closest to perpendicular. Matches the legacy 1.12 hammer behaviour of expanding
-     * 3x3 perpendicular to gaze.
-     */
-    private static Direction lookFace(Player player) {
-        return Direction.getNearest(player.getLookAngle().x, player.getLookAngle().y, player.getLookAngle().z);
     }
 
     /**
