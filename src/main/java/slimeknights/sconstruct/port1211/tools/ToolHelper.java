@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
@@ -243,5 +247,96 @@ public final class ToolHelper {
      */
     private static void rebuildStats(ItemStack stack) {
         // TODO(SMTCON-78): replace with rebuildStats(stack, server, def) once ToolCore lands.
+    }
+
+    /** Repair restored per consumed item, as a fraction of {@code maxDurability}. Legacy 1.12
+     *  parity: {@code TinkerToolEvent.OnToolRepair} also applied a quarter of max durability
+     *  per item, so a stack of 4 fully repairs a tool from zero. */
+    public static final float REPAIR_FRACTION_PER_ITEM = 0.25F;
+
+    /**
+     * Repair a tool stack by consuming items from a repair-material stack. Identifies the
+     * tool's head material (the first part slot whose {@link PartType#isHead} returns true),
+     * resolves its {@code Material} via the server-side {@link Material#REGISTRY_KEY} datapack
+     * registry, and verifies the supplied {@code repairItem} sits in that material's
+     * {@link Material#repairTag}. On a match, each consumed item restores
+     * {@link #REPAIR_FRACTION_PER_ITEM} (25%) of {@code maxDurability} — the legacy 1.12
+     * parity ratio — capped at the {@code repairItem} stack size and at fully repaired
+     * (damage clamped to zero). The {@link TinkerDataComponents#TOOL_BROKEN} flag is cleared
+     * whenever damage drops below {@code maxDurability}.
+     *
+     * <p>Returns the number of items consumed — callers (smeltery / tool-station UI) should
+     * subsequently shrink the supplied {@code repairItem} stack by that amount.
+     *
+     * <p>Server-only: the materials registry is server-authoritative and the cached broken
+     * snapshot is network-synchronised to clients. The {@link MinecraftServer#isSameThread}
+     * guard surfaces off-thread misuse at the call site.
+     *
+     * @return items consumed; {@code 0} when no repair occurred (empty stack, no head slot,
+     *     missing material, mismatched repair item, or tool already at full durability).
+     * @throws IllegalStateException if invoked off the server thread.
+     */
+    public static int repair(ItemStack stack, ItemStack repairItem, MinecraftServer server, ToolDefinition definition) {
+        Objects.requireNonNull(stack, "stack");
+        Objects.requireNonNull(repairItem, "repairItem");
+        Objects.requireNonNull(server, "server");
+        Objects.requireNonNull(definition, "definition");
+        if (!server.isSameThread()) {
+            throw new IllegalStateException("ToolHelper.repair must be invoked on the server thread");
+        }
+        if (stack.isEmpty() || repairItem.isEmpty()) {
+            return 0;
+        }
+        int maxDurability = stack.getMaxDamage();
+        int currentDamage = stack.getDamageValue();
+        if (maxDurability <= 0 || currentDamage <= 0) {
+            return 0;
+        }
+
+        ResourceLocation headMaterialId = findHeadMaterialId(stack, definition);
+        if (headMaterialId == null) {
+            return 0;
+        }
+        HolderLookup.RegistryLookup<Material> lookup = server.registryAccess().lookupOrThrow(Material.REGISTRY_KEY);
+        Material material = lookup.get(ResourceKey.create(Material.REGISTRY_KEY, headMaterialId)).map(Holder::value).orElse(null);
+        if (material == null) {
+            return 0;
+        }
+        TagKey<Item> repairTag = material.repairTag().orElse(null);
+        if (repairTag == null || !repairItem.is(repairTag)) {
+            return 0;
+        }
+
+        int repairPerItem = Math.max(1, Math.round(maxDurability * REPAIR_FRACTION_PER_ITEM));
+        int itemsNeededToFullyRepair = (currentDamage + repairPerItem - 1) / repairPerItem;
+        int itemsConsumed = Math.min(itemsNeededToFullyRepair, repairItem.getCount());
+        int repaired = Math.min(currentDamage, itemsConsumed * repairPerItem);
+        int newDamage = currentDamage - repaired;
+
+        stack.setDamageValue(newDamage);
+        if (newDamage < maxDurability) {
+            // Repair always clears the broken bit when the damage budget lifts above zero —
+            // legacy 1.12 parity: even a single repair item lets the player swing the tool
+            // again rather than requiring full restoration.
+            stack.set(TinkerDataComponents.TOOL_BROKEN.get(), ToolBroken.intact());
+        }
+        return itemsConsumed;
+    }
+
+    /**
+     * Walk the tool's {@link ToolMaterials} positionally and return the material id of the
+     * first slot whose {@link PartType} is a head type. Tools with no head slot (arrows,
+     * mattock — though mattock has an axe-head) return {@code null}; in that case repair has
+     * no canonical material to bind to and the caller skips the repair tick.
+     */
+    @Nullable
+    private static ResourceLocation findHeadMaterialId(ItemStack stack, ToolDefinition definition) {
+        List<ResourceLocation> ids = getMaterials(stack);
+        for (int i = 0; i < definition.getPartCount() && i < ids.size(); i++) {
+            if (definition.getPartSlot(i).isHead()) {
+                return ids.get(i);
+            }
+        }
+        return null;
     }
 }

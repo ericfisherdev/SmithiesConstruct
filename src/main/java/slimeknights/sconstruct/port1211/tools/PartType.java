@@ -74,6 +74,24 @@ public enum PartType implements StringRepresentable {
     }
 
     /**
+     * Whether this part slot is a "head" — the durability / harvest-level driver in the legacy
+     * stat math, and the only slot type whose material can be repaired at the smeltery.
+     *
+     * <p>Used by {@link slimeknights.sconstruct.port1211.tools.ToolHelper#repair} to pick which
+     * material id off the stack's {@code ToolMaterials} feeds the repair-tag lookup. Tools with
+     * multiple head slots (Hammer = 1 hammer-head + 2 large-plates) repair against the first
+     * head slot in {@link ToolDefinition#parts} positional order; the alternate plates count as
+     * {@link slimeknights.sconstruct.port1211.tools.material.ExtraStats} extras rather than
+     * head-class drivers and don't carry a repair binding.
+     */
+    public boolean isHead() {
+        return switch (this) {
+        case PICKHEAD, AXEHEAD, SHOVELHEAD, SWORDBLADE, BROADAXEHEAD, BROADBLADE, HAMMERHEAD -> true;
+        default -> false;
+        };
+    }
+
+    /**
      * Lookup helper used by {@link #STREAM_CODEC}. Throws {@link IllegalArgumentException} on an
      * unknown id rather than returning null — a corrupt stream payload is a protocol error, not
      * a value the caller should be expected to handle.
