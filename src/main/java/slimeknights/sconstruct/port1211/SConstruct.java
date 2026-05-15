@@ -27,10 +27,12 @@ import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
+import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
 import slimeknights.sconstruct.port1211.tools.client.PartBuilderClient;
 import slimeknights.sconstruct.port1211.tools.client.PatternChestClient;
 import slimeknights.sconstruct.port1211.tools.client.StencilTableClient;
 import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
+import slimeknights.sconstruct.port1211.tools.client.ToolStationClient;
 import slimeknights.sconstruct.port1211.tools.item.ToolItems;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
@@ -111,6 +113,11 @@ public final class SConstruct {
         PartBuilderRegistry.init();
         PartBuilderRegistry.registerCreativeTabContents(modBus);
 
+        // SMTCON-93: tool station + tool forge. Same temporary-home rationale as
+        // PartBuilderRegistry above — moves into TinkerToolsPulse when that pulse lands.
+        ToolStationRegistry.init();
+        ToolStationRegistry.registerCreativeTabContents(modBus);
+
         // Register the sconstruct:material datapack registry on DataPackRegistryEvent.NewRegistry
         // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary
         // home as the ToolParts wiring above — moves into TinkerToolsPulse when that lands.
@@ -141,6 +148,10 @@ public final class SConstruct {
             // RegisterMenuScreensEvent so the client opens PartBuilderScreen when the server
             // sends a ClientboundOpenScreenPacket for the builder's menu.
             PartBuilderClient.register(modBus);
+            // SMTCON-93: pair the tool station + tool forge menu types with their shared
+            // screen on RegisterMenuScreensEvent so the client opens ToolStationScreen when
+            // the server sends a ClientboundOpenScreenPacket for either station's menu.
+            ToolStationClient.register(modBus);
         }
 
         modBus.addListener(this::onCommonSetup);

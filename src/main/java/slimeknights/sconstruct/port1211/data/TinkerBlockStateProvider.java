@@ -15,6 +15,7 @@ import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
+import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 import slimeknights.sconstruct.port1211.world.block.SlimeSaplingBlock;
@@ -85,6 +86,13 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         // SMTCON-92: part builder renders as a cube_all referencing sconstruct:block/part_builder.
         // Texture PNG is a follow-up per the ticket plan.
         registerCubeAll(PartBuilderRegistry.PART_BUILDER.get());
+
+        // SMTCON-93: tool station + tool forge render as cube_all referencing
+        // sconstruct:block/tool_station and sconstruct:block/tool_forge respectively. Texture
+        // PNGs are a follow-up per the ticket plan; the JSON model side is well-formed so
+        // vanilla won't log a missing-model warning.
+        registerCubeAll(ToolStationRegistry.TOOL_STATION.get());
+        registerCubeAll(ToolStationRegistry.TOOL_FORGE.get());
     }
 
     /**

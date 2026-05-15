@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.Block;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
+import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
 
 /**
  * Block loot-table sub-provider for the tools pulse. SMTCON-90 introduces the first
@@ -48,6 +49,7 @@ public final class ToolBlockLoot extends BlockLootSubProvider {
      * list.
      */
     private List<Block> ownedBlocks() {
-        return List.of(PatternChestRegistry.PATTERN_CHEST.get(), StencilTableRegistry.STENCIL_TABLE.get(), PartBuilderRegistry.PART_BUILDER.get());
+        return List.of(PatternChestRegistry.PATTERN_CHEST.get(), StencilTableRegistry.STENCIL_TABLE.get(), PartBuilderRegistry.PART_BUILDER.get(), ToolStationRegistry.TOOL_STATION.get(),
+                ToolStationRegistry.TOOL_FORGE.get());
     }
 }

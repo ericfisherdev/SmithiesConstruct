@@ -174,6 +174,21 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void toolStationAndForgeLangKeysRegistered() {
+        // SMTCON-93 adds four lang keys — block-name + container-title for each of the two
+        // stations. Pinning both pairs here so a typo in either key (which would render the
+        // GUI title or placed-block tooltip as the raw key in-game) fails fast.
+        JsonObject lang = lang();
+        assertAll(() -> assertTrue(lang.has("block.sconstruct.tool_station"), "block tool_station key missing"),
+                () -> assertEquals("Tool Station", lang.get("block.sconstruct.tool_station").getAsString()),
+                () -> assertTrue(lang.has("container.sconstruct.tool_station"), "container tool_station key missing"),
+                () -> assertEquals("Tool Station", lang.get("container.sconstruct.tool_station").getAsString()),
+                () -> assertTrue(lang.has("block.sconstruct.tool_forge"), "block tool_forge key missing"), () -> assertEquals("Tool Forge", lang.get("block.sconstruct.tool_forge").getAsString()),
+                () -> assertTrue(lang.has("container.sconstruct.tool_forge"), "container tool_forge key missing"),
+                () -> assertEquals("Tool Forge", lang.get("container.sconstruct.tool_forge").getAsString()));
+    }
+
+    @Test
     void totalEntryCountMatchesExpectedCoverage() {
         // 1 tab + 13 metal blocks + 3 decoratives + 15 ingots + 15 nuggets + 4 slimeballs
         // + bacon + mudbrick + blood bucket + blood fluid + 4 slime fluids × 3 entries each
@@ -186,8 +201,9 @@ class TinkerLanguageProviderTest {
         // (gilded, reinforced, haste, luck) + 1 SMTCON-89 tool tooltip key + 2 SMTCON-90
         // pattern chest keys (block + container title) + 4 SMTCON-91 stencil table keys
         // (block + container title + blank_pattern item + typed pattern name format)
-        // + 2 SMTCON-92 part builder keys (block + container title) = 126.
-        assertEquals(126, lang().entrySet().size());
+        // + 2 SMTCON-92 part builder keys (block + container title) + 4 SMTCON-93 tool
+        // station / tool forge keys (2 blocks × {block name + container title}) = 130.
+        assertEquals(130, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

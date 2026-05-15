@@ -137,4 +137,26 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
      * Ammunition rather than a held tool — no mining tag, no ability set.
      */
     public static final ToolDefinition ARROW = new ToolDefinition("arrow", List.of(PartType.ARROWSHAFT, PartType.ARROW_HEAD, PartType.FLETCHING), null, Set.of(), DEFAULT_MODIFIER_SLOTS);
+
+    /**
+     * Basic tool definitions buildable at the Tool Station (SMTCON-93) — three-part tools that
+     * the legacy 1.12 Tool Station supports. Iteration surface for
+     * {@code ToolStationLogic#tryBuild} when called from the base
+     * {@code ToolStationBlockEntity}; the Tool Forge widens this to {@link #ALL_ADVANCED} so
+     * hammer / lumberaxe / crossbow / arrow become buildable.
+     *
+     * <p>Note: arrow / shortbow / crossbow are ranged ammunition / weapons whose 1.12 line
+     * required the Tool Forge — they're listed in {@link #ALL_ADVANCED} alongside the heavy
+     * 4-part definitions. The Tool Station only handles the three "vanilla-equivalent"
+     * harvest / melee tools the {@link slimeknights.sconstruct.port1211.tools.item.ToolItems}
+     * registry currently exposes.
+     */
+    public static final List<ToolDefinition> ALL_BASIC = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD);
+
+    /**
+     * Advanced tool definitions buildable at the Tool Forge (SMTCON-93) — the {@link #ALL_BASIC}
+     * roster plus the heavy / ranged definitions whose legacy 1.12 line required the Tool Forge:
+     * hammer, lumberaxe, shortbow, crossbow, arrow.
+     */
+    public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, HAMMER, LUMBER_AXE, SHORTBOW, CROSSBOW, ARROW);
 }
