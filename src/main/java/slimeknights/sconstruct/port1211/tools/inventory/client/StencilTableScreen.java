@@ -11,7 +11,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.network.StencilTablePartPayload;
 import slimeknights.sconstruct.port1211.tools.block.entity.StencilTableBlockEntity;
 import slimeknights.sconstruct.port1211.tools.inventory.StencilTableMenu;
@@ -23,14 +22,18 @@ import slimeknights.sconstruct.port1211.tools.inventory.StencilTableMenu;
  * to the next. Each click dispatches a {@link StencilTablePartPayload} packet to the server,
  * which mutates the BE's cursor and re-stamps the output slot.
  *
- * <p>TODO(SMTCON-91 follow-up): the background PNG at {@link #BACKGROUND} does not yet exist
- * on disk. Vanilla falls back to the missing-texture sprite — the screen still opens and
- * interacts correctly; only the visual quality suffers until the artist drops in the PNG.
+ * <p>TODO(SMTCON-91 follow-up): the bespoke {@code sconstruct:textures/gui/container/
+ * stencil_table.png} PNG has not been authored yet. Until the artist drops it in, point
+ * {@link #BACKGROUND} at the vanilla generic 54-slot container sprite so the screen renders
+ * a real background rather than the magenta missing-texture sprite — both layouts are
+ * 176×166 with a left-aligned panel, so the inventory grid still falls under the slots.
  */
 public class StencilTableScreen extends AbstractContainerScreen<StencilTableMenu> {
 
-    /** Background sprite path. PNG asset is a follow-up per the ticket plan. */
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "textures/gui/container/stencil_table.png");
+    /** Background sprite path. Points at the vanilla generic 54-slot container until the
+     *  bespoke PNG lands per the ticket plan. Reference held so the SMTCON-91 follow-up
+     *  swap is a one-line edit. */
+    private static final ResourceLocation BACKGROUND = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
 
     /** Cycle button width — vanilla arrow-button width. */
     private static final int BUTTON_W = 14;

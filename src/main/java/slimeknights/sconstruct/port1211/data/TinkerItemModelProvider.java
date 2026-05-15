@@ -101,12 +101,12 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
 
         // SMTCON-91: stencil table inventory icon parents the cube_all block model.
         registerBlockItemFromBlockModel(StencilTableRegistry.STENCIL_TABLE);
-        // Blank pattern + typed pattern share one PatternItem class — both get the same flat
-        // item/generated sprite. The typed variant uses the same texture; tinting / overlay for
-        // the per-part typed look is a follow-up rendering task (the texture PNG itself is
-        // also a follow-up per the ticket plan).
+        // Blank pattern + typed pattern share one PatternItem class — point both inventory
+        // models at item/blank_pattern so only one PNG needs shipping. Typed-variant tinting /
+        // overlay for the per-part look is a follow-up rendering task (the texture PNG itself
+        // is also a follow-up per the ticket plan).
         registerSpriteItem(StencilTableRegistry.BLANK_PATTERN);
-        registerSpriteItem(StencilTableRegistry.PATTERN);
+        registerSpriteItemWithSharedTexture(StencilTableRegistry.PATTERN, StencilTableRegistry.BLANK_PATTERN);
     }
 
     /**
@@ -129,6 +129,20 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(itemId.getNamespace(), "item/" + itemId.getPath());
         existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
         basicItem(item);
+    }
+
+    /**
+     * Emit a flat item/generated model whose {@code layer0} points at a sibling item's texture
+     * rather than its own. Used for the typed-pattern variant so blank + typed both render off
+     * the single {@code item/blank_pattern.png} sprite (one PNG, one variant render path).
+     */
+    private void registerSpriteItemWithSharedTexture(DeferredItem<? extends Item> holder, DeferredItem<? extends Item> textureSource) {
+        Item item = holder.get();
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        ResourceLocation textureItemId = BuiltInRegistries.ITEM.getKey(textureSource.get());
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(textureItemId.getNamespace(), "item/" + textureItemId.getPath());
+        existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        singleTexture(itemId.getPath(), ResourceLocation.parse("item/generated"), "layer0", texture);
     }
 
     private void registerBlockItemFromBlockModel(DeferredBlock<? extends Block> blockHolder) {
