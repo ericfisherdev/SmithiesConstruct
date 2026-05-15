@@ -24,6 +24,8 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
+import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
+import slimeknights.sconstruct.port1211.tools.client.PatternChestClient;
 import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
 import slimeknights.sconstruct.port1211.tools.item.ToolItems;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
@@ -86,6 +88,14 @@ public final class SConstruct {
         ToolItems.init();
         ToolItems.registerCreativeTabContents(modBus);
 
+        // SMTCON-90: 32-slot pattern chest. Same temporary-home rationale as ToolItems above —
+        // moves into TinkerToolsPulse#register when that pulse lands. The init() call forces
+        // the block / item / BE / menu DeferredHolder field initialisers to run before the
+        // matching registry events fire; registerCreativeTabContents subscribes the listener
+        // that pushes the chest's BlockItem into SharedTabs.GENERAL.
+        PatternChestRegistry.init();
+        PatternChestRegistry.registerCreativeTabContents(modBus);
+
         // Register the sconstruct:material datapack registry on DataPackRegistryEvent.NewRegistry
         // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary
         // home as the ToolParts wiring above — moves into TinkerToolsPulse when that lands.
@@ -104,6 +114,10 @@ public final class SConstruct {
         // the JVM does not load types inside an unreached branch.
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ToolColorHandlers.register(modBus);
+            // SMTCON-90: pair the pattern chest menu type with its screen on
+            // RegisterMenuScreensEvent so the client opens PatternChestScreen when the server
+            // sends a ClientboundOpenScreenPacket for the chest's menu.
+            PatternChestClient.register(modBus);
         }
 
         modBus.addListener(this::onCommonSetup);

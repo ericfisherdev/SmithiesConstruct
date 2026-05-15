@@ -14,6 +14,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
+import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.WorldFluids;
@@ -92,6 +93,10 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // parented to the y-axis variant of its blockstate model so the side bark texture
         // shows on the four side faces.
         WorldBlocks.ALL_LOGS.forEach(this::registerBlockItemFromBlockModel);
+
+        // SMTCON-90 pattern chest: inventory icon parents the cube_all block model emitted
+        // by TinkerBlockStateProvider above.
+        registerBlockItemFromBlockModel(PatternChestRegistry.PATTERN_CHEST);
     }
 
     /**
