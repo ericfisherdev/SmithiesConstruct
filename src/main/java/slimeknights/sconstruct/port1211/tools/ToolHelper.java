@@ -218,9 +218,19 @@ public final class ToolHelper {
         // leave the tool past full damage — clamp so the broken-flag transition (driven by
         // damage == maxDurability) still triggers at the right moment.
         int currentDamage = stack.getDamageValue();
-        if (currentDamage > computed.maxDurability()) {
-            stack.setDamageValue(computed.maxDurability());
+        int clampedDamage = Math.min(currentDamage, computed.maxDurability());
+        if (clampedDamage != currentDamage) {
+            stack.setDamageValue(clampedDamage);
         }
+
+        // Re-evaluate the TOOL_BROKEN flag against the post-clamp damage / new maxDurability
+        // so the cached broken state matches the new ceiling: a downgrade that drops the
+        // ceiling to current damage marks the tool broken in the same tick; an upgrade that
+        // lifts the ceiling above current damage un-breaks a previously-broken tool. Without
+        // this resync the broken bit could lag the stat snapshot through a material swap and
+        // leave a UI / damage-handler that branches on isBroken reading stale state.
+        boolean shouldBeBroken = computed.maxDurability() > 0 && clampedDamage >= computed.maxDurability();
+        stack.set(TinkerDataComponents.TOOL_BROKEN.get(), shouldBeBroken ? ToolBroken.BROKEN : ToolBroken.intact());
     }
 
     /**
