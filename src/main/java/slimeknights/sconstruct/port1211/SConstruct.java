@@ -28,6 +28,7 @@ import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
 import slimeknights.sconstruct.port1211.tools.item.ToolItems;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
+import slimeknights.sconstruct.port1211.tools.modifier.ModifierRegistry;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
 /**
@@ -89,6 +90,12 @@ public final class SConstruct {
         // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary
         // home as the ToolParts wiring above — moves into TinkerToolsPulse when that lands.
         MaterialRegistry.register(modBus, NeoForge.EVENT_BUS);
+
+        // Parallel datapack registry for sconstruct:modifier (SMTCON-82). Same lifecycle pair
+        // as the materials registry — registered on DataPackRegistryEvent.NewRegistry, cached
+        // server-side on OnDatapackSyncEvent. Moves into TinkerToolsPulse with the rest when
+        // that pulse lands.
+        ModifierRegistry.register(modBus, NeoForge.EVENT_BUS);
 
         // Client-only: ItemColors handler that tints MaterialItem part icons by the material's
         // packed ARGB colour, plus a ClientPlayerNetworkEvent.LoggingIn refresh that rebuilds the
