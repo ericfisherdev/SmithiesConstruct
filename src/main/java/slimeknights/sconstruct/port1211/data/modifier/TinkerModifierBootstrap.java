@@ -70,6 +70,22 @@ public final class TinkerModifierBootstrap {
         context.register(key("bane_of_arthropods"), new SimpleStatBoostType.Instance(rl("bane_of_arthropods"), 5, 1));
         // Knockback: +1 per level (vanilla parity), cap 2, 1 slot.
         context.register(key("knockback"), new SimpleStatBoostType.Instance(rl("knockback"), 2, 1));
+
+        // SMTCON-87: effect-driven specialty modifier roster. Same metadata-only contract as
+        // SMTCON-86 — the per-modifier behaviour (fire-aspect set-on-fire, necrotic siphon,
+        // moss / auto-repair durability regen, mending XP absorb) is the follow-up integration
+        // on the SMTCON-83 hooks dispatcher. The JSON entries here let the tool-station UI
+        // surface each modifier and gate application against the cap and slot cost.
+        // Fiery: set target on fire 5s per level on attack, cap 5, 1 slot (legacy 1.12 parity).
+        context.register(key("fiery"), new SimpleStatBoostType.Instance(rl("fiery"), 5, 1));
+        // Necrotic: heal attacker on hit, chance scales with level, one-shot, 1 slot.
+        context.register(key("necrotic"), new SimpleStatBoostType.Instance(rl("necrotic"), 1, 1));
+        // Moss: passive durability regen tied to day cycle, one-shot, 1 slot.
+        context.register(key("moss"), new SimpleStatBoostType.Instance(rl("moss"), 1, 1));
+        // Mending: XP absorb repairs durability, one-shot, 1 slot.
+        context.register(key("mending"), new SimpleStatBoostType.Instance(rl("mending"), 1, 1));
+        // Auto-Repair: passive durability regen at idle, cap 5, 1 slot.
+        context.register(key("auto_repair"), new SimpleStatBoostType.Instance(rl("auto_repair"), 5, 1));
     }
 
     private static ResourceLocation rl(String path) {

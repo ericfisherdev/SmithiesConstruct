@@ -106,8 +106,9 @@ class TinkerLanguageProviderTest {
         // each (dirt, grass, leaves, sapling) + 4 slime logs + 4 stripped slime logs + 2 slime
         // mobs (blueslime + hugeslime) + 1 sharpness + 5 SMTCON-85 vanilla modifier labels
         // + 5 SMTCON-86 utility modifier labels (silktouch, beheading, smite,
-        // bane_of_arthropods, knockback) = 108.
-        assertEquals(108, lang().entrySet().size());
+        // bane_of_arthropods, knockback) + 5 SMTCON-87 specialty modifier labels (fiery,
+        // necrotic, moss, mending, auto_repair) = 113.
+        assertEquals(113, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
