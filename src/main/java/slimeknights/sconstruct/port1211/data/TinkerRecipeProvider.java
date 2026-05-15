@@ -10,7 +10,9 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -21,6 +23,10 @@ import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
+import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
+import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
+import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.block.SlimeColor;
 
@@ -76,6 +82,60 @@ public final class TinkerRecipeProvider extends RecipeProvider {
             Item slimeball = slimeballFor(color).get();
             addSlimeBlockConversions(recipeOutput, color.id(), slimeball, slimeBlock.asItem());
         }
+
+        // SMTCON-95: crafting recipes for the 5 tool-pulse station blocks. Each follows the
+        // same "self-describing ingredient" rule of thumb — the station's own pattern hints
+        // at how it's made, and the unlock criterion fires on the simplest precursor item the
+        // player would already have. Recipe ids are auto-derived from the result's registry
+        // path; collisions are impossible because each station has a unique block id.
+        addStationRecipes(recipeOutput);
+    }
+
+    /**
+     * Emit the 5 station crafting recipes. See in-line javadoc on each helper for the chosen
+     * shape and the reasoning behind it.
+     */
+    private void addStationRecipes(RecipeOutput output) {
+        Item blankPattern = StencilTableRegistry.BLANK_PATTERN.get();
+
+        // Pattern Chest = vanilla chest + 1 blank pattern (shapeless). The chest provides the
+        // 32-slot inventory shape; the pattern flags it as a "this stores patterns" container
+        // semantically. Shapeless because the order doesn't matter for a 2-ingredient combine.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, PatternChestRegistry.PATTERN_CHEST.get().asItem()).requires(Items.CHEST).requires(blankPattern)
+                .unlockedBy("has_blank_pattern", has(blankPattern)).save(output);
+
+        // Stencil Table = blank pattern on top of a plank table.
+        //   Row 0: blank_pattern in centre slot.
+        //   Row 1: three planks (any wood — drawn from the planks item tag).
+        // Unlocks on first blank-pattern pickup (which is itself crafted from sticks, so the
+        // player can reach it before owning any of the other stations).
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, StencilTableRegistry.STENCIL_TABLE.get().asItem()).pattern(" B ").pattern("PPP").define('B', blankPattern).define('P', ItemTags.PLANKS)
+                .unlockedBy("has_blank_pattern", has(blankPattern)).save(output);
+
+        // Part Builder = the second "wooden" station — built from blank patterns flanked by
+        // planks, on a plank base. The two patterns on the top row evoke the part-template
+        // workflow this station drives.
+        //   Row 0: pattern, plank, pattern.
+        //   Row 1: three planks.
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, PartBuilderRegistry.PART_BUILDER.get().asItem()).pattern("BPB").pattern("PPP").define('B', blankPattern).define('P', ItemTags.PLANKS)
+                .unlockedBy("has_blank_pattern", has(blankPattern)).save(output);
+
+        // Tool Station = "workbench for tools": blank pattern on top of a vanilla crafting
+        // table (shapeless). The crafting-table ingredient anchors the recipe at a point in
+        // progression every player has already reached.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, ToolStationRegistry.TOOL_STATION.get().asItem()).requires(Items.CRAFTING_TABLE).requires(blankPattern)
+                .unlockedBy("has_crafting_table", has(Items.CRAFTING_TABLE)).save(output);
+
+        // Tool Forge = upgrade of the tool station, reinforced with iron. Iron edges, station
+        // in centre, iron corners — pictures the legacy "forge" upgrade where the station
+        // gains an iron frame.
+        //   Row 0: iron, iron, iron.
+        //   Row 1: iron, tool_station, iron.
+        //   Row 2: iron, iron, iron.
+        // Unlock criterion fires on first iron ingot — the player will already have iron by
+        // the time they need the forge.
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ToolStationRegistry.TOOL_FORGE.get().asItem()).pattern("III").pattern("ISI").pattern("III").define('I', Items.IRON_INGOT)
+                .define('S', ToolStationRegistry.TOOL_STATION.get().asItem()).unlockedBy("has_iron_ingot", has(Items.IRON_INGOT)).save(output);
     }
 
     private static DeferredItem<Item> slimeballFor(SlimeColor color) {
