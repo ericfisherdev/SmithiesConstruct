@@ -25,7 +25,12 @@ public final class TinkerLootProvider extends LootTableProvider {
     public TinkerLootProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK),
-                        new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK), new LootTableProvider.SubProviderEntry(SlimeMobLoot::new, LootContextParamSets.ENTITY),
+                        new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK),
+                        // SMTCON-90: pattern chest drop-self loot table. Chest contents are
+                        // dropped by PatternChestBlock#onRemove via Containers.dropContents,
+                        // not by the loot table — keeping the responsibilities separate avoids
+                        // a double-drop on break.
+                        new LootTableProvider.SubProviderEntry(ToolBlockLoot::new, LootContextParamSets.BLOCK), new LootTableProvider.SubProviderEntry(SlimeMobLoot::new, LootContextParamSets.ENTITY),
                         new LootTableProvider.SubProviderEntry(SlimeIslandChestLoot::new, LootContextParamSets.CHEST)),
                 registries);
     }

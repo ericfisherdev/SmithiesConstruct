@@ -12,6 +12,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
+import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 import slimeknights.sconstruct.port1211.world.block.SlimeSaplingBlock;
@@ -69,6 +70,11 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         for (DeferredBlock<RotatedPillarBlock> holder : WorldBlocks.ALL_LOGS) {
             registerLog(holder.get());
         }
+
+        // SMTCON-90: pattern chest renders as a cube_all referencing sconstruct:block/pattern_chest.
+        // The texture PNG is a follow-up per the ticket plan; the model JSON is well-formed so
+        // vanilla won't log a missing-model warning.
+        registerCubeAll(PatternChestRegistry.PATTERN_CHEST.get());
     }
 
     /**

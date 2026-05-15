@@ -85,6 +85,14 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // walking up to the tool station. Substitution argument is the current count.
         add("tooltip.sconstruct.free_modifiers", "Free Modifier Slots: %s");
 
+        // SMTCON-90 pattern chest. Two keys: the block name (shown on the placed-block tooltip
+        // and in the inventory) and the container title (shown on the GUI header bar). Both
+        // are written as raw keys because PatternChestRegistry registers under the BLOCKS
+        // DeferredRegister and there's no Block overload that auto-derives the matching
+        // container title key — the BE's getDisplayName resolves the second one.
+        add("block.sconstruct.pattern_chest", "Pattern Chest");
+        add("container.sconstruct.pattern_chest", "Pattern Chest");
+
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();
