@@ -72,8 +72,11 @@ public final class StatsBuilder {
 
     static final ResourceLocation REDSTONE_ID = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "haste");
 
-    /** Legacy +0.5 attack damage per Sharpness level (TConstruct 1.12). */
-    static final float SHARPNESS_DAMAGE_PER_LEVEL = 0.5F;
+    /** +1.25 attack damage per Sharpness level (SMTCON-84). Replaces the legacy 1.12 +0.5
+     *  baseline — the 1.25 value matches the Sharpness modifier JSON shipped under
+     *  {@code data/tconstruct/modifier/sharpness.json}, so a tool stack with 5 Sharpness levels
+     *  gains +6.25 attack damage on top of the head's contribution. */
+    static final float SHARPNESS_DAMAGE_PER_LEVEL = 1.25F;
 
     /** Legacy +0.08 mining speed per Redstone level (TConstruct 1.12). */
     static final float REDSTONE_SPEED_PER_LEVEL = 0.08F;

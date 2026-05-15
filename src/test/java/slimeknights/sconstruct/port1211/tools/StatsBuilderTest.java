@@ -90,11 +90,13 @@ class StatsBuilderTest {
     // --------------------------------------------------------------------- modifier bonuses
 
     @Test
-    void sharpnessRaisesAttackDamageByHalfPerLevel() {
+    void sharpnessRaisesAttackDamageBy125PerLevel() {
+        // SMTCON-84 pins +1.25 attack damage per Sharpness level — matches the sharpness JSON
+        // shipped at data/tconstruct/modifier/sharpness.json (5 levels × 1.25 = +6.25 max).
         ToolModifiers withSharpness = ToolModifiers.empty().with(StatsBuilder.SHARPNESS_ID, 3);
         ToolStats stats = StatsBuilder.compute(parts(WOOD, IRON, WOOD), withSharpness, ToolDefinition.PICKAXE);
-        // 4.0 base + 3 * 0.5 = 5.5
-        assertEquals(5.5F, stats.attackDamage(), 1e-4);
+        // 4.0 base + 3 * 1.25 = 7.75
+        assertEquals(7.75F, stats.attackDamage(), 1e-4);
     }
 
     @Test

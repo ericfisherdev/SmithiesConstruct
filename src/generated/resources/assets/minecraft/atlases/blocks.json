@@ -36,7 +36,9 @@
         "sconstruct:item/parts/bowstring_grayscale",
         "sconstruct:item/parts/arrowshaft_grayscale",
         "sconstruct:item/parts/arrow_head_grayscale",
-        "sconstruct:item/parts/fletching_grayscale"
+        "sconstruct:item/parts/fletching_grayscale",
+        "sconstruct:item/parts/wideguard_grayscale",
+        "sconstruct:item/parts/largeplate_grayscale"
       ]
     }
   ]

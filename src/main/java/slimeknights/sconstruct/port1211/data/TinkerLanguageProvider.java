@@ -44,6 +44,13 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // Must match the lang key SharedTabs#GENERAL builder set via Component.translatable.
         add("itemGroup.sconstruct", "Smithies' Construct");
 
+        // Modifier tooltip labels (SMTCON-84+). The key shape is
+        // {@code modifier.<namespace>.<path>} — the substitution argument is the modifier's
+        // current level, formatted by the description() callback that returns
+        // Component.translatable(key, level). Datapacks that ship their own modifier roster
+        // override these by shipping a competing translation.
+        add("modifier.tconstruct.sharpness", "Sharpness %s");
+
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".
         int metals = SharedMetals.ALL.size();
