@@ -2,6 +2,7 @@ package slimeknights.sconstruct.port1211.data.material;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -77,7 +78,9 @@ class TinkerMaterialBootstrapTest {
         doAnswer(invocation -> {
             ResourceKey<Material> key = invocation.getArgument(0);
             Material material = invocation.getArgument(1);
-            captured.put(key.location(), material);
+            ResourceLocation id = key.location();
+            Material previous = captured.put(id, material);
+            assertNull(previous, () -> "duplicate material registration for " + id);
             return null;
         }).when(context).register(any(ResourceKey.class), any(Material.class));
         TinkerMaterialBootstrap.bootstrap(context);
