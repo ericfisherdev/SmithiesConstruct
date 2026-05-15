@@ -30,7 +30,7 @@ class ToolDefinitionTest {
 
     private static final List<ToolDefinition> ALL = List.of(ToolDefinition.PICKAXE, ToolDefinition.SHOVEL, ToolDefinition.HATCHET, ToolDefinition.MATTOCK, ToolDefinition.HAMMER,
             ToolDefinition.EXCAVATOR, ToolDefinition.LUMBER_AXE, ToolDefinition.SCYTHE, ToolDefinition.BROADSWORD, ToolDefinition.CLEAVER, ToolDefinition.LONGSWORD, ToolDefinition.RAPIER,
-            ToolDefinition.FROE, ToolDefinition.SHORTBOW, ToolDefinition.CROSSBOW, ToolDefinition.ARROW);
+            ToolDefinition.FROE, ToolDefinition.SHORTBOW, ToolDefinition.LONGBOW, ToolDefinition.CROSSBOW, ToolDefinition.ARROW);
 
     @Test
     void shipsAtLeastEightToolConstants() {
@@ -75,6 +75,7 @@ class ToolDefinitionTest {
                 () -> assertEquals(List.of(PartType.HANDLE, PartType.AXEHEAD, PartType.BINDING), ToolDefinition.FROE.parts()),
                 () -> assertEquals(List.of(PartType.HANDLE, PartType.SWORDBLADE, PartType.WIDEGUARD), ToolDefinition.BROADSWORD.parts()),
                 () -> assertEquals(List.of(PartType.BOWLIMB, PartType.BOWLIMB, PartType.BOWSTRING), ToolDefinition.SHORTBOW.parts()),
+                () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.BOWLIMB, PartType.BOWLIMB, PartType.BOWSTRING), ToolDefinition.LONGBOW.parts()),
                 () -> assertEquals(List.of(PartType.TOUGHHANDLE, PartType.BOWLIMB, PartType.TOUGHBINDING, PartType.BOWSTRING), ToolDefinition.CROSSBOW.parts()),
                 () -> assertEquals(List.of(PartType.ARROWSHAFT, PartType.ARROW_HEAD, PartType.FLETCHING), ToolDefinition.ARROW.parts()));
     }
@@ -93,7 +94,8 @@ class ToolDefinitionTest {
         // accidentally substitute a vanilla tag and silently change which blocks the tool
         // mines.
         assertAll(() -> assertNull(ToolDefinition.MATTOCK.miningTag()), () -> assertNull(ToolDefinition.BROADSWORD.miningTag()), () -> assertNull(ToolDefinition.SCYTHE.miningTag()),
-                () -> assertNull(ToolDefinition.SHORTBOW.miningTag()), () -> assertNull(ToolDefinition.CROSSBOW.miningTag()), () -> assertNull(ToolDefinition.ARROW.miningTag()));
+                () -> assertNull(ToolDefinition.SHORTBOW.miningTag()), () -> assertNull(ToolDefinition.LONGBOW.miningTag()), () -> assertNull(ToolDefinition.CROSSBOW.miningTag()),
+                () -> assertNull(ToolDefinition.ARROW.miningTag()));
     }
 
     @Test
@@ -124,8 +126,8 @@ class ToolDefinitionTest {
     void rangedConstantsShipEmptyAbilitySets() {
         // Bows and arrows have no NeoForge ItemAbility — pinned empty so a future contributor
         // doesn't bolt SWORD_DIG onto bows to "just make right-click work".
-        assertAll(() -> assertTrue(ToolDefinition.SHORTBOW.abilities().isEmpty()), () -> assertTrue(ToolDefinition.CROSSBOW.abilities().isEmpty()),
-                () -> assertTrue(ToolDefinition.ARROW.abilities().isEmpty()));
+        assertAll(() -> assertTrue(ToolDefinition.SHORTBOW.abilities().isEmpty()), () -> assertTrue(ToolDefinition.LONGBOW.abilities().isEmpty()),
+                () -> assertTrue(ToolDefinition.CROSSBOW.abilities().isEmpty()), () -> assertTrue(ToolDefinition.ARROW.abilities().isEmpty()));
     }
 
     @Test
