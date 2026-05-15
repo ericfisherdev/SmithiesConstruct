@@ -113,6 +113,28 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
     public static final ToolDefinition LUMBER_AXE = new ToolDefinition("lumberaxe", List.of(PartType.TOUGHHANDLE, PartType.BROADAXEHEAD, PartType.LARGEPLATE, PartType.TOUGHBINDING),
             BlockTags.MINEABLE_WITH_AXE, ItemAbilities.DEFAULT_AXE_ACTIONS, DEFAULT_MODIFIER_SLOTS);
 
+    /**
+     * {@code Excavator}: toughHandle + shovelHead + largePlate + toughBinding
+     * ({@code TinkerHarvestTools:84}). Heavy-shovel AOE counterpart to the lumber-axe; the
+     * legacy 1.12 line used a dedicated {@code excavatorHead} part, but the port reuses
+     * {@link PartType#SHOVELHEAD} so the existing shovel-head material library still feeds the
+     * tool — the AOE behaviour lives in {@link slimeknights.sconstruct.port1211.tools.item.AoeToolCore}
+     * rather than in the part roster.
+     */
+    public static final ToolDefinition EXCAVATOR = new ToolDefinition("excavator", List.of(PartType.TOUGHHANDLE, PartType.SHOVELHEAD, PartType.LARGEPLATE, PartType.TOUGHBINDING),
+            BlockTags.MINEABLE_WITH_SHOVEL, ItemAbilities.DEFAULT_SHOVEL_ACTIONS, DEFAULT_MODIFIER_SLOTS);
+
+    /**
+     * {@code Scythe}: toughHandle + broadBlade + toughBinding + toughBinding
+     * ({@code TinkerMeleeWeapons:80}). The legacy 1.12 line declared a dedicated
+     * {@code scytheHead}; the port reuses {@link PartType#BROADBLADE} since the part-material
+     * surface is shared with the cleaver. Mining ability set is empty — the scythe's AOE
+     * effect is an attack-side override on {@link slimeknights.sconstruct.port1211.tools.item.ScytheItem},
+     * not a vanilla-tag dig.
+     */
+    public static final ToolDefinition SCYTHE = new ToolDefinition("scythe", List.of(PartType.TOUGHHANDLE, PartType.BROADBLADE, PartType.TOUGHBINDING, PartType.TOUGHBINDING), null,
+            ItemAbilities.DEFAULT_SWORD_ACTIONS, DEFAULT_MODIFIER_SLOTS);
+
     /** {@code BroadSword}: handle + swordBlade + wideGuard ({@code TinkerMeleeWeapons:75}). */
     public static final ToolDefinition BROADSWORD = new ToolDefinition("broadsword", List.of(PartType.HANDLE, PartType.SWORDBLADE, PartType.WIDEGUARD), null, ItemAbilities.DEFAULT_SWORD_ACTIONS,
             DEFAULT_MODIFIER_SLOTS);
@@ -151,12 +173,12 @@ public record ToolDefinition(String id, List<PartType> parts, @Nullable TagKey<B
      * harvest / melee tools the {@link slimeknights.sconstruct.port1211.tools.item.ToolItems}
      * registry currently exposes.
      */
-    public static final List<ToolDefinition> ALL_BASIC = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD);
+    public static final List<ToolDefinition> ALL_BASIC = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE);
 
     /**
      * Advanced tool definitions buildable at the Tool Forge (SMTCON-93) — the {@link #ALL_BASIC}
      * roster plus the heavy / ranged definitions whose legacy 1.12 line required the Tool Forge:
      * hammer, lumberaxe, shortbow, crossbow, arrow.
      */
-    public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, HAMMER, LUMBER_AXE, SHORTBOW, CROSSBOW, ARROW);
+    public static final List<ToolDefinition> ALL_ADVANCED = List.of(PICKAXE, SHOVEL, HATCHET, MATTOCK, BROADSWORD, SCYTHE, HAMMER, EXCAVATOR, LUMBER_AXE, SHORTBOW, CROSSBOW, ARROW);
 }
