@@ -66,6 +66,12 @@ class ToolItemsTest {
     }
 
     @Test
+    void meleeToolRegistrationPathsMatchExpectedKeys() {
+        assertAll(() -> assertEquals("cleaver", ToolItems.registeredPath(ToolItems.CLEAVER)), () -> assertEquals("longsword", ToolItems.registeredPath(ToolItems.LONGSWORD)),
+                () -> assertEquals("rapier", ToolItems.registeredPath(ToolItems.RAPIER)), () -> assertEquals("froe", ToolItems.registeredPath(ToolItems.FROE)));
+    }
+
+    @Test
     void meleeToolsBindToTheirDefinitions() {
         assertAll(() -> assertEquals(ToolDefinition.CLEAVER, ToolItems.CLEAVER.get().definition), () -> assertEquals(ToolDefinition.LONGSWORD, ToolItems.LONGSWORD.get().definition),
                 () -> assertEquals(ToolDefinition.RAPIER, ToolItems.RAPIER.get().definition), () -> assertEquals(ToolDefinition.FROE, ToolItems.FROE.get().definition));
