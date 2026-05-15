@@ -37,12 +37,29 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
         this.imageHeight = 166;
     }
 
+    /** Top section height — vanilla 17px border + 1 slot row + a small buffer. The bottom
+     *  blit picks up where this ends so the player-inventory + hotbar section of the source
+     *  sprite lands at the right place. */
+    private static final int TOP_SECTION_H = 70;
+
+    /** Player inventory + hotbar section height — vanilla's stock 96px so the slots line up
+     *  with the {@link net.minecraft.world.inventory.AbstractContainerMenu} player-inv layout. */
+    private static final int BOTTOM_SECTION_H = 96;
+
+    /** Source y-offset for the player-inventory section in the vanilla generic_54 sprite. */
+    private static final int SOURCE_PLAYER_INV_Y = 126;
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        guiGraphics.blit(BACKGROUND, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        // The vanilla generic_54 sprite is 222px tall (6 chest rows + player inv); blitting it
+        // with a single pass over our 166px screen would clip the player-inventory band off
+        // the bottom. Two passes: top chest-border + slot area from src y=0, then the
+        // player-inventory band from src y=126 stitched directly below.
+        guiGraphics.blit(BACKGROUND, x, y, 0, 0, this.imageWidth, TOP_SECTION_H);
+        guiGraphics.blit(BACKGROUND, x, y + TOP_SECTION_H, 0, SOURCE_PLAYER_INV_Y, this.imageWidth, BOTTOM_SECTION_H);
     }
 
     @Override

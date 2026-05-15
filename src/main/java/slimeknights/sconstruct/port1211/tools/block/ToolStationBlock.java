@@ -101,8 +101,11 @@ public class ToolStationBlock extends BaseEntityBlock {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof ToolStationBlockEntity station) {
                 IItemHandler handler = station.getHandler();
-                SimpleContainer dropContainer = new SimpleContainer(handler.getSlots());
-                for (int i = 0; i < handler.getSlots(); i++) {
+                // Drop only the input slots — the output slot holds a synthetic preview built
+                // from those inputs by refreshOutput(); dropping it would duplicate the parts
+                // the player just put in (build path) or the tool itself (modify path).
+                SimpleContainer dropContainer = new SimpleContainer(ToolStationBlockEntity.INPUT_SLOTS);
+                for (int i = 0; i < ToolStationBlockEntity.INPUT_SLOTS; i++) {
                     dropContainer.setItem(i, handler.getStackInSlot(i));
                 }
                 Containers.dropContents(level, pos, dropContainer);
