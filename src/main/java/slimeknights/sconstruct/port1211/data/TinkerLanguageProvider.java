@@ -34,6 +34,124 @@ public final class TinkerLanguageProvider extends LanguageProvider {
     /** Display-name overrides for metal ids that don't title-case cleanly. */
     private static final Map<String, String> METAL_DISPLAY_NAMES = Map.of("pigiron", "Pig Iron", "alubrass", "Aluminum Brass");
 
+    /**
+     * Tool item display names keyed by registration path. Driven by an explicit table rather
+     * than title-casing the id because several tools intentionally diverge from their registry
+     * key — {@code axe} reads as "Hatchet" (the legacy single-handed axe), {@code sword} as
+     * "Broadsword", and {@code tinker_arrow} drops its namespace-ish prefix to plain "Arrow".
+     * {@code shuriken} lives here too even though it is not in {@link slimeknights.sconstruct.port1211.tools.item.ToolItems#ALL_TOOLS}
+     * (it extends plain {@code Item}, not {@code ToolCore}) and is added separately below.
+     */
+    private static final Map<String, String> TOOL_DISPLAY_NAMES;
+    static {
+        Map<String, String> tools = new java.util.HashMap<>();
+        tools.put("pickaxe", "Pickaxe");
+        tools.put("shovel", "Shovel");
+        tools.put("axe", "Hatchet");
+        tools.put("sword", "Broadsword");
+        tools.put("hammer", "Hammer");
+        tools.put("excavator", "Excavator");
+        tools.put("lumberaxe", "Lumber Axe");
+        tools.put("scythe", "Scythe");
+        tools.put("mattock", "Mattock");
+        tools.put("cleaver", "Cleaver");
+        tools.put("longsword", "Longsword");
+        tools.put("rapier", "Rapier");
+        tools.put("froe", "Froe");
+        tools.put("shortbow", "Shortbow");
+        tools.put("longbow", "Longbow");
+        tools.put("crossbow", "Crossbow");
+        tools.put("tinker_arrow", "Arrow");
+        tools.put("shuriken", "Shuriken");
+        TOOL_DISPLAY_NAMES = java.util.Collections.unmodifiableMap(tools);
+    }
+
+    /**
+     * Tool-part display names keyed by {@link slimeknights.sconstruct.port1211.tools.PartType#id()}.
+     * This is the complete expected id set — the {@code addTranslations} loop iterates
+     * {@code PartType.values()} (count deliberately not hardcoded, since a future PartType may
+     * push it past 18) and throws if it meets an id absent from this table, so a new part type
+     * fails datagen loudly instead of silently shipping an untranslated item.
+     */
+    private static final Map<String, String> TOOL_PART_DISPLAY_NAMES;
+    static {
+        Map<String, String> parts = new java.util.HashMap<>();
+        parts.put("pickhead", "Pickaxe Head");
+        parts.put("axehead", "Axe Head");
+        parts.put("shovelhead", "Shovel Head");
+        parts.put("swordblade", "Sword Blade");
+        parts.put("broadaxehead", "Broad Axe Head");
+        parts.put("broadblade", "Broad Blade");
+        parts.put("hammerhead", "Hammer Head");
+        parts.put("handle", "Tool Rod");
+        parts.put("binding", "Binding");
+        parts.put("toughhandle", "Tough Tool Rod");
+        parts.put("toughbinding", "Tough Binding");
+        parts.put("bowlimb", "Bow Limb");
+        parts.put("bowstring", "Bowstring");
+        parts.put("arrowshaft", "Arrow Shaft");
+        parts.put("arrow_head", "Arrow Head");
+        parts.put("fletching", "Fletching");
+        parts.put("wideguard", "Wide Guard");
+        parts.put("largeplate", "Large Plate");
+        TOOL_PART_DISPLAY_NAMES = java.util.Collections.unmodifiableMap(parts);
+    }
+
+    /**
+     * Material display names keyed by raw material id. Materials are not registered objects, so
+     * the lang key is the raw {@code material.tconstruct.<id>} form the legacy stat / tooltip
+     * code resolves; iterated as a table so the set is auditable in one place.
+     */
+    private static final Map<String, String> MATERIAL_DISPLAY_NAMES;
+    static {
+        Map<String, String> materials = new java.util.LinkedHashMap<>();
+        materials.put("wood", "Wood");
+        materials.put("stone", "Stone");
+        materials.put("iron", "Iron");
+        materials.put("gold", "Gold");
+        materials.put("flint", "Flint");
+        materials.put("bone", "Bone");
+        materials.put("paper", "Paper");
+        materials.put("slime", "Green Slime");
+        materials.put("blueslime", "Blue Slime");
+        materials.put("cobalt", "Cobalt");
+        materials.put("ardite", "Ardite");
+        materials.put("manyullyn", "Manyullyn");
+        materials.put("copper", "Copper");
+        materials.put("silver", "Silver");
+        materials.put("steel", "Steel");
+        MATERIAL_DISPLAY_NAMES = java.util.Collections.unmodifiableMap(materials);
+    }
+
+    /**
+     * Trait display names keyed by raw trait id. Like materials, traits are not registered
+     * objects — the lang key is the raw {@code trait.tconstruct.<id>} form the trait tooltip
+     * renderer resolves.
+     */
+    private static final Map<String, String> TRAIT_DISPLAY_NAMES;
+    static {
+        Map<String, String> traits = new java.util.LinkedHashMap<>();
+        traits.put("autosmelt", "Auto-Smelt");
+        traits.put("ecological", "Ecological");
+        traits.put("stonebound", "Stonebound");
+        traits.put("jagged", "Jagged");
+        traits.put("crude", "Crude");
+        traits.put("cheap", "Cheap");
+        traits.put("dense", "Dense");
+        traits.put("duritos", "Duritos");
+        traits.put("aquadynamic", "Aquadynamic");
+        traits.put("featherweight", "Featherweight");
+        traits.put("holy", "Holy");
+        traits.put("insatiable", "Insatiable");
+        traits.put("magnetic", "Magnetic");
+        traits.put("prickly", "Prickly");
+        traits.put("slimey", "Slimey");
+        traits.put("squeaky", "Squeaky");
+        traits.put("fractured", "Fractured");
+        traits.put("splintering", "Splintering");
+        TRAIT_DISPLAY_NAMES = java.util.Collections.unmodifiableMap(traits);
+    }
+
     public TinkerLanguageProvider(PackOutput output) {
         super(output, SConstruct.MOD_ID, "en_us");
     }
@@ -119,6 +237,46 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // SMTCON-94 action buttons rendered in ToolStationScreen.
         add("button.sconstruct.tool_station.build", "Build");
         add("button.sconstruct.tool_station.modify", "Modify");
+
+        // SMTCON-107 tool items. Iterate ToolItems.ALL_TOOLS so a tool added to that list
+        // lights up here automatically; the display name comes from TOOL_DISPLAY_NAMES keyed by
+        // the registration path. A tool present in ALL_TOOLS but absent from the table is a
+        // datagen failure (IllegalStateException) rather than a silent untranslated item.
+        for (net.neoforged.neoforge.registries.DeferredItem<? extends slimeknights.sconstruct.port1211.tools.item.ToolCore> holder : slimeknights.sconstruct.port1211.tools.item.ToolItems.ALL_TOOLS) {
+            String id = holder.getId().getPath();
+            String name = TOOL_DISPLAY_NAMES.get(id);
+            if (name == null) {
+                throw new IllegalStateException("ToolItems.ALL_TOOLS contains tool id '" + id + "' with no entry in TOOL_DISPLAY_NAMES");
+            }
+            add(holder.get(), name);
+        }
+        // Shuriken is registered outside ALL_TOOLS (plain Item, not ToolCore) — translate it
+        // explicitly from the same table.
+        add(slimeknights.sconstruct.port1211.tools.item.ToolItems.SHURIKEN.get(), TOOL_DISPLAY_NAMES.get("shuriken"));
+
+        // SMTCON-107 tool parts. Iterate PartType.values() rather than hardcoding a count so a
+        // future PartType addition surfaces here — TOOL_PART_DISPLAY_NAMES is the complete
+        // expected id set, and an id missing from it throws (datagen fails loudly).
+        for (slimeknights.sconstruct.port1211.tools.PartType part : slimeknights.sconstruct.port1211.tools.PartType.values()) {
+            String name = TOOL_PART_DISPLAY_NAMES.get(part.id());
+            if (name == null) {
+                throw new IllegalStateException("PartType '" + part.id() + "' has no entry in TOOL_PART_DISPLAY_NAMES — extend the table");
+            }
+            add(slimeknights.sconstruct.port1211.tools.item.ToolParts.get(part).get(), name);
+        }
+
+        // SMTCON-107 material names. Materials are not registered objects, so the raw
+        // material.tconstruct.<id> key is written directly — this is the key the legacy stat /
+        // tooltip code resolves when formatting a built tool's "<material> <part>" name.
+        for (Map.Entry<String, String> entry : MATERIAL_DISPLAY_NAMES.entrySet()) {
+            add("material.tconstruct." + entry.getKey(), entry.getValue());
+        }
+
+        // SMTCON-107 trait names. Like materials, traits are not registered objects — the raw
+        // trait.tconstruct.<id> key is the one the trait tooltip renderer looks up.
+        for (Map.Entry<String, String> entry : TRAIT_DISPLAY_NAMES.entrySet()) {
+            add("trait.tconstruct." + entry.getKey(), entry.getValue());
+        }
 
         // Metal storage blocks: "Block of Cobalt" (vanilla iron_block convention).
         // Ingots: "<Metal> Ingot"; nuggets: "<Metal> Nugget".

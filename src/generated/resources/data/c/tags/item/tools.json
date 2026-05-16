@@ -1,0 +1,20 @@
+{
+  "values": [
+    "sconstruct:pickaxe",
+    "sconstruct:shovel",
+    "sconstruct:axe",
+    "sconstruct:sword",
+    "sconstruct:hammer",
+    "sconstruct:excavator",
+    "sconstruct:lumberaxe",
+    "sconstruct:scythe",
+    "sconstruct:mattock",
+    "sconstruct:cleaver",
+    "sconstruct:longsword",
+    "sconstruct:rapier",
+    "sconstruct:froe",
+    "sconstruct:shortbow",
+    "sconstruct:longbow",
+    "sconstruct:crossbow"
+  ]
+}

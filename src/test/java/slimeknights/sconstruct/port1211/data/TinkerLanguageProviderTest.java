@@ -204,7 +204,10 @@ class TinkerLanguageProviderTest {
         // + 2 SMTCON-92 part builder keys (block + container title) + 4 SMTCON-93 tool
         // station / tool forge keys (2 blocks × {block name + container title}) + 2
         // SMTCON-94 action-button keys (Build, Modify) = 132.
-        assertEquals(132, lang().entrySet().size());
+        //
+        // SMTCON-107 adds the Phase-4 tools roster: 17 tool item names + 1 shuriken + 18 tool
+        // part names + 15 material names + 18 trait names = 69 more, for 201 total.
+        assertEquals(201, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
