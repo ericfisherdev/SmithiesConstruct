@@ -30,6 +30,8 @@ public final class TraitRegistry {
     static {
         Map<ResourceLocation, Trait> entries = new LinkedHashMap<>();
         registerEach(entries, Traits.AUTOSMELT, Traits.ECOLOGICAL, Traits.STONEBOUND, Traits.JAGGED, Traits.CRUDE, Traits.CHEAP, Traits.DENSE, Traits.DURITOS);
+        registerEach(entries, Traits.AQUADYNAMIC, Traits.FEATHERWEIGHT, Traits.HOLY, Traits.INSATIABLE, Traits.MAGNETIC, Traits.PRICKLY, Traits.SLIMEY, Traits.SQUEAKY, Traits.FRACTURED,
+                Traits.SPLINTERING);
         ENTRIES = Map.copyOf(entries);
     }
 

@@ -17,18 +17,20 @@ import slimeknights.sconstruct.port1211.tools.PartType;
 import slimeknights.sconstruct.port1211.tools.material.MaterialTrait;
 
 /**
- * Pinned-roster tests for {@link TraitRegistry}. The eight mining-focused traits the SMTCON-103
- * ticket ships are asserted by id so a future trait swap surfaces loudly; stat contributions
- * for the two stat-bearing traits ({@link Traits.EcologicalTraitRecord}, {@link Traits.DenseTraitRecord})
- * are pinned against the legacy 1.12 baseline.
+ * Pinned-roster tests for {@link TraitRegistry}. The eighteen traits the mod ships — eight
+ * mining-focused (SMTCON-103) and ten specialty (SMTCON-104) — are asserted by id so a future
+ * trait swap surfaces loudly; stat contributions for the stat-bearing traits
+ * ({@link Traits.EcologicalTraitRecord}, {@link Traits.DenseTraitRecord},
+ * {@link Traits.FracturedTraitRecord}) are pinned against the legacy 1.12 baseline.
  */
 class TraitRegistryTest {
 
     @Test
-    void registersAllEightMiningTraits() {
+    void registersAllEighteenTraits() {
         Set<ResourceLocation> ids = Set.copyOf(TraitRegistry.all().stream().map(Trait::id).toList());
-        assertEquals(8, ids.size(), "registry must hold exactly the 8 mining-focused traits");
-        for (String path : new String[] { "autosmelt", "ecological", "stonebound", "jagged", "crude", "cheap", "dense", "duritos" }) {
+        assertEquals(18, ids.size(), "registry must hold exactly the 18 traits");
+        for (String path : new String[] { "autosmelt", "ecological", "stonebound", "jagged", "crude", "cheap", "dense", "duritos", "aquadynamic", "featherweight", "holy", "insatiable", "magnetic",
+                "prickly", "slimey", "squeaky", "fractured", "splintering" }) {
             assertTrue(ids.contains(ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, path)), "missing trait id: " + path);
         }
     }
@@ -55,6 +57,15 @@ class TraitRegistryTest {
         ToolStats out = Traits.DENSE.applyStats(stats);
         assertEquals(100 + Traits.DenseTraitRecord.DURABILITY_BONUS, out.maxDurability());
         assertEquals(4.0F - Traits.DenseTraitRecord.MINING_SPEED_PENALTY, out.miningSpeed(), 0.0001F);
+    }
+
+    @Test
+    void fracturedTradesDurabilityForAttackDamage() {
+        ToolStats stats = new ToolStats(100, 5.0F, 1.0F, 4.0F, 2, 3, 0.0F, 0.0F, 0.0F);
+        ToolStats out = Traits.FRACTURED.applyStats(stats);
+        assertEquals(50, out.maxDurability(), "fractured should halve max durability");
+        assertEquals(5.0F + Traits.FracturedTraitRecord.ATTACK_DAMAGE_BONUS, out.attackDamage(), 0.0001F);
+        assertEquals(stats.miningSpeed(), out.miningSpeed());
     }
 
     @Test
