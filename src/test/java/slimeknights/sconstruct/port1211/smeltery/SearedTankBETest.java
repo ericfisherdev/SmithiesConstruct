@@ -1,6 +1,8 @@
 package slimeknights.sconstruct.port1211.smeltery;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,6 +63,69 @@ class SearedTankBETest {
 
         assertEquals(1000, drained.getAmount(), "drain returns the requested amount");
         assertEquals(2000, tank.getFluidInTank(0).getAmount(), "the tank keeps the undrained remainder");
+    }
+
+    @Test
+    void anEmptyTankProvidesNoFuel() {
+        SearedTankBE tank = tank(false);
+
+        assertEquals(0, tank.getTemperature(), "an empty tank has no fuel temperature");
+        assertFalse(tank.canProvideFuel(), "an empty tank cannot provide fuel");
+        assertEquals(0, tank.consumeFuel(10), "an empty tank consumes nothing");
+    }
+
+    @Test
+    void aLavaTankIsAFuelSourceAtTheLegacyTemperature() {
+        SearedTankBE tank = tank(true);
+        tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, 3000), IFluidHandler.FluidAction.EXECUTE);
+
+        assertEquals(1000, SearedTankBE.LAVA_TEMPERATURE, "the legacy lava fuel temperature is pinned at 1000 K");
+        assertEquals(SearedTankBE.LAVA_TEMPERATURE, tank.getTemperature(), "lava heats to the legacy temperature");
+        assertTrue(tank.canProvideFuel(), "a lava tank can provide fuel");
+    }
+
+    @Test
+    void consumeFuelDrainsTheRequestedAmountFromAFuelTank() {
+        SearedTankBE tank = tank(true);
+        tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, 3000), IFluidHandler.FluidAction.EXECUTE);
+
+        int consumed = tank.consumeFuel(10);
+
+        assertEquals(10, consumed, "consumeFuel drains the requested millibuckets");
+        assertEquals(2990, tank.getFluidHandler().getFluidInTank(0).getAmount(), "the tank keeps the unconsumed fuel");
+    }
+
+    @Test
+    void consumeFuelDrainsOnlyWhatTheTankHoldsWhenAskedForMore() {
+        SearedTankBE tank = tank(false);
+        tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, 250), IFluidHandler.FluidAction.EXECUTE);
+
+        int consumed = tank.consumeFuel(1000);
+
+        assertEquals(250, consumed, "consumeFuel returns only the fuel actually drained");
+        assertTrue(tank.getFluidHandler().getFluidInTank(0).isEmpty(), "the under-filled tank is emptied");
+    }
+
+    @Test
+    void consumeFuelIgnoresAZeroOrNegativeRequest() {
+        SearedTankBE tank = tank(true);
+        tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, 3000), IFluidHandler.FluidAction.EXECUTE);
+
+        assertEquals(0, tank.consumeFuel(0), "a zero request consumes nothing");
+        assertEquals(0, tank.consumeFuel(-100), "a negative request consumes nothing");
+        assertEquals(3000, tank.getFluidHandler().getFluidInTank(0).getAmount(), "the tank's fuel is untouched");
+    }
+
+    @Test
+    void aNonFuelFluidIsNotAFuelSource() {
+        SearedTankBE tank = tank(false);
+        tank.getFluidHandler().fill(new FluidStack(Fluids.WATER, 2000), IFluidHandler.FluidAction.EXECUTE);
+
+        assertEquals(0, tank.getTemperature(), "water is not a smeltery fuel");
+        assertFalse(tank.canProvideFuel(), "a water tank cannot provide fuel");
+        assertEquals(0, tank.consumeFuel(10), "a non-fuel tank consumes nothing");
+        // The molten-metal fuel path (SmelteryFluids.moltenTemperature) needs the fluid registry
+        // and so is verified in-game, not here — only lava and water are reachable from JUnit.
     }
 
     /**

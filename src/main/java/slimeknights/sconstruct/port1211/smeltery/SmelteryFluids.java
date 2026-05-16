@@ -1,10 +1,12 @@
 package slimeknights.sconstruct.port1211.smeltery;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.function.Supplier;
 
 import net.minecraft.world.item.BucketItem;
@@ -99,6 +101,40 @@ public final class SmelteryFluids {
             throw new IllegalStateException("SmelteryFluids.MOLTEN is missing an entry for " + metal.id() + " — class loading order regressed");
         }
         return set;
+    }
+
+    /**
+     * The temperature in kelvin of {@code fluid} if it is one of the registered molten metals
+     * (its source <em>or</em> flowing form), or {@link OptionalInt#empty()} for any other fluid.
+     * Used by the SMTCON-119 smeltery fuel logic to read a tank of molten metal as a heat
+     * source — a hotter metal lets the smeltery melt higher-tier inputs.
+     */
+    public static OptionalInt moltenTemperature(Fluid fluid) {
+        Objects.requireNonNull(fluid, "fluid");
+        Integer temperature = MoltenTemperatures.BY_FLUID.get(fluid);
+        return temperature == null ? OptionalInt.empty() : OptionalInt.of(temperature);
+    }
+
+    /**
+     * Initialization-on-demand holder for the molten-fluid temperature lookup. Resolution is
+     * deferred out of the {@code SmelteryFluids} static block because the {@link Fluid}s only
+     * resolve once their registry has fired, which is after class load.
+     */
+    private static final class MoltenTemperatures {
+        private static final Map<Fluid, Integer> BY_FLUID;
+
+        static {
+            Map<Fluid, Integer> byFluid = new HashMap<>();
+            for (Map.Entry<MoltenMetal, MoltenFluidSet> entry : MOLTEN.entrySet()) {
+                int temperature = entry.getKey().temperature();
+                byFluid.put(entry.getValue().source().get(), temperature);
+                byFluid.put(entry.getValue().flowing().get(), temperature);
+            }
+            BY_FLUID = Map.copyOf(byFluid);
+        }
+
+        private MoltenTemperatures() {
+        }
     }
 
     /**
