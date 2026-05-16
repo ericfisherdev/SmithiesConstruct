@@ -351,8 +351,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             for (int x = interior.minX(); x <= interior.maxX() && placed < placeable; x++) {
                 for (int z = interior.minZ(); z <= interior.maxZ() && placed < placeable; z++) {
                     BlockPos target = new BlockPos(x, y, z);
-                    if (level.getBlockState(target).isAir()) {
-                        level.setBlock(target, liquid, Block.UPDATE_ALL);
+                    // Only count a release the world actually accepted — setBlock returns false
+                    // if the placement did not take, and crediting it would drain fluid that was
+                    // never poured out.
+                    if (level.getBlockState(target).isAir() && level.setBlock(target, liquid, Block.UPDATE_ALL)) {
                         placed++;
                     }
                 }
