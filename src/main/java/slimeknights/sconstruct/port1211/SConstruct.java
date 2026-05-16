@@ -30,6 +30,7 @@ import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryEvents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
+import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
@@ -100,6 +101,11 @@ public final class SConstruct {
         // registry events fire. Lives here inline for now; relocates into the smeltery pulse's
         // register() at SMTCON-131.
         CastingBlocks.init();
+
+        // SMTCON-120: force SmelteryRecipes to load so its static block registers the melting
+        // recipe type and serializer before the registry events fire. Lives here inline for now;
+        // relocates into the smeltery pulse's register() at SMTCON-131.
+        SmelteryRecipes.init();
 
         // SMTCON-110: on a physical client, bind each molten-metal fluid type to its
         // IClientFluidTypeExtensions (shared texture pair + per-metal tint + warm fog). Guarded
