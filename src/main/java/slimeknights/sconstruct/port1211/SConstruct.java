@@ -22,6 +22,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
@@ -69,6 +70,12 @@ public final class SConstruct {
         // wiring — is registered by ToolsPulse#register, gated by the "tools" config flag (see
         // the PulseLoader.boot call below). It lived inline here through Phases 1-4 until the
         // pulse landed (SMTCON-107).
+
+        // SMTCON-109: force SmelteryFluids to load so its static block registers all 20
+        // molten-metal fluid sets (FluidType + source/flowing fluids + LiquidBlock + bucket)
+        // before the registry events fire. Lives here inline for now; relocates into the
+        // smeltery pulse's register() when SMTCON-131 wires that pulse.
+        SmelteryFluids.init();
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
