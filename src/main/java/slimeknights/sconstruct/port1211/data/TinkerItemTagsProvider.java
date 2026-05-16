@@ -133,16 +133,26 @@ public final class TinkerItemTagsProvider extends ItemTagsProvider {
             String id = holder.getId().getPath();
             Item item = holder.get();
             // The arrow is consumed ammunition, not a wielded tool — keep it out of c:tools.
-            if (!ARROW_ID.equals(id)) {
-                tag(Tags.Items.TOOLS).add(item);
+            if (ARROW_ID.equals(id)) {
+                continue;
             }
-            if (MINING_TOOL_IDS.contains(id)) {
+            tag(Tags.Items.TOOLS).add(item);
+            boolean mining = MINING_TOOL_IDS.contains(id);
+            boolean melee = MELEE_TOOL_IDS.contains(id);
+            boolean ranged = RANGED_TOOL_IDS.contains(id);
+            // Fail datagen loudly if a tool reaches ALL_TOOLS without a category — otherwise a
+            // newly-added tool would silently land in only the broad c:tools tag, missing the
+            // mining / melee / ranged classification other mods' recipes key off.
+            if (!mining && !melee && !ranged) {
+                throw new IllegalStateException("Tool '" + id + "' is in ToolItems.ALL_TOOLS but absent from every category set — add it to MINING_TOOL_IDS, MELEE_TOOL_IDS, or RANGED_TOOL_IDS.");
+            }
+            if (mining) {
                 tag(Tags.Items.MINING_TOOL_TOOLS).add(item);
             }
-            if (MELEE_TOOL_IDS.contains(id)) {
+            if (melee) {
                 tag(Tags.Items.MELEE_WEAPON_TOOLS).add(item);
             }
-            if (RANGED_TOOL_IDS.contains(id)) {
+            if (ranged) {
                 tag(Tags.Items.RANGED_WEAPON_TOOLS).add(item);
                 // The vanilla-shaped bow tags are sub-categories of ranged_weapon: shortbow /
                 // longbow behave as bows, the crossbow as a crossbow. Predicates that ask

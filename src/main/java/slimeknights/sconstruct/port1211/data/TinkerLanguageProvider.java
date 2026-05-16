@@ -251,8 +251,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
             add(holder.get(), name);
         }
         // Shuriken is registered outside ALL_TOOLS (plain Item, not ToolCore) — translate it
-        // explicitly from the same table.
-        add(slimeknights.sconstruct.port1211.tools.item.ToolItems.SHURIKEN.get(), TOOL_DISPLAY_NAMES.get("shuriken"));
+        // explicitly from the same table, with the same fail-loud guard as the loop above.
+        String shurikenName = TOOL_DISPLAY_NAMES.get("shuriken");
+        if (shurikenName == null) {
+            throw new IllegalStateException("TOOL_DISPLAY_NAMES is missing the 'shuriken' entry");
+        }
+        add(slimeknights.sconstruct.port1211.tools.item.ToolItems.SHURIKEN.get(), shurikenName);
 
         // SMTCON-107 tool parts. Iterate PartType.values() rather than hardcoding a count so a
         // future PartType addition surfaces here — TOOL_PART_DISPLAY_NAMES is the complete
