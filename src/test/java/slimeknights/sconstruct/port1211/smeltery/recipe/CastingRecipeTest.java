@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -59,9 +60,39 @@ class CastingRecipeTest {
         assertFalse(recipe.matches(input, mock(Level.class)), "a non-matching cast fails the match");
     }
 
+    @Test
+    void matchesAcceptsAMatchingBasinInput() {
+        CastingRecipe recipe = basinRecipe(acceptingCast());
+        CastingRecipeInput input = new CastingRecipeInput(new FluidStack(Fluids.WATER, 288), ItemStack.EMPTY, true);
+
+        assertTrue(recipe.matches(input, mock(Level.class)), "a basin recipe matches a basin input with enough fluid");
+    }
+
+    @Test
+    void matchesRejectsATableInputForABasinRecipe() {
+        CastingRecipe recipe = basinRecipe(acceptingCast());
+        CastingRecipeInput tableInput = new CastingRecipeInput(new FluidStack(Fluids.WATER, 288), ItemStack.EMPTY, false);
+
+        assertFalse(recipe.matches(tableInput, mock(Level.class)), "a basin recipe must not fire on a table");
+    }
+
+    @Test
+    void assembleAndGetResultItemYieldNonEmptyStacks() {
+        CastingRecipe recipe = tableRecipe(acceptingCast());
+        CastingRecipeInput input = new CastingRecipeInput(new FluidStack(Fluids.WATER, 288), ItemStack.EMPTY, false);
+
+        assertFalse(recipe.assemble(input, mock(HolderLookup.Provider.class)).isEmpty(), "assemble yields the cast output");
+        assertFalse(recipe.getResultItem(mock(HolderLookup.Provider.class)).isEmpty(), "getResultItem yields the cast output");
+    }
+
     /** A table casting recipe needing 288 mB of water and the supplied cast ingredient. */
     private static CastingRecipe tableRecipe(Ingredient cast) {
         return new CastingRecipe(new FluidIngredient(WATER, 288), cast, false, 100, nonEmptyOutput(), false);
+    }
+
+    /** A basin casting recipe needing 288 mB of water and the supplied cast ingredient. */
+    private static CastingRecipe basinRecipe(Ingredient cast) {
+        return new CastingRecipe(new FluidIngredient(WATER, 288), cast, false, 100, nonEmptyOutput(), true);
     }
 
     /**
