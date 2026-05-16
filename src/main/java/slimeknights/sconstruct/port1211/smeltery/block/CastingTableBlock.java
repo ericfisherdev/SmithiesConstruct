@@ -5,10 +5,13 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.mojang.serialization.MapCodec;
 
+import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
+import slimeknights.sconstruct.port1211.smeltery.block.entity.AbstractCastingBlockEntity;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.CastingTableBlockEntity;
 
 /**
@@ -33,5 +36,10 @@ public class CastingTableBlock extends AbstractCastingBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new CastingTableBlockEntity(pos, state);
+    }
+
+    @Override
+    protected BlockEntityType<? extends AbstractCastingBlockEntity> beType() {
+        return CastingBlocks.CASTING_TABLE_BE.get();
     }
 }
