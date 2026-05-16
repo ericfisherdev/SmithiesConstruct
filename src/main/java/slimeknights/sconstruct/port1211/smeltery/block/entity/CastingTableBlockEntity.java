@@ -18,4 +18,9 @@ public class CastingTableBlockEntity extends AbstractCastingBlockEntity {
     public CastingTableBlockEntity(BlockPos pos, BlockState state) {
         super(CastingBlocks.CASTING_TABLE_BE.get(), pos, state, CAPACITY);
     }
+
+    @Override
+    protected boolean isBasin() {
+        return false;
+    }
 }

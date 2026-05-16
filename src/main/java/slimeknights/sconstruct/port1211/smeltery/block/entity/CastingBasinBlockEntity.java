@@ -18,4 +18,9 @@ public class CastingBasinBlockEntity extends AbstractCastingBlockEntity {
     public CastingBasinBlockEntity(BlockPos pos, BlockState state) {
         super(CastingBlocks.CASTING_BASIN_BE.get(), pos, state, CAPACITY);
     }
+
+    @Override
+    protected boolean isBasin() {
+        return true;
+    }
 }

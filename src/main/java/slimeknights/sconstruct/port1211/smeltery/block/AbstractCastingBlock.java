@@ -1,5 +1,7 @@
 package slimeknights.sconstruct.port1211.smeltery.block;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -11,6 +13,8 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
@@ -32,8 +36,8 @@ import slimeknights.sconstruct.port1211.smeltery.block.entity.AbstractCastingBlo
  * not survive the block being mined).
  *
  * <p>The fluid side — accepting a pour, matching it to a {@code CastingRecipe}, and completing
- * the cast — is owned by {@link AbstractCastingBlockEntity} and the casting recipe
- * implementation (SMTCON-123); this block only wires the cast-slot interaction.
+ * the cast — is owned by {@link AbstractCastingBlockEntity}; this block wires the cast-slot
+ * interaction and registers the server-side ticker that drives the casting recipe (SMTCON-123).
  */
 public abstract class AbstractCastingBlock extends BaseEntityBlock {
 
@@ -41,9 +45,21 @@ public abstract class AbstractCastingBlock extends BaseEntityBlock {
         super(properties);
     }
 
+    /** The registered block-entity type this casting block backs — supplied by each subclass. */
+    protected abstract BlockEntityType<? extends AbstractCastingBlockEntity> beType();
+
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        // Server-side only — the cooling countdown advances on the server; the client renders
+        // the synced state. createTickerHelper checks the requested type matches this casting
+        // block's BE type so a stray query for another type returns null instead of mis-casting.
+        return level.isClientSide() ? null : createTickerHelper(type, beType(), AbstractCastingBlockEntity::serverTick);
     }
 
     @Override
