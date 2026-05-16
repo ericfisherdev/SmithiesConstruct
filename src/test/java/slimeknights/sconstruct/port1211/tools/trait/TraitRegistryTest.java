@@ -66,6 +66,11 @@ class TraitRegistryTest {
         assertEquals(50, out.maxDurability(), "fractured should halve max durability");
         assertEquals(5.0F + Traits.FracturedTraitRecord.ATTACK_DAMAGE_BONUS, out.attackDamage(), 0.0001F);
         assertEquals(stats.miningSpeed(), out.miningSpeed());
+
+        // Odd durability pins the floor-toward-zero contract — a swap to rounding/ceiling would
+        // otherwise still pass the even 100 -> 50 case above.
+        ToolStats oddOut = Traits.FRACTURED.applyStats(new ToolStats(101, 5.0F, 1.0F, 4.0F, 2, 3, 0.0F, 0.0F, 0.0F));
+        assertEquals(50, oddOut.maxDurability(), "fractured should floor odd durability when halving");
     }
 
     @Test
