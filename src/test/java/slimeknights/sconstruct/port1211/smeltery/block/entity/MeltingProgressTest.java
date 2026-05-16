@@ -43,6 +43,20 @@ class MeltingProgressTest {
     }
 
     @Test
+    void resultIsCopiedDefensivelyOnStoreAndOnRead() {
+        // Store-side: mutating the FluidStack passed to the constructor must not reach the melt.
+        FluidStack source = new FluidStack(Fluids.WATER, 100);
+        MeltingProgress progress = new MeltingProgress(0, 5, source);
+        source.setAmount(999);
+        assertEquals(100, progress.result().getAmount(), "the constructor must copy the result fluid");
+
+        // Read-side: mutating the FluidStack handed back by result() must not reach the melt.
+        FluidStack handedBack = progress.result();
+        handedBack.setAmount(7);
+        assertEquals(100, progress.result().getAmount(), "result() must hand back a fresh copy each call");
+    }
+
+    @Test
     void constructorRejectsInvalidArguments() {
         FluidStack water = new FluidStack(Fluids.WATER, 100);
         assertThrows(IllegalArgumentException.class, () -> new MeltingProgress(-1, 5, water), "negative slot");

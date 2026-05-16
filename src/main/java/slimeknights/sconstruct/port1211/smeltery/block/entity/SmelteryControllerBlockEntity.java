@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -133,13 +134,22 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         Iterator<MeltingProgress> iterator = activeMelts.iterator();
         while (iterator.hasNext()) {
             MeltingProgress melt = iterator.next();
-            melt.advance();
+            if (!melt.isComplete()) {
+                melt.advance();
+            }
             if (melt.isComplete()) {
-                fluidTank.fill(melt.result(), IFluidHandler.FluidAction.EXECUTE);
-                if (melt.slot() < meltingSlots.getSlots()) {
-                    meltingSlots.setStackInSlot(melt.slot(), ItemStack.EMPTY);
+                FluidStack result = melt.result();
+                // Only finalise the melt once the tank can take the entire pour. If the
+                // smeltery is full, fill() would partially accept and the remaining metal
+                // would be lost when the slot is cleared — instead leave the completed melt in
+                // place so it retries next tick (backpressure until a drain frees space).
+                if (fluidTank.fill(result, IFluidHandler.FluidAction.SIMULATE) == result.getAmount()) {
+                    fluidTank.fill(result, IFluidHandler.FluidAction.EXECUTE);
+                    if (melt.slot() < meltingSlots.getSlots()) {
+                        meltingSlots.setStackInSlot(melt.slot(), ItemStack.EMPTY);
+                    }
+                    iterator.remove();
                 }
-                iterator.remove();
             }
         }
         setChanged();
