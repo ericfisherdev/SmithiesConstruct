@@ -89,6 +89,19 @@ class SmelteryControllerBlockEntityTest {
     }
 
     @Test
+    void aMeltingSlotIsLockedAgainstExtractionWhileItsMeltIsActive() {
+        SmelteryControllerBlockEntity be = controller();
+        be.getItemHandler().insertItem(0, new ItemStack(Items.IRON_INGOT), false);
+        be.addMelt(new MeltingProgress(0, 10, new FluidStack(Fluids.LAVA, 500)));
+
+        // Slot 0 backs an in-flight melt — a hopper or player must not be able to pull it out.
+        assertTrue(be.getItemHandler().extractItem(0, 64, false).isEmpty(), "a reserved slot rejects extraction");
+        assertSame(Items.IRON_INGOT, be.getItemHandler().getStackInSlot(0).getItem(), "the reserved input stays in place");
+        // A slot with no melt is untouched by the reservation.
+        assertTrue(be.getItemHandler().getStackInSlot(1).isEmpty(), "an unreserved slot is unaffected");
+    }
+
+    @Test
     void tickMeltsIsANoOpWithNoActiveMelts() {
         SmelteryControllerBlockEntity be = controller();
         be.tickMelts();
