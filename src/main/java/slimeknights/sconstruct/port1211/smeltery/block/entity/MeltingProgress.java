@@ -98,16 +98,22 @@ public final class MeltingProgress {
     }
 
     /**
-     * Reconstruct a melt from its saved tag. A tag whose {@code Result} fluid no longer parses
-     * (the fluid's mod was removed) yields an empty {@link java.util.Optional} so the controller
-     * drops the dead melt rather than crashing the world load.
+     * Reconstruct a melt from its saved tag. Fails soft to an empty {@link java.util.Optional}
+     * for any malformed tag — a {@code Result} fluid that no longer parses (the fluid's mod was
+     * removed) or a missing / invalid {@code Slot} or {@code Required} value that the
+     * constructor would reject. The controller drops the dead melt rather than letting an
+     * {@link IllegalArgumentException} abort the whole block-entity load.
      */
     public static java.util.Optional<MeltingProgress> load(HolderLookup.Provider provider, CompoundTag tag) {
         FluidStack result = FluidStack.parseOptional(provider, tag.getCompound(TAG_RESULT));
-        if (result.isEmpty()) {
+        int slot = tag.getInt(TAG_SLOT);
+        int required = tag.getInt(TAG_REQUIRED);
+        // Mirror the constructor's invariants here so a corrupt tag is dropped rather than
+        // thrown — getInt returns 0 for a missing key, which the constructor would reject.
+        if (result.isEmpty() || slot < 0 || required <= 0) {
             return java.util.Optional.empty();
         }
-        MeltingProgress progress = new MeltingProgress(tag.getInt(TAG_SLOT), tag.getInt(TAG_REQUIRED), result);
+        MeltingProgress progress = new MeltingProgress(slot, required, result);
         progress.elapsedTicks = tag.getInt(TAG_ELAPSED);
         return java.util.Optional.of(progress);
     }

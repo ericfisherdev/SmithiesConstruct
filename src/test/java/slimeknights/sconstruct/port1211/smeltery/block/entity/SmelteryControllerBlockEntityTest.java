@@ -1,6 +1,7 @@
 package slimeknights.sconstruct.port1211.smeltery.block.entity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.core.BlockPos;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import org.junit.jupiter.api.Test;
 
@@ -66,7 +68,24 @@ class SmelteryControllerBlockEntityTest {
 
         assertTrue(be.getActiveMelts().isEmpty(), "the completed melt is removed from the active list");
         assertEquals(500, be.getFluidHandler().getFluidInTank(0).getAmount(), "the melt's result is poured into the tank");
+        assertSame(Fluids.LAVA, be.getFluidHandler().getFluidInTank(0).getFluid(), "the poured fluid is the melt's result fluid");
         assertTrue(be.getItemHandler().getStackInSlot(0).isEmpty(), "the consumed melting slot is cleared on completion");
+    }
+
+    @Test
+    void tickMeltsDefersAFinishedMeltWhenTheTankCannotTakeTheWholePour() {
+        SmelteryControllerBlockEntity be = controller();
+        // Leave only 100 mB of headroom — less than the melt's 500 mB result.
+        be.getFluidHandler().fill(new FluidStack(Fluids.LAVA, SmelteryControllerBlockEntity.INITIAL_TANK_CAPACITY - 100), IFluidHandler.FluidAction.EXECUTE);
+        be.addMelt(new MeltingProgress(0, 2, new FluidStack(Fluids.LAVA, 500)));
+
+        for (int tick = 0; tick < 4; tick++) {
+            be.tickMelts();
+        }
+
+        assertEquals(1, be.getActiveMelts().size(), "a finished melt stays queued while the tank is full");
+        assertTrue(be.getActiveMelts().get(0).isComplete(), "the deferred melt is still marked complete");
+        assertEquals(SmelteryControllerBlockEntity.INITIAL_TANK_CAPACITY - 100, be.getFluidHandler().getFluidInTank(0).getAmount(), "no partial pour while the tank lacks room");
     }
 
     @Test
