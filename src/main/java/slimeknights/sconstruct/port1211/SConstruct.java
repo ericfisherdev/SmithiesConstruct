@@ -33,6 +33,7 @@ import slimeknights.sconstruct.port1211.tools.client.PatternChestClient;
 import slimeknights.sconstruct.port1211.tools.client.StencilTableClient;
 import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
 import slimeknights.sconstruct.port1211.tools.client.ToolStationClient;
+import slimeknights.sconstruct.port1211.tools.client.model.ToolModelEvents;
 import slimeknights.sconstruct.port1211.tools.item.ToolItems;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
@@ -157,6 +158,9 @@ public final class SConstruct {
             // screen on RegisterMenuScreensEvent so the client opens ToolStationScreen when
             // the server sends a ClientboundOpenScreenPacket for either station's menu.
             ToolStationClient.register(modBus);
+            // SMTCON-105: on ModelEvent.ModifyBakingResult, swap every tool item's baked model
+            // for a ToolBakedModel that tints each part layer by its material colour.
+            ToolModelEvents.register(modBus);
         }
 
         modBus.addListener(this::onCommonSetup);
