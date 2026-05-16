@@ -1,7 +1,5 @@
 package slimeknights.sconstruct.port1211.smeltery.recipe;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -70,29 +68,40 @@ public record AlloyRecipe(List<FluidIngredient> inputs, FluidStack output, int t
     }
 
     /**
-     * Whether the smeltery is hot enough and holds every input fluid. Each input is matched
-     * against a distinct tank stack — a single stack cannot satisfy two inputs.
+     * Whether the smeltery is hot enough and holds every input fluid. Each input must be paired
+     * with a <em>distinct</em> tank stack. The pairing is found by backtracking rather than
+     * first-fit: a greedy match could spend a stack on an earlier broad ingredient and then fail
+     * a later specific one even though a valid distinct assignment exists.
      */
     @Override
     public boolean matches(AlloyRecipeInput input, Level level) {
         if (input.currentTemperature() < temperature) {
             return false;
         }
-        List<FluidStack> available = new ArrayList<>(input.tankContents());
-        for (FluidIngredient ingredient : inputs) {
-            boolean matched = false;
-            for (Iterator<FluidStack> stacks = available.iterator(); stacks.hasNext();) {
-                if (ingredient.test(stacks.next())) {
-                    stacks.remove();
-                    matched = true;
-                    break;
+        List<FluidStack> contents = input.tankContents();
+        return assignInputs(0, new boolean[contents.size()], contents);
+    }
+
+    /**
+     * Backtracking assignment of inputs to distinct tank stacks: tries to pair input
+     * {@code ingredientIndex} with each not-yet-used stack it accepts and recurses, undoing the
+     * choice if the remaining inputs cannot then be satisfied.
+     */
+    private boolean assignInputs(int ingredientIndex, boolean[] used, List<FluidStack> contents) {
+        if (ingredientIndex == inputs.size()) {
+            return true;
+        }
+        FluidIngredient ingredient = inputs.get(ingredientIndex);
+        for (int stack = 0; stack < contents.size(); stack++) {
+            if (!used[stack] && ingredient.test(contents.get(stack))) {
+                used[stack] = true;
+                if (assignInputs(ingredientIndex + 1, used, contents)) {
+                    return true;
                 }
-            }
-            if (!matched) {
-                return false;
+                used[stack] = false;
             }
         }
-        return true;
+        return false;
     }
 
     @Override
