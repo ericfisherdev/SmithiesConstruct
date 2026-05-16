@@ -413,7 +413,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
      * yet — but are kept as distinct fields so {@code SmelteryFuelUpdatePayload} carries both.
      */
     private void setTemperature(int temperature) {
-        if (currentTemperature != temperature) {
+        // Guard on both fields: after a reload currentTemperature loads from NBT but
+        // targetTemperature defaults to 0, so a same-current-value tick must still refresh it.
+        if (currentTemperature != temperature || targetTemperature != temperature) {
             currentTemperature = temperature;
             targetTemperature = temperature;
             setChanged();
