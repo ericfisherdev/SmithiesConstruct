@@ -8,14 +8,14 @@ import com.mojang.serialization.MapCodec;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 
 /**
- * Seared tank IO block (SMTCON-112) — the larger smeltery storage tank. Eventually this is a
- * 4000mb fluid container that both accepts and dispenses molten metal through its exposed
- * {@code IFluidHandler}, letting the player buffer the smeltery's output. The tank capacity and
- * the fluid-handler capability wiring land in SMTCON-116; at this registration layer the block
- * is a plain horizontally-directional {@link SmelteryComponentBlock} carrying the shared
- * controller-proxy block entity.
+ * Seared tank IO block (SMTCON-118) — the larger smeltery storage tank, a
+ * {@value slimeknights.sconstruct.port1211.smeltery.block.entity.SearedTankBE#CAPACITY_IO} mB
+ * fluid container that both accepts and dispenses molten metal through its exposed
+ * {@code IFluidHandler}, letting the player buffer the smeltery's output. As a
+ * {@link SearedTankBlock} it carries a real {@link slimeknights.sconstruct.port1211.smeltery.block.entity.SearedTankBE}
+ * with its own storage, accepts bucket interactions, and spills its contents when broken.
  */
-public class SearedTankIoBlock extends SmelteryComponentBlock {
+public class SearedTankIoBlock extends SearedTankBlock {
 
     /** Save-format codec — {@link BaseEntityBlock} requires one; the properties-only form suffices. */
     public static final MapCodec<SearedTankIoBlock> CODEC = simpleCodec(SearedTankIoBlock::new);
