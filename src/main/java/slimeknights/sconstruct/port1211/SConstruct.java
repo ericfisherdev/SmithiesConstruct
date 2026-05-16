@@ -24,6 +24,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
+import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
@@ -79,6 +80,11 @@ public final class SConstruct {
         // before the registry events fire. Lives here inline for now; relocates into the
         // smeltery pulse's register() when SMTCON-131 wires that pulse.
         SmelteryFluids.init();
+
+        // SMTCON-111: force SearedBlocks to load so its static block registers the 16 seared
+        // construction blocks (+ block items) before the registry events fire. Lives here
+        // inline for now; relocates into the smeltery pulse's register() at SMTCON-131.
+        SearedBlocks.init();
 
         // SMTCON-110: on a physical client, bind each molten-metal fluid type to its
         // IClientFluidTypeExtensions (shared texture pair + per-metal tint + warm fog). Guarded
