@@ -25,9 +25,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  *
  * <p>Unlike melting and casting, an alloy recipe runs continuously — the controller checks every
  * tick whether its tank holds the inputs and is at least {@link #temperature()} kelvin, and if so
- * drains the inputs and adds the output. {@link #matches} performs that check; it greedily pairs
- * each {@link FluidIngredient} with a <em>distinct</em> tank fluid stack, so two inputs cannot
- * both be satisfied by the same stack.
+ * drains the inputs and adds the output. {@link #matches} performs that check; it pairs each
+ * {@link FluidIngredient} with a <em>distinct</em> tank fluid stack by backtracking, so two
+ * inputs cannot both be satisfied by the same stack and a broad ingredient cannot starve a more
+ * specific one of a stack it needs.
  *
  * <p>An alloy yields a fluid, not an item, so {@link #assemble} and {@link #getResultItem} return
  * {@link ItemStack#EMPTY}; the controller reads {@link #inputs()} and {@link #output()} directly
