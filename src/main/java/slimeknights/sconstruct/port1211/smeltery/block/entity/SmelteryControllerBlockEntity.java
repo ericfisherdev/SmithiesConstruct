@@ -14,6 +14,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -83,6 +86,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     private static final String TAG_MELTING_SLOTS = "MeltingSlots";
     private static final String TAG_TEMPERATURE = "Temperature";
     private static final String TAG_ACTIVE_MELTS = "ActiveMelts";
+
+    /** Update-tag key for the target temperature — sync-only, not part of the saved state. */
+    private static final String TAG_TARGET_TEMPERATURE = "TargetTemperature";
+
+    /** Update-tag key for the interior render bounds — sync-only, not part of the saved state. */
+    private static final String TAG_RENDER_BOUNDS = "RenderBounds";
+
+    /** Number of integers in the {@link #TAG_RENDER_BOUNDS} array — the six box corners. */
+    private static final int RENDER_BOUNDS_LENGTH = 6;
 
     /** The smeltery's molten-metal tank; resized to the interior volume by SMTCON-115. */
     private final FluidTank fluidTank = new FluidTank(INITIAL_TANK_CAPACITY) {
@@ -520,6 +532,38 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         if (placed > 0) {
             fluidTank.drain(placed * FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.EXECUTE);
         }
+    }
+
+    /**
+     * Initial-sync tag sent to a client when it starts tracking the controller's chunk. Carries
+     * the saved state plus the two sync-only fields ({@link #targetTemperature} and the structure
+     * render bounds) so a newly-tracking client sees the full smeltery state at once; the
+     * SMTCON-124 delta payloads then keep it current without resending this whole tag.
+     */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = saveWithoutMetadata(provider);
+        tag.putInt(TAG_TARGET_TEMPERATURE, targetTemperature);
+        structure.map(SmelteryStructure::bounds)
+                .ifPresent(bounds -> tag.putIntArray(TAG_RENDER_BOUNDS, new int[] { bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ() }));
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    /**
+     * Applies the {@link #getUpdateTag} initial-sync tag on the client — the saved state via
+     * {@code super}, then the two sync-only fields.
+     */
+    @Override
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
+        super.handleUpdateTag(tag, provider);
+        targetTemperature = tag.getInt(TAG_TARGET_TEMPERATURE);
+        int[] bounds = tag.getIntArray(TAG_RENDER_BOUNDS);
+        renderBounds = bounds.length == RENDER_BOUNDS_LENGTH ? Optional.of(new BoundingBox(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])) : Optional.empty();
     }
 
     @Override
