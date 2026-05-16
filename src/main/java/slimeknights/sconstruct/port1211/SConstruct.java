@@ -2,14 +2,12 @@ package slimeknights.sconstruct.port1211;
 
 import java.util.List;
 
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -24,20 +22,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
-import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
-import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
-import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
-import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
-import slimeknights.sconstruct.port1211.tools.client.PartBuilderClient;
-import slimeknights.sconstruct.port1211.tools.client.PatternChestClient;
-import slimeknights.sconstruct.port1211.tools.client.StencilTableClient;
-import slimeknights.sconstruct.port1211.tools.client.ToolColorHandlers;
-import slimeknights.sconstruct.port1211.tools.client.ToolStationClient;
-import slimeknights.sconstruct.port1211.tools.client.model.ToolModelEvents;
-import slimeknights.sconstruct.port1211.tools.item.ToolItems;
-import slimeknights.sconstruct.port1211.tools.item.ToolParts;
-import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
-import slimeknights.sconstruct.port1211.tools.modifier.ModifierRegistry;
+import slimeknights.sconstruct.port1211.tools.ToolsPulse;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
 /**
@@ -79,89 +64,11 @@ public final class SConstruct {
         // run before the registry event fires.
         TinkerDataComponents.init();
 
-        // Force ToolParts to register its 16 MaterialItem entries before the ITEMS registry
-        // event fires, and subscribe its BuildCreativeModeTabContentsEvent listener so every
-        // part shows up under the shared GENERAL tab. This wiring will relocate into a future
-        // TinkerToolsPulse#register once that pulse lands; until then it lives here alongside
-        // the other "foundation" touches above.
-        ToolParts.init();
-        ToolParts.registerCreativeTabContents(modBus);
-
-        // Same wiring for the four vanilla-equivalent tool items (pickaxe, shovel, axe, sword)
-        // landed by SMTCON-79. Static initialiser registers each subclass against
-        // TinkerRegistries.ITEMS; the creative-tab listener pushes them into SharedTabs.GENERAL
-        // alongside the part items. Both calls move into TinkerToolsPulse#register when that
-        // pulse lands.
-        ToolItems.init();
-        ToolItems.registerCreativeTabContents(modBus);
-
-        // SMTCON-101: tool projectile entities (shuriken). Forces the ToolEntities static
-        // initialiser to run before NewRegistryEvent fires so the entity types are registered
-        // against TinkerRegistries.ENTITY_TYPES alongside the world pulse's slime entities.
-        slimeknights.sconstruct.port1211.tools.entity.ToolEntities.init();
-
-        // SMTCON-90: 32-slot pattern chest. Same temporary-home rationale as ToolItems above —
-        // moves into TinkerToolsPulse#register when that pulse lands. The init() call forces
-        // the block / item / BE / menu DeferredHolder field initialisers to run before the
-        // matching registry events fire; registerCreativeTabContents subscribes the listener
-        // that pushes the chest's BlockItem into SharedTabs.GENERAL.
-        PatternChestRegistry.init();
-        PatternChestRegistry.registerCreativeTabContents(modBus);
-
-        // SMTCON-91: stencil table + the two pattern items (blank + typed) that share the
-        // PatternItem class. Same temporary-home rationale as PatternChestRegistry above —
-        // moves into TinkerToolsPulse when that pulse lands.
-        StencilTableRegistry.init();
-        StencilTableRegistry.registerCreativeTabContents(modBus);
-
-        // SMTCON-92: part builder. Same temporary-home rationale as StencilTableRegistry above —
-        // moves into TinkerToolsPulse when that pulse lands.
-        PartBuilderRegistry.init();
-        PartBuilderRegistry.registerCreativeTabContents(modBus);
-
-        // SMTCON-93: tool station + tool forge. Same temporary-home rationale as
-        // PartBuilderRegistry above — moves into TinkerToolsPulse when that pulse lands.
-        ToolStationRegistry.init();
-        ToolStationRegistry.registerCreativeTabContents(modBus);
-
-        // Register the sconstruct:material datapack registry on DataPackRegistryEvent.NewRegistry
-        // (mod bus) and the OnDatapackSyncEvent cache rebuild (NeoForge bus). Same temporary
-        // home as the ToolParts wiring above — moves into TinkerToolsPulse when that lands.
-        MaterialRegistry.register(modBus, NeoForge.EVENT_BUS);
-
-        // Parallel datapack registry for sconstruct:modifier (SMTCON-82). Same lifecycle pair
-        // as the materials registry — registered on DataPackRegistryEvent.NewRegistry, cached
-        // server-side on OnDatapackSyncEvent. Moves into TinkerToolsPulse with the rest when
-        // that pulse lands.
-        ModifierRegistry.register(modBus, NeoForge.EVENT_BUS);
-
-        // Client-only: ItemColors handler that tints MaterialItem part icons by the material's
-        // packed ARGB colour, plus a ClientPlayerNetworkEvent.LoggingIn refresh that rebuilds the
-        // MaterialClientCache from the freshly-synced datapack registry (SMTCON-72). Guarded by
-        // FMLEnvironment.dist so the client-only class never resolves on a dedicated server —
-        // the JVM does not load types inside an unreached branch.
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            ToolColorHandlers.register(modBus);
-            // SMTCON-90: pair the pattern chest menu type with its screen on
-            // RegisterMenuScreensEvent so the client opens PatternChestScreen when the server
-            // sends a ClientboundOpenScreenPacket for the chest's menu.
-            PatternChestClient.register(modBus);
-            // SMTCON-91: pair the stencil table menu type with its screen on
-            // RegisterMenuScreensEvent so the client opens StencilTableScreen when the server
-            // sends a ClientboundOpenScreenPacket for the table's menu.
-            StencilTableClient.register(modBus);
-            // SMTCON-92: pair the part builder menu type with its screen on
-            // RegisterMenuScreensEvent so the client opens PartBuilderScreen when the server
-            // sends a ClientboundOpenScreenPacket for the builder's menu.
-            PartBuilderClient.register(modBus);
-            // SMTCON-93: pair the tool station + tool forge menu types with their shared
-            // screen on RegisterMenuScreensEvent so the client opens ToolStationScreen when
-            // the server sends a ClientboundOpenScreenPacket for either station's menu.
-            ToolStationClient.register(modBus);
-            // SMTCON-105: on ModelEvent.ModifyBakingResult, swap every tool item's baked model
-            // for a ToolBakedModel that tints each part layer by its material colour.
-            ToolModelEvents.register(modBus);
-        }
+        // The whole Phase-4 tools content stack — tool parts, tool items, station blocks, the
+        // material / modifier datapack registries, and the client-side tint / model / screen
+        // wiring — is registered by ToolsPulse#register, gated by the "tools" config flag (see
+        // the PulseLoader.boot call below). It lived inline here through Phases 1-4 until the
+        // pulse landed (SMTCON-107).
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
@@ -171,7 +78,7 @@ public final class SConstruct {
         // {@link Config#pulseGate} so each pulse's per-id flag in the COMMON TOML controls
         // whether its register/setup hooks run — disabling "shared" here skips every Phase-2
         // registration cleanly, leaving the mod with only foundation infrastructure.
-        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse());
+        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse(), new ToolsPulse());
         PulseLoader.boot(modBus, pulses, Config.pulseGate());
         LOGGER.info("SConstruct 1.21.1 port: foundation infrastructure wired ({} pulses)", pulses.size());
     }

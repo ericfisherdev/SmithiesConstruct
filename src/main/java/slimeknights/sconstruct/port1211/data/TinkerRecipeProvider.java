@@ -89,6 +89,23 @@ public final class TinkerRecipeProvider extends RecipeProvider {
         // player would already have. Recipe ids are auto-derived from the result's registry
         // path; collisions are impossible because each station has a unique block id.
         addStationRecipes(recipeOutput);
+
+        // SMTCON-107: the blank-pattern crafting recipe. This is the single cheapest entry
+        // point into the whole tool system — without it the stencil table, part builder, and
+        // every part template are unreachable from a fresh world.
+        addPatternRecipe(recipeOutput);
+    }
+
+    /**
+     * Emit the blank-pattern recipe: 4 sticks in a 2×2 → 4 blank patterns. The 1-stick-per-
+     * pattern ratio is deliberately trivial — blank patterns are a bulk consumable (one is
+     * spent per part template carved at the stencil table), so the recipe is priced to never
+     * be a progression gate. BUILDING_BLOCKS would be wrong here; MISC keeps it in the
+     * miscellaneous recipe-book tab alongside the other tool-pulse intermediates.
+     */
+    private void addPatternRecipe(RecipeOutput recipeOutput) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, StencilTableRegistry.BLANK_PATTERN.get(), 4).pattern("SS").pattern("SS").define('S', Items.STICK).unlockedBy("has_stick", has(Items.STICK))
+                .save(recipeOutput);
     }
 
     /**
