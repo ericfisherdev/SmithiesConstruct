@@ -63,6 +63,23 @@ class SmelteryStructureValidatorTest {
     }
 
     @Test
+    void validateRejectsAShellTallerThanTheWallHeightCap() {
+        // A wall ring one layer above MAX_WALL_HEIGHT must not pass as a capped-height smeltery.
+        Map<BlockPos, BlockRole> world = bowl(3, 3, SmelteryStructureValidator.MAX_WALL_HEIGHT + 1);
+
+        assertTrue(SmelteryStructureValidator.validate(classifier(world), CONTROLLER, FACING).isEmpty(), "a shell taller than the wall-height cap must not validate");
+    }
+
+    @Test
+    void validateRejectsASmelteryWithASecondController() {
+        Map<BlockPos, BlockRole> world = bowl(3, 3, 3);
+        // Plant a second controller in the wall ring — a smeltery has exactly one.
+        world.put(new BlockPos(3, 2, 1), BlockRole.CONTROLLER);
+
+        assertTrue(SmelteryStructureValidator.validate(classifier(world), CONTROLLER, FACING).isEmpty(), "a smeltery with more than one controller must not validate");
+    }
+
+    @Test
     void validateRejectsWhenControllerBlockIsAbsent() {
         Map<BlockPos, BlockRole> world = bowl(3, 3, 3);
         world.remove(CONTROLLER);
@@ -71,7 +88,7 @@ class SmelteryStructureValidatorTest {
     }
 
     @Test
-    void validateCompletesAMaximalSmelteryWellUnderAMillisecond() {
+    void validateMaximalSmelteryCompletesWithinPerformanceBudget() {
         Map<BlockPos, BlockRole> world = bowl(SmelteryStructureValidator.MAX_INTERIOR_SIZE, SmelteryStructureValidator.MAX_INTERIOR_SIZE, SmelteryStructureValidator.MAX_WALL_HEIGHT);
         BlockClassifier classifier = classifier(world);
 

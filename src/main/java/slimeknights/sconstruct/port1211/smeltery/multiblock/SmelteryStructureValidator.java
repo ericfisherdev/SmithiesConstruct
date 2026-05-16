@@ -57,6 +57,9 @@ public final class SmelteryStructureValidator {
     /** Maximum wall height in blocks for a v1 smeltery. */
     public static final int MAX_WALL_HEIGHT = 4;
 
+    /** The number of controller blocks a well-formed smeltery has — exactly one. */
+    private static final int REQUIRED_CONTROLLER_COUNT = 1;
+
     private SmelteryStructureValidator() {
     }
 
@@ -216,6 +219,7 @@ public final class SmelteryStructureValidator {
         // Step 4: stack wall rings upward while each ring fully encloses a clear interior layer.
         Set<BlockPos> walls = new HashSet<>();
         Map<BlockPos, ComponentType> components = new HashMap<>();
+        int controllerCount = 0;
         int height = 0;
         while (height < MAX_WALL_HEIGHT) {
             int y = interiorBaseY + height;
@@ -231,6 +235,9 @@ public final class SmelteryStructureValidator {
             for (BlockPos wall : ring) {
                 walls.add(wall);
                 BlockRole role = classifier.classify(wall);
+                if (role == BlockRole.CONTROLLER) {
+                    controllerCount++;
+                }
                 if (role.isComponent()) {
                     components.put(wall, role.componentType());
                 }
@@ -238,6 +245,17 @@ public final class SmelteryStructureValidator {
             height++;
         }
         if (height < MIN_WALL_HEIGHT) {
+            return Optional.empty();
+        }
+        // A complete ring one layer above the cap means the shell is taller than the v1 limit —
+        // reject rather than silently treating an over-tall shell as a MAX_WALL_HEIGHT smeltery.
+        if (height == MAX_WALL_HEIGHT && ringIsWall(classifier, ringAt(footprint, interiorBaseY + height))) {
+            return Optional.empty();
+        }
+        // A smeltery requires exactly one controller; the controller at controllerPos sits in
+        // the bottom wall ring and so is counted during ring iteration — it must be the sole
+        // CONTROLLER-role block encountered.
+        if (controllerCount != REQUIRED_CONTROLLER_COUNT) {
             return Optional.empty();
         }
 
