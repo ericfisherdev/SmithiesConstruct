@@ -3,17 +3,18 @@ package slimeknights.sconstruct.port1211.smeltery.block;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SearedTankBE;
@@ -22,17 +23,19 @@ import slimeknights.sconstruct.port1211.smeltery.block.entity.SearedTankBE;
  * Abstract base for the two seared tank blocks (SMTCON-118) — the standalone fluid containers
  * of the smeltery. Splits the tank-specific behaviour off {@link SmelteryComponentBlock}: a tank
  * carries a {@link SearedTankBE} (which owns a real {@link net.neoforged.neoforge.fluids.capability.templates.FluidTank})
- * rather than the bare controller-proxy block entity, accepts bucket interactions, and spills
- * its contents when broken.
+ * rather than the bare controller-proxy block entity, accepts bucket interactions, and keeps its
+ * contents when broken.
  *
  * <p><strong>Bucket interaction.</strong> {@link #useItemOn} routes a held bucket through
  * {@link FluidUtil#interactWithFluidHandler}, which fills the tank from a full bucket or empties
  * the tank into an empty one against the tank's {@code FluidHandler.BLOCK} capability.
  *
- * <p><strong>Spill on break.</strong> {@link #onRemove} pops the tank's stored metal as filled
- * buckets — one per {@value FluidType#BUCKET_VOLUME} mB — so mining a full tank does not vanish
- * its contents. A sub-bucket remainder is not recoverable as an item and is dropped; tanks are
- * filled in bucket units in normal play, so this is not a practical loss.
+ * <p><strong>Contents on break.</strong> {@link #onRemove} drops a tank item carrying the block
+ * entity's data when the tank holds fluid, so the <em>exact</em> stored amount survives mining
+ * and is restored when the tank is placed again — molten metal is stored in 144&nbsp;mB ingot
+ * units, so a bucket-quantised drop would routinely lose a remainder. An empty tank drops
+ * nothing here; its plain-block drop is the loot table's job (SMTCON-129), which will own the
+ * full break-drop once it lands.
  */
 public abstract class SearedTankBlock extends SmelteryComponentBlock {
 
@@ -59,29 +62,26 @@ public abstract class SearedTankBlock extends SmelteryComponentBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         // Guard on an actual block change (not a state-only update) so a blockstate flip does
-        // not spill the tank.
+        // not drop the tank.
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof SearedTankBE tank) {
-            spillContents(level, pos, tank);
+            dropFilledTank(level, pos, state, tank);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    /** Pops the tank's stored fluid as filled buckets, one per bucket volume. */
-    private static void spillContents(Level level, BlockPos pos, SearedTankBE tank) {
-        FluidStack contents = tank.getFluidHandler().getFluidInTank(0);
-        int buckets = contents.getAmount() / FluidType.BUCKET_VOLUME;
-        if (buckets <= 0) {
+    /**
+     * Drops a tank item carrying the block entity's saved data when the tank holds fluid, so the
+     * exact contents survive the break and are restored on placement. A {@code BLOCK_ENTITY_DATA}
+     * component tagged with the block-entity id is what vanilla's {@code BlockItem} placement
+     * reads back into the freshly placed {@link SearedTankBE}.
+     */
+    private static void dropFilledTank(Level level, BlockPos pos, BlockState state, SearedTankBE tank) {
+        if (tank.getFluidHandler().getFluidInTank(0).isEmpty()) {
             return;
         }
-        // copyWithAmount keeps the fluid's data components — only the amount is changed to one
-        // bucket — so a dropped bucket carries the same molten metal that was stored.
-        ItemStack filledBucket = FluidUtil.getFilledBucket(contents.copyWithAmount(FluidType.BUCKET_VOLUME));
-        if (filledBucket.isEmpty()) {
-            // The fluid has no bucket form — nothing to drop rather than crash.
-            return;
-        }
-        for (int i = 0; i < buckets; i++) {
-            Block.popResource(level, pos, filledBucket.copy());
-        }
+        CompoundTag blockEntityData = tank.saveWithId(level.registryAccess());
+        ItemStack drop = new ItemStack(state.getBlock());
+        drop.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(blockEntityData));
+        Block.popResource(level, pos, drop);
     }
 }
