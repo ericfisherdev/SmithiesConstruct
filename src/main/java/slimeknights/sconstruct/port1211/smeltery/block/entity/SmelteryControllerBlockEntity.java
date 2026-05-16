@@ -1,37 +1,187 @@
 package slimeknights.sconstruct.port1211.smeltery.block.entity;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 
 /**
- * Block entity for the smeltery controller (SMTCON-112). This is a deliberate empty skeleton:
- * the registration ticket only needs the controller block to carry a BE so that later tickets
- * have a typed home to attach behaviour to, without churning the block-entity-type registration.
+ * Block entity for the smeltery controller (SMTCON-114) -- the brain of the multiblock. It owns
+ * the smeltery's fluid tank, the item input (melting) slots, the current internal temperature,
+ * and the list of in-flight {@link MeltingProgress melts} the server tick advances.
  *
- * <p>Intentionally absent and arriving in later tickets:
- * <ul>
- *   <li><b>SMTCON-114</b> — the smeltery state machine and the structure-validation pass that
- *       scans the seared-block shell, stamps every {@link SmelteryComponentBlockEntity} with this
- *       controller's position, and tracks melt progress / fuel.</li>
- *   <li><b>SMTCON-125</b> — the controller GUI: this BE will implement
- *       {@link net.minecraft.world.MenuProvider} so the right-click hook in
- *       {@code SmelteryControllerBlock#useWithoutItem} can call {@code player.openMenu(...)}.</li>
- * </ul>
+ * <p><strong>Structure and sizing.</strong> The fluid tank and melting-slot inventory are
+ * created at fixed initial sizes ({@link #INITIAL_TANK_CAPACITY} / {@link #INITIAL_MELTING_SLOTS})
+ * so the controller is a complete, usable BE on its own. The structure-validation pass that
+ * scans the seared shell and <em>resizes</em> both to the assembled smeltery's interior volume
+ * lands in SMTCON-115 -- it will call {@link FluidTank#setCapacity(int)} and
+ * {@link ItemStackHandler#setSize(int)}; the persisted contents survive a resize because both
+ * are round-tripped verbatim here.
  *
- * <p>Until then it holds no fields and no logic — only the constructor, which reads its
- * registered type from {@link SmelteryComponents#SMELTERY_CONTROLLER_BE} the same way
- * {@code PatternChestBlockEntity} reads its type from {@code PatternChestRegistry}.
+ * <p><strong>Ticking.</strong> {@link #serverTick} is registered as the block's server-side
+ * {@code BlockEntityTicker}. Each tick {@link #tickMelts()} advances every active melt by one
+ * tick; a melt that reaches its required duration pours its result into the tank, clears the
+ * melting slot it consumed, and is dropped from the active list. The trigger that <em>creates</em>
+ * a {@link MeltingProgress} -- matching a {@code MeltingRecipe} to an item dropped into a slot --
+ * lands with the recipe implementation (SMTCON-120); this BE is the machinery that runs them.
+ *
+ * <p><strong>Capabilities.</strong> The tank and the melting-slot inventory are exposed as
+ * {@code Capabilities.FluidHandler.BLOCK} and {@code Capabilities.ItemHandler.BLOCK} (registered
+ * in {@code SmelteryCapabilities}) so a seared drain can pull metal out and a seared chute can
+ * push items in.
+ *
+ * <p>The controller GUI -- this BE implementing {@link net.minecraft.world.MenuProvider} so the
+ * controller block's right-click opens a screen -- arrives in SMTCON-125.
  */
 public class SmelteryControllerBlockEntity extends BlockEntity {
 
-    /**
-     * @param pos   the block position, forwarded to {@link BlockEntity}
-     * @param state the placed block state, forwarded to {@link BlockEntity}
-     */
+    /** Initial melting-slot count before SMTCON-115 resizes it to the assembled interior. */
+    public static final int INITIAL_MELTING_SLOTS = 9;
+
+    /** Initial tank capacity in mB before SMTCON-115 resizes it to the assembled interior. */
+    public static final int INITIAL_TANK_CAPACITY = 9 * 2592;
+
+    private static final String TAG_TANK = "Tank";
+    private static final String TAG_MELTING_SLOTS = "MeltingSlots";
+    private static final String TAG_TEMPERATURE = "Temperature";
+    private static final String TAG_ACTIVE_MELTS = "ActiveMelts";
+
+    /** The smeltery's molten-metal tank; resized to the interior volume by SMTCON-115. */
+    private final FluidTank fluidTank = new FluidTank(INITIAL_TANK_CAPACITY) {
+        @Override
+        protected void onContentsChanged() {
+            setChanged();
+        }
+    };
+
+    /** Item input slots -- items dropped here are matched to melting recipes; resized by SMTCON-115. */
+    private final ItemStackHandler meltingSlots = new ItemStackHandler(INITIAL_MELTING_SLOTS) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+        }
+    };
+
+    /** Current internal temperature in kelvin; driven by fuel in a later fuel ticket. */
+    private int currentTemperature;
+
+    /** Melts currently in progress, advanced one tick at a time by {@link #tickMelts()}. */
+    private final List<MeltingProgress> activeMelts = new ArrayList<>();
+
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state) {
         super(SmelteryComponents.SMELTERY_CONTROLLER_BE.get(), pos, state);
+    }
+
+    /** The smeltery tank, exposed as the {@code FluidHandler.BLOCK} capability. */
+    public IFluidHandler getFluidHandler() {
+        return fluidTank;
+    }
+
+    /** The melting-slot inventory, exposed as the {@code ItemHandler.BLOCK} capability. */
+    public IItemHandler getItemHandler() {
+        return meltingSlots;
+    }
+
+    /** Current internal temperature in kelvin. */
+    public int getCurrentTemperature() {
+        return currentTemperature;
+    }
+
+    /** Set the internal temperature; flags the chunk dirty so the new value is saved. */
+    public void setCurrentTemperature(int temperature) {
+        this.currentTemperature = temperature;
+        setChanged();
+    }
+
+    /** Read-only view of the in-flight melts -- used by the GUI and by tests. */
+    public List<MeltingProgress> getActiveMelts() {
+        return Collections.unmodifiableList(activeMelts);
+    }
+
+    /** Queue a new melt. The recipe layer (SMTCON-120) calls this when a slot item matches. */
+    public void addMelt(MeltingProgress melt) {
+        activeMelts.add(melt);
+        setChanged();
+    }
+
+    /**
+     * Advance every active melt by one server tick. A melt that completes pours its result into
+     * the tank, clears the melting slot it consumed, and is removed from the active list.
+     * Extracted from {@link #serverTick} as an instance method so the ticking contract can be
+     * unit-tested without a live {@link Level}.
+     */
+    public void tickMelts() {
+        if (activeMelts.isEmpty()) {
+            return;
+        }
+        Iterator<MeltingProgress> iterator = activeMelts.iterator();
+        while (iterator.hasNext()) {
+            MeltingProgress melt = iterator.next();
+            melt.advance();
+            if (melt.isComplete()) {
+                fluidTank.fill(melt.result(), IFluidHandler.FluidAction.EXECUTE);
+                if (melt.slot() < meltingSlots.getSlots()) {
+                    meltingSlots.setStackInSlot(melt.slot(), ItemStack.EMPTY);
+                }
+                iterator.remove();
+            }
+        }
+        setChanged();
+    }
+
+    /**
+     * Server-side {@code BlockEntityTicker} entry point, registered by
+     * {@code SmelteryControllerBlock#getTicker}. Delegates to {@link #tickMelts()}.
+     */
+    public static void serverTick(Level level, BlockPos pos, BlockState state, SmelteryControllerBlockEntity controller) {
+        controller.tickMelts();
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
+        tag.put(TAG_TANK, fluidTank.writeToNBT(provider, new CompoundTag()));
+        tag.put(TAG_MELTING_SLOTS, meltingSlots.serializeNBT(provider));
+        tag.putInt(TAG_TEMPERATURE, currentTemperature);
+        ListTag melts = new ListTag();
+        for (MeltingProgress melt : activeMelts) {
+            melts.add(melt.save(provider));
+        }
+        tag.put(TAG_ACTIVE_MELTS, melts);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
+        if (tag.contains(TAG_TANK, Tag.TAG_COMPOUND)) {
+            fluidTank.readFromNBT(provider, tag.getCompound(TAG_TANK));
+        }
+        if (tag.contains(TAG_MELTING_SLOTS, Tag.TAG_COMPOUND)) {
+            meltingSlots.deserializeNBT(provider, tag.getCompound(TAG_MELTING_SLOTS));
+        }
+        currentTemperature = tag.getInt(TAG_TEMPERATURE);
+        activeMelts.clear();
+        ListTag melts = tag.getList(TAG_ACTIVE_MELTS, Tag.TAG_COMPOUND);
+        for (int i = 0; i < melts.size(); i++) {
+            // A melt whose result fluid no longer parses (mod removed) is dropped rather than
+            // crashing the world load -- MeltingProgress.load returns empty for a dead fluid.
+            MeltingProgress.load(provider, melts.getCompound(i)).ifPresent(activeMelts::add);
+        }
     }
 }
