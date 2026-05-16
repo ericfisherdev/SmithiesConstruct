@@ -34,6 +34,14 @@ public final class SmelteryRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, SmelteryRecipeSerializer<MeltingRecipe>> MELTING_SERIALIZER = TinkerRegistries.RECIPE_SERIALIZERS.register("melting",
             () -> new SmelteryRecipeSerializer<>(MeltingRecipe.CODEC, MeltingRecipe.STREAM_CODEC));
 
+    /** The casting recipe type — one type serving both the casting table and the casting basin. */
+    public static final DeferredHolder<RecipeType<?>, RecipeType<CastingRecipe>> CASTING_TYPE = TinkerRegistries.RECIPE_TYPES.register("casting",
+            () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "casting")));
+
+    /** The casting recipe serializer — pairs {@link CastingRecipe#CODEC} with its stream codec. */
+    public static final DeferredHolder<RecipeSerializer<?>, SmelteryRecipeSerializer<CastingRecipe>> CASTING_SERIALIZER = TinkerRegistries.RECIPE_SERIALIZERS.register("casting",
+            () -> new SmelteryRecipeSerializer<>(CastingRecipe.CODEC, CastingRecipe.STREAM_CODEC));
+
     private SmelteryRecipes() {
     }
 
@@ -41,5 +49,7 @@ public final class SmelteryRecipes {
     public static void init() {
         Objects.requireNonNull(MELTING_TYPE);
         Objects.requireNonNull(MELTING_SERIALIZER);
+        Objects.requireNonNull(CASTING_TYPE);
+        Objects.requireNonNull(CASTING_SERIALIZER);
     }
 }
