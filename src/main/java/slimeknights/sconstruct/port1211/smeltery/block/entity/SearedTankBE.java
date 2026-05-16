@@ -6,10 +6,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFuelSource;
 import slimeknights.sconstruct.port1211.smeltery.block.SearedTankIoBlock;
 
 /**
@@ -30,14 +34,22 @@ import slimeknights.sconstruct.port1211.smeltery.block.SearedTankIoBlock;
  * <p>The tank contents are round-tripped through this BE's own NBT, so a tank preserves its
  * fluid across a world save. Breaking the block spills the contents as filled buckets — that
  * drop is handled by {@code SearedTankBlock}, which reads {@link #getFluidHandler()}.
+ *
+ * <p><strong>Fuel.</strong> A tank also acts as a {@link SmelteryFuelSource} (SMTCON-119): a
+ * tank holding lava or molten metal is a heat source the bound controller can draw from. Lava
+ * heats to {@value #LAVA_TEMPERATURE} K — the legacy default — while a molten metal heats to
+ * its own temperature, so a tank of a hotter metal unlocks higher-tier melts.
  */
-public class SearedTankBE extends SmelteryComponentBlockEntity {
+public class SearedTankBE extends SmelteryComponentBlockEntity implements SmelteryFuelSource {
 
     /** Capacity in mB of the seared tank IO — the larger in/out storage tank. */
     public static final int CAPACITY_IO = 4 * FluidType.BUCKET_VOLUME;
 
     /** Capacity in mB of the seared tank in — the smaller input-only tank. */
     public static final int CAPACITY_IN = 2 * FluidType.BUCKET_VOLUME;
+
+    /** Temperature in kelvin a tank of lava heats the smeltery to — the legacy default fuel. */
+    public static final int LAVA_TEMPERATURE = 1000;
 
     private static final String TAG_TANK = "Tank";
 
@@ -67,6 +79,41 @@ public class SearedTankBE extends SmelteryComponentBlockEntity {
     /** This tank's fluid storage, exposed as the {@code FluidHandler.BLOCK} capability. */
     public IFluidHandler getFluidHandler() {
         return fluidTank;
+    }
+
+    /**
+     * The temperature of this tank as a fuel source — {@value #LAVA_TEMPERATURE} K for lava, the
+     * metal's own temperature for molten metal, or {@code 0} for an empty tank or one holding a
+     * non-fuel fluid.
+     */
+    @Override
+    public int getTemperature() {
+        FluidStack contents = fluidTank.getFluid();
+        if (contents.isEmpty()) {
+            return 0;
+        }
+        if (contents.is(Fluids.LAVA)) {
+            return LAVA_TEMPERATURE;
+        }
+        return SmelteryFluids.moltenTemperature(contents.getFluid()).orElse(0);
+    }
+
+    /** Whether this tank holds a fuel fluid the controller can draw heat from. */
+    @Override
+    public boolean canProvideFuel() {
+        return getTemperature() > 0;
+    }
+
+    /**
+     * Drains up to {@code desiredMb} mB of fuel from the tank, returning the amount actually
+     * drained. A tank that is not a fuel source, or a non-positive request, consumes nothing.
+     */
+    @Override
+    public int consumeFuel(int desiredMb) {
+        if (desiredMb <= 0 || !canProvideFuel()) {
+            return 0;
+        }
+        return fluidTank.drain(desiredMb, IFluidHandler.FluidAction.EXECUTE).getAmount();
     }
 
     /**

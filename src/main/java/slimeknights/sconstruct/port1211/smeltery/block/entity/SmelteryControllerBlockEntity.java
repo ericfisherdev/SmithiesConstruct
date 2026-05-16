@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,7 +28,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFuelSource;
 import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
+import slimeknights.sconstruct.port1211.smeltery.multiblock.ComponentType;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructure;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructureValidator;
 
@@ -66,6 +69,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     /** Initial tank capacity in mB before SMTCON-115 resizes it to the assembled interior. */
     public static final int INITIAL_TANK_CAPACITY = 9 * 2592;
+
+    /** Millibuckets of fuel drawn from the active fuel tank per in-flight melt, per server tick. */
+    private static final int FUEL_DRAW_PER_MELT = 10;
 
     private static final String TAG_TANK = "Tank";
     private static final String TAG_MELTING_SLOTS = "MeltingSlots";
@@ -241,14 +247,71 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     /**
      * Server-side {@code BlockEntityTicker} entry point, registered by
-     * {@code SmelteryControllerBlock#getTicker}. Re-validates the multiblock when flagged, then
-     * advances the active melts.
+     * {@code SmelteryControllerBlock#getTicker}. Re-validates the multiblock when flagged, draws
+     * fuel from the bound tanks, then advances the active melts — but only while fuel is
+     * available, so an out-of-fuel smeltery pauses its melts rather than running them cold.
      */
     public static void serverTick(Level level, BlockPos pos, BlockState state, SmelteryControllerBlockEntity controller) {
         if (controller.needsValidation) {
             controller.tryAssemble();
         }
-        controller.tickMelts();
+        controller.tickSmeltery();
+    }
+
+    /**
+     * Drives one server tick of the smeltery: with no melts pending the controller idles cold;
+     * otherwise it draws fuel from the hottest bound tank and advances the melts, or — if no
+     * tank can provide fuel — leaves the melts paused until fuel returns.
+     */
+    private void tickSmeltery() {
+        if (activeMelts.isEmpty()) {
+            setTemperature(0);
+            return;
+        }
+        if (drawFuel()) {
+            tickMelts();
+        }
+    }
+
+    /**
+     * Polls every seared tank bound to the assembled structure, picks the hottest one that can
+     * provide fuel, and consumes from it. Sets {@link #currentTemperature} to that tank's
+     * temperature and returns {@code true}; with no fuel available it sets the temperature to
+     * {@code 0} and returns {@code false} so {@link #tickSmeltery()} pauses the melts.
+     */
+    private boolean drawFuel() {
+        SmelteryFuelSource hottest = null;
+        int hottestTemperature = 0;
+        if (level != null && structure.isPresent()) {
+            for (Map.Entry<BlockPos, ComponentType> component : structure.get().components().entrySet()) {
+                if (component.getValue() == ComponentType.TANK && level.getBlockEntity(component.getKey()) instanceof SmelteryFuelSource fuel && fuel.canProvideFuel()
+                        && fuel.getTemperature() > hottestTemperature) {
+                    hottest = fuel;
+                    hottestTemperature = fuel.getTemperature();
+                }
+            }
+        }
+        if (hottest == null) {
+            setTemperature(0);
+            return false;
+        }
+        // Fuel draw scales with the number of melts in progress — a busier smeltery burns hotter.
+        // Treat a zero-consumption draw as out-of-fuel so the melts pause rather than run cold.
+        int consumed = hottest.consumeFuel(FUEL_DRAW_PER_MELT * activeMelts.size());
+        if (consumed <= 0) {
+            setTemperature(0);
+            return false;
+        }
+        setTemperature(hottestTemperature);
+        return true;
+    }
+
+    /** Updates the internal temperature, marking the chunk dirty only when the value changes. */
+    private void setTemperature(int temperature) {
+        if (currentTemperature != temperature) {
+            currentTemperature = temperature;
+            setChanged();
+        }
     }
 
     /** Whether this controller currently drives a validated multiblock smeltery. */
