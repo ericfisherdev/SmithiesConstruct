@@ -94,11 +94,15 @@ class SmelteryControllerBlockEntityTest {
         be.getItemHandler().insertItem(0, new ItemStack(Items.IRON_INGOT), false);
         be.addMelt(new MeltingProgress(0, 10, new FluidStack(Fluids.LAVA, 500)));
 
-        // Slot 0 backs an in-flight melt — a hopper or player must not be able to pull it out.
+        // Slot 0 backs an in-flight melt — a hopper or player must not be able to pull it out
+        // or swap a different stack onto it.
         assertTrue(be.getItemHandler().extractItem(0, 64, false).isEmpty(), "a reserved slot rejects extraction");
+        ItemStack rejected = be.getItemHandler().insertItem(0, new ItemStack(Items.GOLD_INGOT), false);
+        assertEquals(1, rejected.getCount(), "a reserved slot rejects insertion — the whole stack bounces back");
         assertSame(Items.IRON_INGOT, be.getItemHandler().getStackInSlot(0).getItem(), "the reserved input stays in place");
-        // A slot with no melt is untouched by the reservation.
-        assertTrue(be.getItemHandler().getStackInSlot(1).isEmpty(), "an unreserved slot is unaffected");
+        // A slot with no melt still accepts insertion normally.
+        assertTrue(be.getItemHandler().insertItem(1, new ItemStack(Items.IRON_INGOT), false).isEmpty(), "an unreserved slot still accepts insertion");
+        assertSame(Items.IRON_INGOT, be.getItemHandler().getStackInSlot(1).getItem(), "the unreserved slot holds the inserted item");
     }
 
     @Test
