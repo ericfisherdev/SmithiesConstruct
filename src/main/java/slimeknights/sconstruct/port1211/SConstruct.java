@@ -2,12 +2,14 @@ package slimeknights.sconstruct.port1211;
 
 import java.util.List;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -23,6 +25,7 @@ import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
+import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
@@ -76,6 +79,14 @@ public final class SConstruct {
         // before the registry events fire. Lives here inline for now; relocates into the
         // smeltery pulse's register() when SMTCON-131 wires that pulse.
         SmelteryFluids.init();
+
+        // SMTCON-110: on a physical client, bind each molten-metal fluid type to its
+        // IClientFluidTypeExtensions (shared texture pair + per-metal tint + warm fog). Guarded
+        // by FMLEnvironment.dist so the client-only class never resolves on a dedicated server.
+        // Relocates into the smeltery pulse's register() alongside SmelteryFluids at SMTCON-131.
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            SmelteryClientFluidTypes.register(modBus);
+        }
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
