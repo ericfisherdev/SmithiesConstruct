@@ -18,6 +18,7 @@ import slimeknights.sconstruct.port1211.smeltery.block.SearedTankGaugeBlock;
 import slimeknights.sconstruct.port1211.smeltery.block.SearedTankInBlock;
 import slimeknights.sconstruct.port1211.smeltery.block.SearedTankIoBlock;
 import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
+import slimeknights.sconstruct.port1211.smeltery.block.entity.SearedTankBE;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SmelteryComponentBlockEntity;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SmelteryControllerBlockEntity;
 
@@ -85,15 +86,16 @@ public final class SmelteryComponents {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> SMELTERY_CONTROLLER_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("smeltery_controller",
             () -> BlockEntityType.Builder.of(SmelteryControllerBlockEntity::new, SMELTERY_CONTROLLER.get()).build(null));
     /**
-     * Tank IO block-entity type. The factory captures this very holder so the shared
-     * {@link SmelteryComponentBlockEntity} is constructed bound to this distinct type — the
-     * lambda runs at BE-construction time, after the holder has resolved.
+     * Tank IO block-entity type. The factory captures this very holder so the {@link SearedTankBE}
+     * is constructed bound to this distinct type — the lambda runs at BE-construction time, after
+     * the holder has resolved. The two tank blocks back a {@link SearedTankBE} (SMTCON-118), not
+     * the bare {@link SmelteryComponentBlockEntity}, because a tank owns real fluid storage.
      */
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryComponentBlockEntity>> TANK_IO_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("seared_tank_io",
-            () -> BlockEntityType.Builder.of((pos, state) -> new SmelteryComponentBlockEntity(SmelteryComponents.TANK_IO_BE.get(), pos, state), SEARED_TANK_IO.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedTankBE>> TANK_IO_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("seared_tank_io",
+            () -> BlockEntityType.Builder.of((pos, state) -> new SearedTankBE(SmelteryComponents.TANK_IO_BE.get(), pos, state), SEARED_TANK_IO.get()).build(null));
     /** Tank in block-entity type. See {@link #TANK_IO_BE} for the deferred self-read pattern. */
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryComponentBlockEntity>> TANK_IN_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("seared_tank_in",
-            () -> BlockEntityType.Builder.of((pos, state) -> new SmelteryComponentBlockEntity(SmelteryComponents.TANK_IN_BE.get(), pos, state), SEARED_TANK_IN.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedTankBE>> TANK_IN_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("seared_tank_in",
+            () -> BlockEntityType.Builder.of((pos, state) -> new SearedTankBE(SmelteryComponents.TANK_IN_BE.get(), pos, state), SEARED_TANK_IN.get()).build(null));
     /** Tank gauge block-entity type. See {@link #TANK_IO_BE} for the deferred self-read pattern. */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryComponentBlockEntity>> TANK_GAUGE_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("seared_tank_gauge",
             () -> BlockEntityType.Builder.of((pos, state) -> new SmelteryComponentBlockEntity(SmelteryComponents.TANK_GAUGE_BE.get(), pos, state), SEARED_TANK_GAUGE.get()).build(null));
