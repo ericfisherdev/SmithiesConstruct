@@ -70,7 +70,32 @@ class AlloyRecipeTest {
     }
 
     @Test
+    void pairingBacktracksSoABroadInputDoesNotStarveASpecificOne() {
+        // First input accepts water OR lava; second input accepts only water. If the broad
+        // input greedily takes the water stack, the water-only input is left with lava and a
+        // first-fit matcher would wrongly reject — backtracking finds the valid assignment.
+        HolderSet<Fluid> waterOrLava = HolderSet.direct(Fluids.WATER.builtInRegistryHolder(), Fluids.LAVA.builtInRegistryHolder());
+        AlloyRecipe recipe = new AlloyRecipe(List.of(new FluidIngredient(waterOrLava, 100), new FluidIngredient(WATER, 100)), OUTPUT, 800);
+        AlloyRecipeInput input = new AlloyRecipeInput(List.of(new FluidStack(Fluids.WATER, 144), new FluidStack(Fluids.LAVA, 144)), 800);
+
+        assertTrue(recipe.matches(input, mock(Level.class)), "backtracking finds the distinct assignment a greedy match would miss");
+    }
+
+    @Test
     void constructorRejectsFewerThanTwoInputs() {
         assertThrows(IllegalArgumentException.class, () -> new AlloyRecipe(List.of(new FluidIngredient(WATER, 100)), OUTPUT, 800), "an alloy recipe needs at least two inputs to combine");
+    }
+
+    @Test
+    void constructorRejectsAnEmptyOutput() {
+        assertThrows(IllegalArgumentException.class, () -> new AlloyRecipe(List.of(new FluidIngredient(WATER, 100), new FluidIngredient(LAVA, 50)), FluidStack.EMPTY, 800),
+                "an alloy recipe must produce a non-empty output");
+    }
+
+    @Test
+    void constructorRejectsANonPositiveTemperature() {
+        List<FluidIngredient> inputs = List.of(new FluidIngredient(WATER, 100), new FluidIngredient(LAVA, 50));
+        assertThrows(IllegalArgumentException.class, () -> new AlloyRecipe(inputs, OUTPUT, 0), "an alloy recipe temperature must be positive");
+        assertThrows(IllegalArgumentException.class, () -> new AlloyRecipe(inputs, OUTPUT, -1), "an alloy recipe temperature must reject negative values");
     }
 }

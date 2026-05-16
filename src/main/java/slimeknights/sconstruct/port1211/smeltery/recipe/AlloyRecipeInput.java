@@ -1,6 +1,7 @@
 package slimeknights.sconstruct.port1211.smeltery.recipe;
 
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -26,6 +27,7 @@ public record AlloyRecipeInput(List<FluidStack> tankContents, int currentTempera
      * in it — so the captured snapshot cannot change after the controller mutates its tank.
      */
     public AlloyRecipeInput {
+        Objects.requireNonNull(tankContents, "tankContents");
         tankContents = tankContents.stream().map(FluidStack::copy).toList();
     }
 
