@@ -340,6 +340,17 @@ public final class SmelteryStructureValidator {
         return ring;
     }
 
+    /**
+     * Whether {@code state} is a block the smeltery shell is built from — a plain seared
+     * construction block or one of the functional component blocks. Breaking such a block can
+     * change a smeltery's validity, so the SMTCON-117 disassembly listener uses this to decide
+     * whether a {@code BlockEvent.BreakEvent} is worth re-validating a controller for.
+     */
+    public static boolean isSmelteryShellBlock(BlockState state) {
+        BlockRole role = roleOf(state);
+        return role == BlockRole.STRUCTURE || role.isComponent();
+    }
+
     /** Classify a world block state into the {@link BlockRole} the geometry walk consumes. */
     private static BlockRole roleOf(BlockState state) {
         if (state.is(SmelteryComponents.SMELTERY_CONTROLLER.get())) {

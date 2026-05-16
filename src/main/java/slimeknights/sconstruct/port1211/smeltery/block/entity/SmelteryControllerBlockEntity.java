@@ -5,23 +5,31 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
+import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
+import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructure;
+import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructureValidator;
 
 /**
  * Block entity for the smeltery controller (SMTCON-114) -- the brain of the multiblock. It owns
@@ -101,6 +109,23 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     /** Melts currently in progress, advanced one tick at a time by {@link #tickMelts()}. */
     private final List<MeltingProgress> activeMelts = new ArrayList<>();
+
+    /**
+     * The validated multiblock shape this controller currently drives, or
+     * {@link Optional#empty()} when the controller is not part of an assembled smeltery. Not
+     * persisted — it is re-derived by {@link #tryAssemble()} on the first server tick after a
+     * world load (see {@link #loadAdditional}), so the in-memory structure can never drift from
+     * the blocks actually in the world.
+     */
+    private Optional<SmelteryStructure> structure = Optional.empty();
+
+    /**
+     * Whether the controller must re-run {@link #tryAssemble()} on its next server tick. Set on
+     * block-entity construction and after every world load so a freshly placed or reloaded
+     * controller assembles itself, and set again by {@link #invalidate()} when a nearby seared
+     * or component block is broken (SMTCON-117).
+     */
+    private boolean needsValidation = true;
 
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state) {
         super(SmelteryComponents.SMELTERY_CONTROLLER_BE.get(), pos, state);
@@ -216,10 +241,126 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     /**
      * Server-side {@code BlockEntityTicker} entry point, registered by
-     * {@code SmelteryControllerBlock#getTicker}. Delegates to {@link #tickMelts()}.
+     * {@code SmelteryControllerBlock#getTicker}. Re-validates the multiblock when flagged, then
+     * advances the active melts.
      */
     public static void serverTick(Level level, BlockPos pos, BlockState state, SmelteryControllerBlockEntity controller) {
+        if (controller.needsValidation) {
+            controller.tryAssemble();
+        }
         controller.tickMelts();
+    }
+
+    /** Whether this controller currently drives a validated multiblock smeltery. */
+    public boolean isAssembled() {
+        return structure.isPresent();
+    }
+
+    /**
+     * The validated multiblock shape this controller drives, or {@link Optional#empty()} when
+     * the controller is loose. Read-only — callers cannot mutate the controller's assembly state
+     * through the returned {@link SmelteryStructure}, which is itself immutable.
+     */
+    public Optional<SmelteryStructure> getStructure() {
+        return structure;
+    }
+
+    /**
+     * Flags the controller to re-validate its multiblock on the next server tick. Called by the
+     * SMTCON-117 disassembly listener when a seared or component block near this controller is
+     * broken — the controller does not act immediately because the {@code BlockEvent.BreakEvent}
+     * fires before the block is actually removed, so a same-tick re-scan would still see it.
+     */
+    public void invalidate() {
+        needsValidation = true;
+    }
+
+    /**
+     * Re-runs structure validation and reconciles the controller's assembly state with the
+     * blocks now in the world. On success the controller binds the new {@link SmelteryStructure}
+     * and stamps every component block with its position; on failure it unbinds, and — if it
+     * <em>was</em> assembled — releases its tank contents into the world rather than vanishing
+     * them, since disassembly is a recovery path and must not destroy stored metal.
+     */
+    public void tryAssemble() {
+        needsValidation = false;
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        Direction interiorDirection = getBlockState().getValue(SmelteryControllerBlock.FACING).getOpposite();
+        Optional<SmelteryStructure> validated = SmelteryStructureValidator.validate(level, getBlockPos(), interiorDirection);
+        if (validated.isPresent()) {
+            bindStructure(validated.get());
+        }
+        else {
+            Optional<SmelteryStructure> previous = structure;
+            unbindStructure();
+            previous.ifPresent(this::releaseTankContents);
+        }
+        setChanged();
+    }
+
+    /** Adopts {@code assembled} as the live structure and stamps every component with this controller. */
+    private void bindStructure(SmelteryStructure assembled) {
+        clearComponentStamps();
+        structure = Optional.of(assembled);
+        for (BlockPos componentPos : assembled.components().keySet()) {
+            if (level.getBlockEntity(componentPos) instanceof SmelteryComponentBlockEntity component) {
+                component.setControllerPos(getBlockPos());
+            }
+        }
+    }
+
+    /** Drops the live structure and detaches every component it had claimed. */
+    private void unbindStructure() {
+        clearComponentStamps();
+        structure = Optional.empty();
+    }
+
+    /** Clears this controller's position from every component of the current structure, if any. */
+    private void clearComponentStamps() {
+        structure.ifPresent(current -> {
+            for (BlockPos componentPos : current.components().keySet()) {
+                if (level.getBlockEntity(componentPos) instanceof SmelteryComponentBlockEntity component) {
+                    component.setControllerPos(null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Pours the tank's molten metal into the world as source-fluid blocks across the former
+     * interior volume, so a disassembled smeltery leaves its contents visible and recoverable
+     * rather than deleting them. Only the amount actually placed is drained, so if the interior
+     * has no room the unplaced metal stays in the tank — disassembly never loses fluid.
+     */
+    private void releaseTankContents(SmelteryStructure previous) {
+        FluidStack contents = fluidTank.getFluid();
+        if (contents.isEmpty()) {
+            return;
+        }
+        BlockState liquid = contents.getFluid().defaultFluidState().createLegacyBlock();
+        if (liquid.isAir()) {
+            // The fluid has no in-world block form — leave it in the tank rather than vanish it.
+            return;
+        }
+        int placeable = contents.getAmount() / FluidType.BUCKET_VOLUME;
+        int placed = 0;
+        BoundingBox interior = previous.bounds();
+        for (int y = interior.minY(); y <= interior.maxY() && placed < placeable; y++) {
+            for (int x = interior.minX(); x <= interior.maxX() && placed < placeable; x++) {
+                for (int z = interior.minZ(); z <= interior.maxZ() && placed < placeable; z++) {
+                    BlockPos target = new BlockPos(x, y, z);
+                    if (level.getBlockState(target).isAir()) {
+                        level.setBlock(target, liquid, Block.UPDATE_ALL);
+                        placed++;
+                    }
+                }
+            }
+        }
+        if (placed > 0) {
+            fluidTank.drain(placed * FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.EXECUTE);
+        }
     }
 
     @Override
@@ -258,5 +399,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
                 }
             });
         }
+        // The structure is never persisted — flag a re-validation so the first post-load tick
+        // rebuilds it from the blocks actually in the world (which may have changed while the
+        // chunk was unloaded).
+        needsValidation = true;
     }
 }
