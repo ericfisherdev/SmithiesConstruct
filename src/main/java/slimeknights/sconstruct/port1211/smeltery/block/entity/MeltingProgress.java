@@ -77,8 +77,13 @@ public final class MeltingProgress {
         return result.copy();
     }
 
-    /** Advance the melt by one server tick. */
-    public void advance() {
+    /**
+     * Advance the melt by one server tick. Package-private so only the controller (in this same
+     * package) can mutate melt state — a {@link MeltingProgress} handed out through
+     * {@code SmelteryControllerBlockEntity#getActiveMelts()} is therefore effectively read-only
+     * to outside callers, which see only the {@code elapsedTicks} / {@code isComplete} getters.
+     */
+    void advance() {
         elapsedTicks++;
     }
 

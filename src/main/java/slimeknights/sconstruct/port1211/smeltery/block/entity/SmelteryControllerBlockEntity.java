@@ -71,11 +71,27 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         }
     };
 
-    /** Item input slots -- items dropped here are matched to melting recipes; resized by SMTCON-115. */
+    /**
+     * Item input slots -- items dropped here are matched to melting recipes; resized by
+     * SMTCON-115. A slot whose item is mid-melt is <em>reserved</em>: the overrides below reject
+     * both extraction and insertion for it (see {@link #isSlotReserved(int)}) so a hopper or
+     * player cannot pull the input back out — or stack onto it — while the melt is running, which
+     * would otherwise let the completion in {@link #tickMelts()} duplicate or destroy items.
+     */
     private final ItemStackHandler meltingSlots = new ItemStackHandler(INITIAL_MELTING_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return isSlotReserved(slot) ? ItemStack.EMPTY : super.extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return !isSlotReserved(slot) && super.isItemValid(slot, stack);
         }
     };
 
@@ -110,15 +126,39 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         setChanged();
     }
 
-    /** Read-only view of the in-flight melts -- used by the GUI and by tests. */
+    /**
+     * Read-only view of the in-flight melts -- used by the GUI and by tests. The list itself is
+     * unmodifiable and {@link MeltingProgress#advance()} is package-private, so a caller outside
+     * this package can read each melt's progress but cannot mutate the controller's state.
+     */
     public List<MeltingProgress> getActiveMelts() {
         return Collections.unmodifiableList(activeMelts);
     }
 
-    /** Queue a new melt. The recipe layer (SMTCON-120) calls this when a slot item matches. */
+    /**
+     * Queue a new melt. The recipe layer (SMTCON-120) calls this when a slot item matches a
+     * melting recipe. Queuing immediately reserves {@code melt}'s input slot — see
+     * {@link #isSlotReserved(int)} — so the item cannot be removed or replaced while the melt
+     * runs; the reservation lifts when the melt completes and leaves {@link #activeMelts}.
+     */
     public void addMelt(MeltingProgress melt) {
         activeMelts.add(melt);
         setChanged();
+    }
+
+    /**
+     * Whether a melting slot currently backs an in-flight melt. A reserved slot is locked
+     * against extraction and insertion through the exposed item handler. Derived from
+     * {@link #activeMelts} so it needs no separate persisted state — the reservation set is
+     * implied by the melts themselves and is restored for free when they load.
+     */
+    boolean isSlotReserved(int slot) {
+        for (MeltingProgress melt : activeMelts) {
+            if (melt.slot() == slot) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -131,11 +171,13 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         if (activeMelts.isEmpty()) {
             return;
         }
+        boolean changed = false;
         Iterator<MeltingProgress> iterator = activeMelts.iterator();
         while (iterator.hasNext()) {
             MeltingProgress melt = iterator.next();
             if (!melt.isComplete()) {
                 melt.advance();
+                changed = true;
             }
             if (melt.isComplete()) {
                 FluidStack result = melt.result();
@@ -149,10 +191,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
                         meltingSlots.setStackInSlot(melt.slot(), ItemStack.EMPTY);
                     }
                     iterator.remove();
+                    changed = true;
                 }
             }
         }
-        setChanged();
+        // Skip the dirty mark when a tick moved nothing — a completed melt blocked by a full
+        // tank must not churn chunk saves every tick while it waits for headroom.
+        if (changed) {
+            setChanged();
+        }
     }
 
     /**
