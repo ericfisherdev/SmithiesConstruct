@@ -17,6 +17,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -25,6 +27,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.mojang.serialization.MapCodec;
 
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SmelteryControllerBlockEntity;
 
 /**
@@ -98,6 +101,15 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new SmelteryControllerBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        // Server-side only — melt progress advances on the server; the client has no ticker.
+        // createTickerHelper checks the requested type matches the controller BE type so a
+        // stray query for another BE type at this position returns null instead of mis-casting.
+        return level.isClientSide() ? null : createTickerHelper(type, SmelteryComponents.SMELTERY_CONTROLLER_BE.get(), SmelteryControllerBlockEntity::serverTick);
     }
 
     @Override
