@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -140,8 +141,19 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
      * melting recipe. Queuing immediately reserves {@code melt}'s input slot — see
      * {@link #isSlotReserved(int)} — so the item cannot be removed or replaced while the melt
      * runs; the reservation lifts when the melt completes and leaves {@link #activeMelts}.
+     *
+     * <p>Rejects a melt whose slot is out of range or already backs another melt: a duplicate
+     * slot would let two melts pour from one consumed input, and an out-of-range slot would
+     * never have its input cleared on completion.
      */
     public void addMelt(MeltingProgress melt) {
+        Objects.requireNonNull(melt, "melt");
+        if (melt.slot() < 0 || melt.slot() >= meltingSlots.getSlots()) {
+            throw new IllegalArgumentException("melt slot out of bounds: " + melt.slot());
+        }
+        if (isSlotReserved(melt.slot())) {
+            throw new IllegalStateException("slot already has an active melt: " + melt.slot());
+        }
         activeMelts.add(melt);
         setChanged();
     }
@@ -238,7 +250,13 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         for (int i = 0; i < melts.size(); i++) {
             // A melt whose result fluid no longer parses (mod removed) is dropped rather than
             // crashing the world load -- MeltingProgress.load returns empty for a dead fluid.
-            MeltingProgress.load(provider, melts.getCompound(i)).ifPresent(activeMelts::add);
+            // A melt whose slot is out of range or already taken by an earlier loaded melt is
+            // likewise dropped, so corrupt save data cannot seed a duplicate or orphaned melt.
+            MeltingProgress.load(provider, melts.getCompound(i)).ifPresent(melt -> {
+                if (melt.slot() >= 0 && melt.slot() < meltingSlots.getSlots() && !isSlotReserved(melt.slot())) {
+                    activeMelts.add(melt);
+                }
+            });
         }
     }
 }
