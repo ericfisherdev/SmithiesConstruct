@@ -42,6 +42,14 @@ public final class SmelteryRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, SmelteryRecipeSerializer<CastingRecipe>> CASTING_SERIALIZER = TinkerRegistries.RECIPE_SERIALIZERS.register("casting",
             () -> new SmelteryRecipeSerializer<>(CastingRecipe.CODEC, CastingRecipe.STREAM_CODEC));
 
+    /** The alloy recipe type — combines molten input fluids into a molten output. */
+    public static final DeferredHolder<RecipeType<?>, RecipeType<AlloyRecipe>> ALLOY_TYPE = TinkerRegistries.RECIPE_TYPES.register("alloy",
+            () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "alloy")));
+
+    /** The alloy recipe serializer — pairs {@link AlloyRecipe#CODEC} with its stream codec. */
+    public static final DeferredHolder<RecipeSerializer<?>, SmelteryRecipeSerializer<AlloyRecipe>> ALLOY_SERIALIZER = TinkerRegistries.RECIPE_SERIALIZERS.register("alloy",
+            () -> new SmelteryRecipeSerializer<>(AlloyRecipe.CODEC, AlloyRecipe.STREAM_CODEC));
+
     private SmelteryRecipes() {
     }
 
@@ -51,5 +59,7 @@ public final class SmelteryRecipes {
         Objects.requireNonNull(MELTING_SERIALIZER);
         Objects.requireNonNull(CASTING_TYPE);
         Objects.requireNonNull(CASTING_SERIALIZER);
+        Objects.requireNonNull(ALLOY_TYPE);
+        Objects.requireNonNull(ALLOY_SERIALIZER);
     }
 }
