@@ -12,6 +12,9 @@ import com.mojang.logging.LogUtils;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.network.StencilTablePartPayload;
 import slimeknights.sconstruct.port1211.common.network.ToolStationActionPayload;
+import slimeknights.sconstruct.port1211.smeltery.network.SmelteryFluidUpdatePayload;
+import slimeknights.sconstruct.port1211.smeltery.network.SmelteryFuelUpdatePayload;
+import slimeknights.sconstruct.port1211.smeltery.network.SmelteryStructureUpdatePayload;
 
 /**
  * Central registration point for the mod's network payloads. Phase 1 ships only the registrar
@@ -65,5 +68,10 @@ public final class TinkerNetwork {
         registrar.playToServer(StencilTablePartPayload.TYPE, StencilTablePartPayload.STREAM_CODEC, StencilTablePartPayload::handleServer);
         // SMTCON-94: client→server action-button packet for the Tool Station / Tool Forge.
         registrar.playToServer(ToolStationActionPayload.TYPE, ToolStationActionPayload.STREAM_CODEC, ToolStationActionPayload::handleServer);
+        // SMTCON-124: server→client smeltery sync packets — tank contents, heat, and assembled
+        // shape — pushed to chunk trackers by the controller without resending its full BE NBT.
+        registrar.playToClient(SmelteryFluidUpdatePayload.TYPE, SmelteryFluidUpdatePayload.STREAM_CODEC, SmelteryFluidUpdatePayload::handleClient);
+        registrar.playToClient(SmelteryFuelUpdatePayload.TYPE, SmelteryFuelUpdatePayload.STREAM_CODEC, SmelteryFuelUpdatePayload::handleClient);
+        registrar.playToClient(SmelteryStructureUpdatePayload.TYPE, SmelteryStructureUpdatePayload.STREAM_CODEC, SmelteryStructureUpdatePayload::handleClient);
     }
 }

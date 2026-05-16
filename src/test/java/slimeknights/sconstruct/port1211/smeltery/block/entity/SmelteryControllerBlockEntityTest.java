@@ -4,9 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Optional;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -111,5 +115,38 @@ class SmelteryControllerBlockEntityTest {
         be.tickMelts();
         assertTrue(be.getActiveMelts().isEmpty(), "ticking an idle controller leaves the active list empty");
         assertTrue(be.getFluidHandler().getFluidInTank(0).isEmpty(), "ticking an idle controller pours nothing");
+    }
+
+    @Test
+    void applyFuelUpdateSetsTheCurrentAndTargetTemperatures() {
+        SmelteryControllerBlockEntity be = controller();
+
+        be.applyFuelUpdate(1500, 1600);
+
+        assertEquals(1500, be.getCurrentTemperature(), "the fuel update sets the current temperature");
+        assertEquals(1600, be.getTargetTemperature(), "the fuel update sets the target temperature");
+    }
+
+    @Test
+    void applyFluidUpdateReplacesTheTankContents() {
+        SmelteryControllerBlockEntity be = controller();
+
+        be.applyFluidUpdate(List.of(new FluidStack(Fluids.LAVA, 500)));
+        assertEquals(500, be.getFluidHandler().getFluidInTank(0).getAmount(), "the fluid update fills the tank");
+
+        be.applyFluidUpdate(List.of());
+        assertTrue(be.getFluidHandler().getFluidInTank(0).isEmpty(), "an empty fluid update clears the tank");
+    }
+
+    @Test
+    void applyStructureUpdateSetsAndClearsTheRenderBounds() {
+        SmelteryControllerBlockEntity be = controller();
+        BoundingBox box = new BoundingBox(0, 0, 0, 2, 2, 2);
+
+        be.applyStructureUpdate(Optional.of(box));
+        assertEquals(box, be.getRenderBounds().orElseThrow(), "the structure update sets the render bounds");
+
+        be.applyStructureUpdate(Optional.empty());
+        assertTrue(be.getRenderBounds().isEmpty(), "an empty structure update clears the render bounds");
     }
 }

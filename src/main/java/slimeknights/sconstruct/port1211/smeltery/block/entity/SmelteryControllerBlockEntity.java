@@ -14,7 +14,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,6 +28,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFuelSource;
@@ -33,6 +36,9 @@ import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.ComponentType;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructure;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructureValidator;
+import slimeknights.sconstruct.port1211.smeltery.network.SmelteryFluidUpdatePayload;
+import slimeknights.sconstruct.port1211.smeltery.network.SmelteryFuelUpdatePayload;
+import slimeknights.sconstruct.port1211.smeltery.network.SmelteryStructureUpdatePayload;
 
 /**
  * Block entity for the smeltery controller (SMTCON-114) -- the brain of the multiblock. It owns
@@ -110,11 +116,33 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         }
     };
 
-    /** Current internal temperature in kelvin; driven by fuel in a later fuel ticket. */
+    /** Current internal temperature in kelvin, set each tick from the active fuel source. */
     private int currentTemperature;
+
+    /** Temperature in kelvin the active fuel source can sustain — the heat the smeltery heads toward. */
+    private int targetTemperature;
 
     /** Melts currently in progress, advanced one tick at a time by {@link #tickMelts()}. */
     private final List<MeltingProgress> activeMelts = new ArrayList<>();
+
+    /**
+     * The assembled smeltery's interior bounding box as last synced to clients (SMTCON-124).
+     * Server-side this mirrors {@code structure.map(SmelteryStructure::bounds)}; client-side it
+     * is set straight from {@code SmelteryStructureUpdatePayload} and read by the renderer.
+     */
+    private Optional<BoundingBox> renderBounds = Optional.empty();
+
+    /** Temperature last pushed to chunk trackers — a sentinel that forces the first sync. */
+    private int lastSyncedTemperature = Integer.MIN_VALUE;
+
+    /** Target temperature last pushed to chunk trackers — a sentinel that forces the first sync. */
+    private int lastSyncedTargetTemperature = Integer.MIN_VALUE;
+
+    /** Tank contents last pushed to chunk trackers, so an unchanged tank is not re-synced. */
+    private FluidStack lastSyncedFluid = FluidStack.EMPTY;
+
+    /** Interior bounds last pushed to chunk trackers, so an unchanged structure is not re-synced. */
+    private Optional<BoundingBox> lastSyncedBounds = Optional.empty();
 
     /**
      * The validated multiblock shape this controller currently drives, or
@@ -154,8 +182,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     /** Set the internal temperature; flags the chunk dirty so the new value is saved. */
     public void setCurrentTemperature(int temperature) {
-        this.currentTemperature = temperature;
-        setChanged();
+        setTemperature(temperature);
     }
 
     /**
@@ -256,6 +283,68 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             controller.tryAssemble();
         }
         controller.tickSmeltery();
+        controller.syncToTrackers();
+    }
+
+    /**
+     * Pushes any changed smeltery state to clients tracking the controller's chunk (SMTCON-124).
+     * Each of the three updates — heat, tank contents, and assembled shape — is sent only when
+     * its value differs from what was last synced, so an idle smeltery emits no packets and a
+     * change is delivered at most once per tick.
+     */
+    // ServerLevel is AutoCloseable in the type system, but the world is owned by the server
+    // lifecycle, not by this block entity — PMD's CloseResource heuristic does not model that.
+    @SuppressWarnings("PMD.CloseResource")
+    private void syncToTrackers() {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        ChunkPos chunk = new ChunkPos(getBlockPos());
+        if (currentTemperature != lastSyncedTemperature || targetTemperature != lastSyncedTargetTemperature) {
+            lastSyncedTemperature = currentTemperature;
+            lastSyncedTargetTemperature = targetTemperature;
+            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryFuelUpdatePayload(getBlockPos(), currentTemperature, targetTemperature));
+        }
+        FluidStack fluid = fluidTank.getFluid();
+        if (!FluidStack.matches(fluid, lastSyncedFluid)) {
+            lastSyncedFluid = fluid.copy();
+            List<FluidStack> contents = fluid.isEmpty() ? List.of() : List.of(fluid.copy());
+            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryFluidUpdatePayload(getBlockPos(), contents));
+        }
+        Optional<BoundingBox> bounds = structure.map(SmelteryStructure::bounds);
+        if (!bounds.equals(lastSyncedBounds)) {
+            lastSyncedBounds = bounds;
+            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryStructureUpdatePayload(getBlockPos(), bounds));
+        }
+    }
+
+    /**
+     * Applies a {@code SmelteryFluidUpdatePayload} to this client-side controller — the tank is
+     * set to the synced contents so the next frame renders the smeltery's fill.
+     */
+    public void applyFluidUpdate(List<FluidStack> contents) {
+        fluidTank.setFluid(contents.isEmpty() ? FluidStack.EMPTY : contents.get(0));
+    }
+
+    /** Applies a {@code SmelteryFuelUpdatePayload} to this client-side controller's heat gauge. */
+    public void applyFuelUpdate(int current, int target) {
+        currentTemperature = current;
+        targetTemperature = target;
+    }
+
+    /** Applies a {@code SmelteryStructureUpdatePayload} to this client-side controller's render bounds. */
+    public void applyStructureUpdate(Optional<BoundingBox> bounds) {
+        renderBounds = bounds;
+    }
+
+    /** The temperature in kelvin the active fuel source can sustain. */
+    public int getTargetTemperature() {
+        return targetTemperature;
+    }
+
+    /** The assembled smeltery's interior bounding box, as known to this side; empty when unassembled. */
+    public Optional<BoundingBox> getRenderBounds() {
+        return renderBounds;
     }
 
     /**
@@ -306,10 +395,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         return true;
     }
 
-    /** Updates the internal temperature, marking the chunk dirty only when the value changes. */
+    /**
+     * Updates the internal temperature, marking the chunk dirty only when the value changes. The
+     * current and target temperatures move together — the smeltery has no gradual heat-up curve
+     * yet — but are kept as distinct fields so {@code SmelteryFuelUpdatePayload} carries both.
+     */
     private void setTemperature(int temperature) {
         if (currentTemperature != temperature) {
             currentTemperature = temperature;
+            targetTemperature = temperature;
             setChanged();
         }
     }
