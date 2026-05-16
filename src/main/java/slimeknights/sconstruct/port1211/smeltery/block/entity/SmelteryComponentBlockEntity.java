@@ -67,6 +67,24 @@ public class SmelteryComponentBlockEntity extends BlockEntity {
     }
 
     /**
+     * Resolves the live {@link SmelteryControllerBlockEntity} this component proxies to. This is
+     * the lookup the capability proxies in {@code SmelteryCapabilities} call (SMTCON-116): a
+     * drain or tank forwards its fluid handler, and a chute forwards its item handler, to
+     * whatever controller this returns.
+     *
+     * <p>Returns {@link Optional#empty()} for a loose component, when the level is not yet set,
+     * or when the recorded controller position no longer holds a controller block-entity (it was
+     * broken, or this component still carries a stale binding) — so a proxied capability simply
+     * resolves to {@code null} rather than throwing.
+     */
+    public Optional<SmelteryControllerBlockEntity> getControllerOpt() {
+        if (level == null || controllerPos.isEmpty()) {
+            return Optional.empty();
+        }
+        return level.getBlockEntity(controllerPos.get()) instanceof SmelteryControllerBlockEntity controller ? Optional.of(controller) : Optional.empty();
+    }
+
+    /**
      * Records (or clears) the controller that owns this component. Called by the controller's
      * structure-validation pass when a smeltery assembles ({@code pos} non-null) and when it
      * breaks apart ({@code pos} null). A defensive {@link BlockPos#immutable() immutable} copy is
@@ -74,11 +92,19 @@ public class SmelteryComponentBlockEntity extends BlockEntity {
      * {@link #setChanged()} is invoked so the chunk is flagged dirty and the new ownership
      * survives a world save.
      *
+     * <p>The component's proxied capability also changes meaning on every binding change — a
+     * newly-bound component starts forwarding, an unbound one stops — so the block's capabilities
+     * are invalidated here, prompting NeoForge to re-resolve them against the new ownership the
+     * next time a neighbour queries.
+     *
      * @param pos the controller position, or {@code null} to detach this component
      */
     public void setControllerPos(@Nullable BlockPos pos) {
         this.controllerPos = pos == null ? Optional.empty() : Optional.of(pos.immutable());
         setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.invalidateCapabilities(getBlockPos());
+        }
     }
 
     /**
