@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import net.minecraft.world.item.BucketItem;
@@ -91,6 +92,7 @@ public final class SmelteryFluids {
      * an absent value means class loading regressed and is worth surfacing loudly.
      */
     public static MoltenFluidSet get(MoltenMetal metal) {
+        Objects.requireNonNull(metal, "metal");
         MoltenFluidSet set = MOLTEN.get(metal);
         if (set == null) {
             throw new IllegalStateException("SmelteryFluids.MOLTEN is missing an entry for " + metal.id() + " — class loading order regressed");
