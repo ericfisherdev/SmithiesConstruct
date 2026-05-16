@@ -92,7 +92,8 @@ public class SearedTankBE extends SmelteryComponentBlockEntity implements Smelte
         if (contents.isEmpty()) {
             return 0;
         }
-        if (contents.is(Fluids.LAVA)) {
+        // isSame matches both the still and flowing forms — either can legitimately fill a tank.
+        if (contents.getFluid().isSame(Fluids.LAVA)) {
             return LAVA_TEMPERATURE;
         }
         return SmelteryFluids.moltenTemperature(contents.getFluid()).orElse(0);
