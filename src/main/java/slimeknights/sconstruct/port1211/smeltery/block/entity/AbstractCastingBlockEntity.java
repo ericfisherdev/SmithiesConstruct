@@ -56,6 +56,9 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
     /** NBT key for the cooling countdown. */
     private static final String TAG_COOLING = "CoolingTimer";
 
+    /** NBT key for the cooling duration the running countdown belongs to. */
+    private static final String TAG_COOLING_TARGET = "CoolingTarget";
+
     /** Single-slot cast inventory — holds the cast item the table / basin pours metal into. */
     private final ItemStackHandler castHandler = new ItemStackHandler(1) {
         @Override
@@ -69,6 +72,14 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
 
     /** Ticks remaining before the in-progress cast completes; {@code 0} when nothing is cooling. */
     private int coolingTimer;
+
+    /**
+     * The {@link CastingRecipe#coolingTime()} the running {@link #coolingTimer} belongs to. If
+     * the recipe the tank now matches has a different cooling time — the cast or fluid changed
+     * mid-process — the countdown is restarted against the new recipe rather than finishing on
+     * the stale duration.
+     */
+    private int coolingTarget;
 
     /**
      * @param type     the registered {@link BlockEntityType} for the concrete block (table or basin)
@@ -122,26 +133,40 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
         casting.tickCasting();
     }
 
-    /** Advances the cooling countdown, or starts one when the tank first holds a matching recipe. */
+    /**
+     * Advances the cooling countdown. The matching recipe is re-derived every tick from the
+     * current tank fluid and cast, so a cast swap or a fluid drain mid-process is noticed: if no
+     * recipe matches the countdown is cancelled, and if the matching recipe's cooling duration
+     * changed the countdown is restarted against it rather than finishing on the stale duration.
+     */
     private void tickCasting() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        if (coolingTimer > 0) {
-            coolingTimer--;
-            if (coolingTimer == 0) {
-                completeCast();
-            }
-            else {
-                setChanged();
+        Optional<CastingRecipe> match = tank.getFluid().isEmpty() ? Optional.empty() : findCastingRecipe(tank.getFluid());
+        if (match.isEmpty()) {
+            // Nothing castable in the tank — cancel any countdown left over from a changed state.
+            if (coolingTimer != 0) {
+                coolingTimer = 0;
+                coolingTarget = 0;
+                markUpdated();
             }
             return;
         }
-        if (!tank.getFluid().isEmpty()) {
-            findCastingRecipe(tank.getFluid()).ifPresent(recipe -> {
-                coolingTimer = recipe.coolingTime();
-                markUpdated();
-            });
+        int recipeCoolingTime = match.get().coolingTime();
+        if (coolingTimer <= 0 || coolingTarget != recipeCoolingTime) {
+            // Start the countdown, or restart it because the matching recipe changed.
+            coolingTimer = recipeCoolingTime;
+            coolingTarget = recipeCoolingTime;
+            markUpdated();
+            return;
+        }
+        coolingTimer--;
+        if (coolingTimer == 0) {
+            completeCast();
+        }
+        else {
+            setChanged();
         }
     }
 
@@ -167,6 +192,7 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
             Block.popResource(level, getBlockPos().above(), cast);
         }
         tank.setFluid(FluidStack.EMPTY);
+        coolingTarget = 0;
         markUpdated();
     }
 
@@ -222,6 +248,7 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
         tag.put(TAG_CAST, castHandler.serializeNBT(provider));
         tag.put(TAG_TANK, tank.writeToNBT(provider, new CompoundTag()));
         tag.putInt(TAG_COOLING, coolingTimer);
+        tag.putInt(TAG_COOLING_TARGET, coolingTarget);
     }
 
     @Override
@@ -234,5 +261,6 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
             tank.readFromNBT(provider, tag.getCompound(TAG_TANK));
         }
         coolingTimer = tag.getInt(TAG_COOLING);
+        coolingTarget = tag.getInt(TAG_COOLING_TARGET);
     }
 }
