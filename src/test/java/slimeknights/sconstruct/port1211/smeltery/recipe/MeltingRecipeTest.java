@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -58,9 +59,10 @@ class MeltingRecipeTest {
     @Test
     void aMeltYieldsNoItemResult() {
         MeltingRecipe recipe = new MeltingRecipe(mock(Ingredient.class), OUTPUT, 1500, 100);
+        HolderLookup.Provider registries = mock(HolderLookup.Provider.class);
 
-        assertTrue(recipe.assemble(new SingleRecipeInput(ItemStack.EMPTY), null).isEmpty(), "a melt assembles no item — its product is the fluid output");
-        assertTrue(recipe.getResultItem(null).isEmpty(), "a melt has no item result");
+        assertTrue(recipe.assemble(new SingleRecipeInput(ItemStack.EMPTY), registries).isEmpty(), "a melt assembles no item — its product is the fluid output");
+        assertTrue(recipe.getResultItem(registries).isEmpty(), "a melt has no item result");
         assertTrue(recipe.canCraftInDimensions(0, 0), "melting is not constrained by a crafting grid");
     }
 }

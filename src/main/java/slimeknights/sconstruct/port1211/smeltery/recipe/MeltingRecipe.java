@@ -1,5 +1,7 @@
 package slimeknights.sconstruct.port1211.smeltery.recipe;
 
+import java.util.Objects;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -38,6 +40,27 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * @param time        the number of server ticks the melt takes to complete
  */
 public record MeltingRecipe(Ingredient input, FluidStack output, int temperature, int time) implements Recipe<SingleRecipeInput> {
+
+    /**
+     * Validates the recipe and defensively copies the mutable {@link FluidStack} output. The
+     * datapack {@link #CODEC} already constrains its fields, but the {@link #STREAM_CODEC}
+     * network path and direct {@code new MeltingRecipe(...)} construction do not — so the
+     * invariants are enforced here, at the one point every construction path passes through.
+     */
+    public MeltingRecipe {
+        Objects.requireNonNull(input, "input");
+        Objects.requireNonNull(output, "output");
+        if (temperature <= 0) {
+            throw new IllegalArgumentException("temperature must be a positive kelvin value: " + temperature);
+        }
+        if (time <= 0) {
+            throw new IllegalArgumentException("time must be a positive tick count: " + time);
+        }
+        if (output.isEmpty()) {
+            throw new IllegalArgumentException("output must be a non-empty fluid stack");
+        }
+        output = output.copy();
+    }
 
     /** Datapack codec — loads a melting recipe from its JSON definition. */
     public static final MapCodec<MeltingRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> builder
