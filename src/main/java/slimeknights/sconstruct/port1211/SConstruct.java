@@ -27,6 +27,7 @@ import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
 import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryEvents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
@@ -107,6 +108,11 @@ public final class SConstruct {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             SmelteryClientFluidTypes.register(modBus);
         }
+
+        // SMTCON-117: subscribe the smeltery disassembly listener on the game bus so breaking a
+        // seared or component block re-validates any nearby smeltery controller. Lives here
+        // inline for now; relocates into the smeltery pulse's register() at SMTCON-131.
+        SmelteryEvents.register(NeoForge.EVENT_BUS);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
