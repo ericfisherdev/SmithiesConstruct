@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class MoltenMetalsTest {
     @Test
     void registersAllTwentyMoltenMetals() {
         assertEquals(20, MoltenMetals.ALL.size(), "ALL must hold exactly the 20 molten metals");
-        Set<String> ids = Set.copyOf(MoltenMetals.ALL.stream().map(MoltenMetal::id).toList());
+        Set<String> ids = MoltenMetals.ALL.stream().map(MoltenMetal::id).collect(Collectors.toSet());
         assertEquals(20, ids.size(), "molten-metal ids must be unique");
         for (String id : new String[] { "iron", "gold", "copper", "tin", "zinc", "brass", "alubrass", "bronze", "silver", "lead", "steel", "cobalt", "ardite", "manyullyn", "pigiron", "knightslime",
                 "obsidian", "glass", "emerald", "ender" }) {
