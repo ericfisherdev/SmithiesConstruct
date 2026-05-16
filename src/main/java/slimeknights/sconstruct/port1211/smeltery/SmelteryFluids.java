@@ -20,6 +20,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
 
 /**
@@ -112,7 +113,7 @@ public final class SmelteryFluids {
     private static MoltenFluidSet moltenFluid(MoltenMetal metal) {
         String id = "molten_" + metal.id();
         DeferredHolder<FluidType, FluidType> type = TinkerRegistries.FLUID_TYPES.register(id, () -> new FluidType(FluidType.Properties.create().temperature(metal.temperature())
-                .lightLevel(metal.luminosity()).density(metal.density()).motionScale(MOTION_SCALE).descriptionId("fluid.sconstruct." + id)));
+                .lightLevel(metal.luminosity()).density(metal.density()).motionScale(MOTION_SCALE).descriptionId("fluid." + SConstruct.MOD_ID + "." + id)));
 
         // Single-element array holders break the circular reference between the four
         // post-FluidType registrations: the Properties supplier reads through them at
