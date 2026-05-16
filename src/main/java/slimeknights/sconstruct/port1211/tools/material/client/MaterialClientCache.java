@@ -2,6 +2,7 @@ package slimeknights.sconstruct.port1211.tools.material.client;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.minecraft.core.HolderLookup;
@@ -33,7 +34,23 @@ public final class MaterialClientCache {
 
     private static final AtomicReference<Map<ResourceLocation, Integer>> CACHE = new AtomicReference<>(Map.of());
 
+    /**
+     * Monotonic snapshot counter, bumped on every {@link #populate}. Lets a downstream cache
+     * keyed off material colours (the tool model's per-material quad variants) detect a refresh
+     * and discard entries that were tinted from the previous snapshot.
+     */
+    private static final AtomicInteger VERSION = new AtomicInteger();
+
     private MaterialClientCache() {
+    }
+
+    /**
+     * Current snapshot version — increments each time {@link #populate} swaps the cache. A
+     * consumer that memoises results derived from the cache compares this against the version
+     * it last saw and invalidates its memo when they differ.
+     */
+    public static int version() {
+        return VERSION.get();
     }
 
     /**
@@ -52,6 +69,7 @@ public final class MaterialClientCache {
      */
     public static void populate(Map<ResourceLocation, Integer> snapshot) {
         CACHE.set(Map.copyOf(snapshot));
+        VERSION.incrementAndGet();
     }
 
     /**
@@ -71,8 +89,9 @@ public final class MaterialClientCache {
         return CACHE.get().size();
     }
 
-    /** Test seam: clear the cache (simulates a fresh client). */
+    /** Test seam: clear the cache and reset the version counter (simulates a fresh client). */
     static void clearForTest() {
         CACHE.set(Map.of());
+        VERSION.set(0);
     }
 }

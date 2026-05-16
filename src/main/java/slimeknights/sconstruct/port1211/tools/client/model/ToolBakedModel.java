@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
@@ -112,12 +113,24 @@ public class ToolBakedModel extends BakedModelWrapper<BakedModel> {
         private final BakedModel base;
         private final Map<List<ResourceLocation>, MaterialVariantModel> variants = new ConcurrentHashMap<>();
 
+        /**
+         * {@link MaterialClientCache} version the cached variants were tinted from. A datapack
+         * {@code /reload} or relogin rebuilds the colour cache without rebaking models, so a
+         * stale variant would keep yesterday's tint — discard the whole variant cache when the
+         * version moves. A benign race here only costs a redundant rebuild.
+         */
+        private final AtomicInteger tintedAtVersion = new AtomicInteger(-1);
+
         private ToolItemOverrides(BakedModel base) {
             this.base = base;
         }
 
         @Override
         public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+            int paletteVersion = MaterialClientCache.version();
+            if (tintedAtVersion.getAndSet(paletteVersion) != paletteVersion) {
+                variants.clear();
+            }
             ToolMaterials materials = stack.getOrDefault(TinkerDataComponents.TOOL_MATERIALS.get(), ToolMaterials.empty());
             if (materials.parts().isEmpty()) {
                 // Unbuilt tool (creative-tab pull, /give): no materials to tint by — render the
