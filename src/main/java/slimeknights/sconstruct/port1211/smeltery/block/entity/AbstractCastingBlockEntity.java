@@ -202,7 +202,16 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
             return Optional.empty();
         }
         CastingRecipeInput input = new CastingRecipeInput(fluid, castHandler.getStackInSlot(0), isBasin());
-        return level.getRecipeManager().getRecipeFor(SmelteryRecipes.CASTING_TYPE.get(), input, level).map(RecipeHolder::value);
+        // RecipeManager#getRecipeFor short-circuits to an empty result whenever the RecipeInput
+        // carries no items, and a cast-less casting recipe legitimately runs with an empty cast
+        // slot — so match directly against the full recipe list, the same way acceptsFluid does,
+        // rather than letting the empty-input fast path hide every no-cast recipe.
+        for (RecipeHolder<CastingRecipe> holder : level.getRecipeManager().getAllRecipesFor(SmelteryRecipes.CASTING_TYPE.get())) {
+            if (holder.value().matches(input, level)) {
+                return Optional.of(holder.value());
+            }
+        }
+        return Optional.empty();
     }
 
     /**
