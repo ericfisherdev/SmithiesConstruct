@@ -88,6 +88,16 @@ public class MeltingCategory implements IRecipeCategory<RecipeHolder<MeltingReci
         MeltingRecipe melting = recipe.value();
         var font = Minecraft.getInstance().font;
         graphics.drawString(font, melting.temperature() + " K", TEXT_X, 4, TEXT_COLOR, false);
-        graphics.drawString(font, (melting.time() / TICKS_PER_SECOND) + " s", TEXT_X, 16, TEXT_COLOR, false);
+        graphics.drawString(font, formatSeconds(melting.time()), TEXT_X, 16, TEXT_COLOR, false);
+    }
+
+    /**
+     * Formats a tick duration as seconds with one decimal place — plain integer division would
+     * truncate a sub-second melt to {@code "0 s"} and round every melt down by up to a tick.
+     */
+    private static String formatSeconds(int ticks) {
+        int wholeSeconds = ticks / TICKS_PER_SECOND;
+        int tenths = (ticks % TICKS_PER_SECOND) * 10 / TICKS_PER_SECOND;
+        return tenths == 0 ? wholeSeconds + " s" : wholeSeconds + "." + tenths + " s";
     }
 }
