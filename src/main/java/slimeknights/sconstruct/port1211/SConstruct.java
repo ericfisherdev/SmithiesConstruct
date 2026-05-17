@@ -2,12 +2,14 @@ package slimeknights.sconstruct.port1211;
 
 import java.util.List;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -27,6 +29,7 @@ import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
 import slimeknights.sconstruct.port1211.gadgets.GadgetDispenserBehaviors;
 import slimeknights.sconstruct.port1211.gadgets.GadgetEvents;
 import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
+import slimeknights.sconstruct.port1211.gadgets.client.GadgetEntityRenderers;
 import slimeknights.sconstruct.port1211.gadgets.entity.GadgetEntities;
 import slimeknights.sconstruct.port1211.gadgets.recipe.GadgetRecipes;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
@@ -87,7 +90,7 @@ public final class SConstruct {
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
 
-        // SMTCON-132..137: force the gadget hubs to load so their static blocks register the
+        // SMTCON-132..141: force the gadget hubs to load so their static blocks register the
         // gadget items, blocks, entity types, the piggyback attachment type, the slime armor
         // material, and the drying recipe type before the registry events fire; subscribe the
         // creative-tab listeners that push the gadget items and blocks into SharedTabs.GENERAL,
@@ -102,6 +105,12 @@ public final class SConstruct {
         GadgetItems.registerCreativeTabContents(modBus);
         GadgetBlocks.registerCreativeTabContents(modBus);
         GadgetEvents.register(NeoForge.EVENT_BUS);
+        // SMTCON-141: on a physical client, bind the gadget projectile entities to their
+        // renderers. Guarded by FMLEnvironment.dist so the client-only renderer class never
+        // resolves on a dedicated server.
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            GadgetEntityRenderers.register(modBus);
+        }
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
