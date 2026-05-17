@@ -224,7 +224,9 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-152 adds the JEI casting-table and casting-basin category titles = 2 more,
         // for 293 total.
-        assertEquals(293, lang().entrySet().size());
+        //
+        // SMTCON-153 adds the JEI alloying category title = 1 more, for 294 total.
+        assertEquals(294, lang().entrySet().size());
     }
 
     @Test
@@ -233,7 +235,7 @@ class TinkerLanguageProviderTest {
         // value so a typo surfaces as a test failure, not raw key-text in the in-game JEI title.
         JsonObject lang = lang();
         assertAll(() -> assertEquals("Melting", lang.get("gui.sconstruct.jei.melting").getAsString()), () -> assertEquals("Casting Table", lang.get("gui.sconstruct.jei.casting_table").getAsString()),
-                () -> assertEquals("Casting Basin", lang.get("gui.sconstruct.jei.casting_basin").getAsString()));
+                () -> assertEquals("Casting Basin", lang.get("gui.sconstruct.jei.casting_basin").getAsString()), () -> assertEquals("Alloying", lang.get("gui.sconstruct.jei.alloying").getAsString()));
     }
 
     @Test

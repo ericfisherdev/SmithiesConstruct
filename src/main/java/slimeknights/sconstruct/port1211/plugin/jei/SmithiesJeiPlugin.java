@@ -3,6 +3,7 @@ package slimeknights.sconstruct.port1211.plugin.jei;
 import net.minecraft.resources.ResourceLocation;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.plugin.jei.category.AlloyCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.CastingBasinCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.CastingTableCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.MeltingCategory;
@@ -19,8 +20,9 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
  *
  * <p>{@link #registerCategories} registers the recipe categories. SMTCON-151 adds
  * {@link MeltingCategory}; SMTCON-152 adds {@link CastingTableCategory} and
- * {@link CastingBasinCategory}; the alloy / tool-building / part-builder / modifier /
- * drying-rack categories follow in SMTCON-153..156. {@code registerRecipes} and
+ * {@link CastingBasinCategory}; SMTCON-153 adds {@link AlloyCategory}; the tool-building /
+ * part-builder / modifier / drying-rack categories follow in SMTCON-154..156.
+ * {@code registerRecipes} and
  * {@code registerRecipeCatalysts} keep their default no-op bodies until SMTCON-157 wires the
  * recipe lists and the catalyst blocks.
  */
@@ -38,6 +40,6 @@ public class SmithiesJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
-        registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper));
+        registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper), new AlloyCategory(guiHelper));
     }
 }
