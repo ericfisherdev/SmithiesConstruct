@@ -17,6 +17,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
 import slimeknights.sconstruct.port1211.gadgets.block.DryingRackBlock;
+import slimeknights.sconstruct.port1211.gadgets.block.StoneLadderBlock;
 import slimeknights.sconstruct.port1211.gadgets.block.WoodenHopperBlock;
 import slimeknights.sconstruct.port1211.gadgets.block.entity.DryingRackBlockEntity;
 import slimeknights.sconstruct.port1211.gadgets.block.entity.WoodenHopperBlockEntity;
@@ -28,6 +29,8 @@ import slimeknights.sconstruct.port1211.shared.SharedTabs;
  * <ul>
  *   <li>{@link #DRYING_RACK} — holds an item and dries it into another over time (SMTCON-137).</li>
  *   <li>{@link #WOODEN_HOPPER} — a pre-iron-tier hopper that transfers at half speed (SMTCON-138).</li>
+ *   <li>{@link #STONE_LADDER}, {@link #DRIED_CLAY}, {@link #DRIED_CLAY_BRICK} — decoration
+ *       blocks (SMTCON-139).</li>
  * </ul>
  *
  * <p>Mirrors the {@code CastingBlocks} pattern — typed {@code public static final} holders, a
@@ -44,11 +47,29 @@ public final class GadgetBlocks {
     /** The wooden hopper — a pre-iron-tier hopper that transfers items at half an iron hopper's rate. */
     public static final DeferredBlock<WoodenHopperBlock> WOODEN_HOPPER = TinkerRegistries.BLOCKS.register("wooden_hopper", () -> new WoodenHopperBlock(woodenHopperProperties()));
 
+    /** The stone ladder — a stone-built climbable ladder. */
+    public static final DeferredBlock<StoneLadderBlock> STONE_LADDER = TinkerRegistries.BLOCKS.register("stone_ladder", () -> new StoneLadderBlock(stoneLadderProperties()));
+
+    /** Dried clay — a plain decoration block. */
+    public static final DeferredBlock<Block> DRIED_CLAY = TinkerRegistries.BLOCKS.register("dried_clay", () -> new Block(driedClayProperties()));
+
+    /** Dried clay brick — a brick-textured decoration block. */
+    public static final DeferredBlock<Block> DRIED_CLAY_BRICK = TinkerRegistries.BLOCKS.register("dried_clay_brick", () -> new Block(driedClayProperties()));
+
     /** Block-item for the drying rack. */
     public static final DeferredItem<BlockItem> DRYING_RACK_ITEM = TinkerRegistries.ITEMS.registerSimpleBlockItem(DRYING_RACK);
 
     /** Block-item for the wooden hopper. */
     public static final DeferredItem<BlockItem> WOODEN_HOPPER_ITEM = TinkerRegistries.ITEMS.registerSimpleBlockItem(WOODEN_HOPPER);
+
+    /** Block-item for the stone ladder. */
+    public static final DeferredItem<BlockItem> STONE_LADDER_ITEM = TinkerRegistries.ITEMS.registerSimpleBlockItem(STONE_LADDER);
+
+    /** Block-item for dried clay. */
+    public static final DeferredItem<BlockItem> DRIED_CLAY_ITEM = TinkerRegistries.ITEMS.registerSimpleBlockItem(DRIED_CLAY);
+
+    /** Block-item for dried clay brick. */
+    public static final DeferredItem<BlockItem> DRIED_CLAY_BRICK_ITEM = TinkerRegistries.ITEMS.registerSimpleBlockItem(DRIED_CLAY_BRICK);
 
     /** Block-entity type for the drying rack. */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DryingRackBlockEntity>> DRYING_RACK_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("drying_rack",
@@ -59,7 +80,7 @@ public final class GadgetBlocks {
             () -> BlockEntityType.Builder.of(WoodenHopperBlockEntity::new, WOODEN_HOPPER.get()).build(null));
 
     /** Immutable view over every gadget block — the iteration surface for data providers. */
-    public static final List<DeferredBlock<? extends Block>> ALL = List.of(DRYING_RACK, WOODEN_HOPPER);
+    public static final List<DeferredBlock<? extends Block>> ALL = List.of(DRYING_RACK, WOODEN_HOPPER, STONE_LADDER, DRIED_CLAY, DRIED_CLAY_BRICK);
 
     private GadgetBlocks() {
     }
@@ -84,6 +105,9 @@ public final class GadgetBlocks {
         }
         event.accept(DRYING_RACK_ITEM.get());
         event.accept(WOODEN_HOPPER_ITEM.get());
+        event.accept(STONE_LADDER_ITEM.get());
+        event.accept(DRIED_CLAY_ITEM.get());
+        event.accept(DRIED_CLAY_BRICK_ITEM.get());
     }
 
     /** Properties for the drying rack — a light wooden block, axe-mined, hand-breakable. */
@@ -98,5 +122,19 @@ public final class GadgetBlocks {
      */
     private static BlockBehaviour.Properties woodenHopperProperties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD).strength(2.0F).noOcclusion();
+    }
+
+    /**
+     * Properties for the stone ladder — a stone-tier climbable ladder: stone map colour and
+     * sound, pickaxe-mined, and {@code noOcclusion} so the rungs render see-through like a
+     * vanilla ladder.
+     */
+    private static BlockBehaviour.Properties stoneLadderProperties() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.STONE).sound(SoundType.STONE).strength(2.0F).requiresCorrectToolForDrops().noOcclusion();
+    }
+
+    /** Properties shared by dried clay and dried clay brick — full stone-tier decoration blocks. */
+    private static BlockBehaviour.Properties driedClayProperties() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.DIRT).sound(SoundType.STONE).strength(1.5F, 3.0F);
     }
 }
