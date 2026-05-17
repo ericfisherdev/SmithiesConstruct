@@ -21,7 +21,9 @@ import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
+import slimeknights.sconstruct.port1211.gadgets.GadgetDispenserBehaviors;
 import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
+import slimeknights.sconstruct.port1211.gadgets.entity.GadgetEntities;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.smeltery.TinkerSmelteryPulse;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
@@ -80,11 +82,13 @@ public final class SConstruct {
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
 
-        // SMTCON-132: force GadgetItems to load so its static block registers the four
-        // slimesling items before the item registry event fires, and subscribe the creative-tab
-        // listener that pushes them into SharedTabs.GENERAL. Lives here inline for now;
-        // relocates into the gadgets pulse's register() when that pulse is wired.
+        // SMTCON-132 / SMTCON-133: force GadgetItems and GadgetEntities to load so their static
+        // blocks register the slimesling and throwball items and the throwball entity type
+        // before the registry events fire, and subscribe the creative-tab listener that pushes
+        // the gadget items into SharedTabs.GENERAL. Lives here inline for now; relocates into
+        // the gadgets pulse's register() when that pulse is wired.
         GadgetItems.init();
+        GadgetEntities.init();
         GadgetItems.registerCreativeTabContents(modBus);
 
         modBus.addListener(this::onCommonSetup);
@@ -102,6 +106,9 @@ public final class SConstruct {
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
         LOGGER.info("SConstruct 1.21.1 port: common setup (stub)");
+        // SMTCON-133: register the throwball dispenser behaviours. DispenserBlock's behaviour
+        // registry is not thread-safe, so the work is enqueued onto the main thread.
+        event.enqueueWork(GadgetDispenserBehaviors::register);
     }
 
     @SubscribeEvent
