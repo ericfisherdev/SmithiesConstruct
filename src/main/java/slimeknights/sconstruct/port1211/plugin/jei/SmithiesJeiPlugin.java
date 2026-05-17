@@ -130,7 +130,7 @@ public class SmithiesJeiPlugin implements IModPlugin {
     private static <I extends RecipeInput, T extends Recipe<I>> List<RecipeHolder<T>> recipes(net.minecraft.world.item.crafting.RecipeType<T> type) {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         if (connection == null) {
-            LOGGER.warn("JEI requested recipes for {} but no server connection is active — returning an empty list", type);
+            LOGGER.debug("JEI requested recipes for {} but no server connection is active — returning an empty list", type);
             return List.of();
         }
         return connection.getRecipeManager().getAllRecipesFor(type);
