@@ -228,7 +228,10 @@ class TinkerLanguageProviderTest {
         // SMTCON-153 adds the JEI alloying category title = 1 more, for 294 total.
         //
         // SMTCON-154 adds the JEI tool-building category title = 1 more, for 295 total.
-        assertEquals(295, lang().entrySet().size());
+        //
+        // SMTCON-155 adds the JEI part-building and modifier category titles plus the modifier
+        // max-level and slot-cost format keys = 4 more, for 299 total.
+        assertEquals(299, lang().entrySet().size());
     }
 
     @Test
@@ -238,7 +241,9 @@ class TinkerLanguageProviderTest {
         JsonObject lang = lang();
         assertAll(() -> assertEquals("Melting", lang.get("gui.sconstruct.jei.melting").getAsString()), () -> assertEquals("Casting Table", lang.get("gui.sconstruct.jei.casting_table").getAsString()),
                 () -> assertEquals("Casting Basin", lang.get("gui.sconstruct.jei.casting_basin").getAsString()), () -> assertEquals("Alloying", lang.get("gui.sconstruct.jei.alloying").getAsString()),
-                () -> assertEquals("Tool Building", lang.get("gui.sconstruct.jei.tool_building").getAsString()));
+                () -> assertEquals("Tool Building", lang.get("gui.sconstruct.jei.tool_building").getAsString()),
+                () -> assertEquals("Part Building", lang.get("gui.sconstruct.jei.part_building").getAsString()),
+                () -> assertEquals("Modifiers", lang.get("gui.sconstruct.jei.modifiers").getAsString()));
     }
 
     @Test
