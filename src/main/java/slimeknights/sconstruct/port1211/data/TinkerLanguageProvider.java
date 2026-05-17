@@ -42,6 +42,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
     private static final Map<String, String> METAL_DISPLAY_NAMES = Map.of("pigiron", "Pig Iron", "alubrass", "Aluminum Brass");
 
     /**
+     * Display-name overrides for smeltery registry ids whose {@code prettify()} title-casing
+     * reads wrong — chiefly the {@code _io} acronym, which would otherwise render "Io".
+     */
+    private static final Map<String, String> SMELTERY_DISPLAY_NAMES = Map.of("seared_tank_io", "Seared Tank IO");
+
+    /**
      * Tool item display names keyed by registration path. Driven by an explicit table rather
      * than title-casing the id because several tools intentionally diverge from their registry
      * key — {@code axe} reads as "Hatchet" (the legacy single-handed axe), {@code sword} as
@@ -252,19 +258,20 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.smeltery.tank_fluid", "%1$s: %2$s mB");
 
         // SMTCON-129: smeltery block + molten-fluid display names. Each name is the title-cased
-        // registry path — the registrar ids already read as words once underscores are spaces.
+        // registry path — the registrar ids already read as words once underscores are spaces —
+        // except the ids in SMELTERY_DISPLAY_NAMES, whose acronyms need explicit casing.
         for (DeferredBlock<? extends Block> holder : SearedBlocks.ALL) {
-            add(holder.get(), prettify(holder.getId().getPath()));
+            add(holder.get(), smelteryDisplayName(holder.getId().getPath()));
         }
         for (DeferredBlock<? extends Block> holder : SmelteryComponents.ALL) {
-            add(holder.get(), prettify(holder.getId().getPath()));
+            add(holder.get(), smelteryDisplayName(holder.getId().getPath()));
         }
         for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
-            add(holder.get(), prettify(holder.getId().getPath()));
+            add(holder.get(), smelteryDisplayName(holder.getId().getPath()));
         }
         for (MoltenFluidSet molten : SmelteryFluids.ALL) {
-            add(molten.block().get(), prettify(molten.block().getId().getPath()));
-            add(molten.bucket().get(), prettify(molten.bucket().getId().getPath()));
+            add(molten.block().get(), smelteryDisplayName(molten.block().getId().getPath()));
+            add(molten.bucket().get(), smelteryDisplayName(molten.bucket().getId().getPath()));
         }
 
         // SMTCON-107 tool items. Iterate ToolItems.ALL_TOOLS so a tool added to that list
@@ -425,6 +432,15 @@ public final class TinkerLanguageProvider extends LanguageProvider {
      * is defence-in-depth — if a caller ever invokes this directly with an empty string the
      * fall through returns it verbatim instead of throwing StringIndexOutOfBoundsException.
      */
+    /**
+     * Display name for a smeltery registry id: an explicit {@link #SMELTERY_DISPLAY_NAMES}
+     * override if one exists (acronym ids like {@code seared_tank_io}), else {@link #prettify}.
+     */
+    private static String smelteryDisplayName(String id) {
+        String override = SMELTERY_DISPLAY_NAMES.get(id);
+        return override != null ? override : prettify(id);
+    }
+
     /** Title-cases an underscore-separated registry path, e.g. {@code molten_iron} → {@code Molten Iron}. */
     private static String prettify(String id) {
         String[] words = id.split("_");

@@ -16,6 +16,10 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
+
 /**
  * Pinned-behaviour tests for the generated block-tag JSONs. {@link TinkerBlockTagsProvider}
  * writes JSON under {@code src/generated/resources/data/minecraft/tags/block/} during
@@ -43,11 +47,14 @@ class TinkerBlockTagsProviderTest {
 
     @Test
     void mineableWithPickaxeIncludesEverySmelteryBlock() {
-        // SMTCON-129: the seared blocks, the six component blocks, and the two casting blocks
-        // are all stone-tier and so pickaxe-mineable.
+        // SMTCON-129: every seared block, component block, and casting block is stone-tier and
+        // so pickaxe-mineable. Derive the expected set from the registry collections rather than
+        // a hardcoded sample so a new smeltery block that misses the tag fails here.
         Set<String> pickaxe = loadValues("data/minecraft/tags/block/mineable/pickaxe.json");
-        Set<String> smeltery = Set.of("sconstruct:seared_brick", "sconstruct:seared_glass", "sconstruct:smeltery_controller", "sconstruct:seared_tank_io", "sconstruct:seared_drain",
-                "sconstruct:seared_chute", "sconstruct:casting_table", "sconstruct:casting_basin");
+        Set<String> smeltery = new java.util.HashSet<>();
+        SearedBlocks.ALL.forEach(holder -> smeltery.add(holder.getId().toString()));
+        SmelteryComponents.ALL.forEach(holder -> smeltery.add(holder.getId().toString()));
+        CastingBlocks.ALL.forEach(holder -> smeltery.add(holder.getId().toString()));
         assertTrue(pickaxe.containsAll(smeltery), "every smeltery block must be pickaxe-mineable");
     }
 

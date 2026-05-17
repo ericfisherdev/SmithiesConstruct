@@ -217,6 +217,19 @@ class TinkerLanguageProviderTest {
         assertEquals(269, lang().entrySet().size());
     }
 
+    @Test
+    void smelteryDisplayNamesArePinned() {
+        // SMTCON-129: a raw count check can't catch a wrong key/value pair. Pin one representative
+        // entry per smeltery surface — a seared block, a component, a molten-fluid block, and a
+        // molten bucket — plus the seared_tank_io acronym override.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Seared Brick", lang.get("block.sconstruct.seared_brick").getAsString()),
+                () -> assertEquals("Smeltery Controller", lang.get("block.sconstruct.smeltery_controller").getAsString()),
+                () -> assertEquals("Seared Tank IO", lang.get("block.sconstruct.seared_tank_io").getAsString()),
+                () -> assertEquals("Molten Iron", lang.get("block.sconstruct.molten_iron").getAsString()),
+                () -> assertEquals("Molten Iron Bucket", lang.get("item.sconstruct.molten_iron_bucket").getAsString()));
+    }
+
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null
     private static JsonObject lang() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
