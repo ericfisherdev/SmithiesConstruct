@@ -1,0 +1,16 @@
+{
+  "name": "Lumber Axe",
+  "icon": "sconstruct:lumberaxe",
+  "category": "tconstruct:tools",
+  "sortnum": 12,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Lumber Axe is a broad chopping tool. It can fell entire trees or gather wood in a wide range. A tree is only detected if it has leaves on top."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Requires a Tool Forge$(br)- Fells whole trees in one swing$(br)- 3x3x3 area mining$(br)- Effective on wood"
+    }
+  ]
+}
