@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileItem;
@@ -21,6 +22,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import org.junit.jupiter.api.Test;
 
 import slimeknights.sconstruct.port1211.gadgets.item.GlowBallItem;
+import slimeknights.sconstruct.port1211.gadgets.item.SlimeArmorItem;
 import slimeknights.sconstruct.port1211.gadgets.item.SlimeSlingItem;
 import slimeknights.sconstruct.port1211.gadgets.item.ThrowballItem;
 import slimeknights.sconstruct.port1211.world.block.SlimeColor;
@@ -116,13 +118,37 @@ class GadgetItemsTest {
     }
 
     @Test
+    void registersTheFourSlimeArmorPieces() {
+        assertEquals(4, GadgetItems.ARMOR.size(), "one slime armor item per armor slot");
+        assertAll(() -> assertEquals("slime_helmet", GadgetItems.SLIME_HELMET.getId().getPath()), () -> assertEquals("slime_chestplate", GadgetItems.SLIME_CHESTPLATE.getId().getPath()),
+                () -> assertEquals("slime_leggings", GadgetItems.SLIME_LEGGINGS.getId().getPath()), () -> assertEquals("slime_boots", GadgetItems.SLIME_BOOTS.getId().getPath()));
+    }
+
+    @Test
+    void everySlimeArmorPieceIsADurableArmorItem() {
+        // Durable so anvil repair with a slimeball is meaningful; each must be an ArmorItem so
+        // it equips into an armor slot.
+        for (DeferredItem<SlimeArmorItem> piece : GadgetItems.ARMOR) {
+            ItemStack stack = new ItemStack(piece.get());
+            assertAll(() -> assertTrue(stack.getMaxDamage() > 0, piece.getId() + " must be damageable"), () -> assertTrue(piece.get() instanceof ArmorItem, piece.getId() + " must be an ArmorItem"));
+        }
+    }
+
+    @Test
+    void slimeArmorPiecesCoverEveryArmorSlot() {
+        // Pin the slot mapping so a swapped registration cannot put two pieces in one slot.
+        assertAll(() -> assertEquals(ArmorItem.Type.HELMET, GadgetItems.SLIME_HELMET.get().getType()), () -> assertEquals(ArmorItem.Type.CHESTPLATE, GadgetItems.SLIME_CHESTPLATE.get().getType()),
+                () -> assertEquals(ArmorItem.Type.LEGGINGS, GadgetItems.SLIME_LEGGINGS.get().getType()), () -> assertEquals(ArmorItem.Type.BOOTS, GadgetItems.SLIME_BOOTS.get().getType()));
+    }
+
+    @Test
     void acceptAllVisitsEveryGadgetItemExactlyOnce() {
         // The BuildCreativeModeTabContentsEvent listener delegates here, so verifying coverage
         // is the unit-level proxy for "every gadget item appears in the creative inventory".
         List<ItemLike> visited = new ArrayList<>();
         GadgetItems.acceptAll(visited::add);
         Set<ItemLike> canonical = GadgetItems.ALL.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(10, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(10L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(14, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(14L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical roster"));
     }
 
@@ -130,16 +156,17 @@ class GadgetItemsTest {
     void rostersAreImmutable() {
         assertAll(() -> assertThrows(UnsupportedOperationException.class, () -> GadgetItems.SLINGS.add(null)),
                 () -> assertThrows(UnsupportedOperationException.class, () -> GadgetItems.THROWBALLS.add(null)),
-                () -> assertThrows(UnsupportedOperationException.class, () -> GadgetItems.ALL.add(null)));
+                () -> assertThrows(UnsupportedOperationException.class, () -> GadgetItems.ARMOR.add(null)), () -> assertThrows(UnsupportedOperationException.class, () -> GadgetItems.ALL.add(null)));
     }
 
     @Test
     void allRosterCombinesEveryGadgetItem() {
         List<DeferredItem<? extends Item>> all = GadgetItems.ALL;
-        assertEquals(10, all.size(), "the combined roster is every sling, throwball, the piggyback item, and the glow ball");
+        assertEquals(14, all.size(), "the combined roster is every sling, throwball, piggyback, glow ball, and armor piece");
         assertAll(() -> assertTrue(all.containsAll(GadgetItems.SLINGS), "every sling is in the combined roster"),
                 () -> assertTrue(all.containsAll(GadgetItems.THROWBALLS), "every throwball is in the combined roster"),
                 () -> assertTrue(all.contains(GadgetItems.PIGGYBACK), "the piggyback item is in the combined roster"),
-                () -> assertTrue(all.contains(GadgetItems.GLOW_BALL), "the glow ball is in the combined roster"));
+                () -> assertTrue(all.contains(GadgetItems.GLOW_BALL), "the glow ball is in the combined roster"),
+                () -> assertTrue(all.containsAll(GadgetItems.ARMOR), "every armor piece is in the combined roster"));
     }
 }

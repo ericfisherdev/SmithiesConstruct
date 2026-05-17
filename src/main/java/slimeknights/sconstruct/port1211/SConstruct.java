@@ -21,6 +21,7 @@ import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
+import slimeknights.sconstruct.port1211.gadgets.GadgetArmorMaterials;
 import slimeknights.sconstruct.port1211.gadgets.GadgetAttachments;
 import slimeknights.sconstruct.port1211.gadgets.GadgetDispenserBehaviors;
 import slimeknights.sconstruct.port1211.gadgets.GadgetEvents;
@@ -84,15 +85,16 @@ public final class SConstruct {
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
 
-        // SMTCON-132 / SMTCON-133 / SMTCON-134: force GadgetItems, GadgetEntities and
-        // GadgetAttachments to load so their static blocks register the slimesling / throwball /
-        // piggyback items, the throwball entity type, and the piggyback attachment type before
-        // the registry events fire; subscribe the creative-tab listener that pushes the gadget
-        // items into SharedTabs.GENERAL, and the game-bus piggyback ride listeners. Lives here
-        // inline for now; relocates into the gadgets pulse's register() when that pulse is wired.
+        // SMTCON-132..136: force the gadget hubs to load so their static blocks register the
+        // slimesling / throwball / piggyback / glow-ball / slime-armor items, the gadget entity
+        // types, the piggyback attachment type, and the slime armor material before the registry
+        // events fire; subscribe the creative-tab listener that pushes the gadget items into
+        // SharedTabs.GENERAL, and the game-bus gadget listeners. Lives here inline for now;
+        // relocates into the gadgets pulse's register() when that pulse is wired.
         GadgetItems.init();
         GadgetEntities.init();
         GadgetAttachments.init();
+        GadgetArmorMaterials.init();
         GadgetItems.registerCreativeTabContents(modBus);
         GadgetEvents.register(NeoForge.EVENT_BUS);
 

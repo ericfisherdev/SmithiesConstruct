@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -13,6 +14,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
 import slimeknights.sconstruct.port1211.gadgets.item.GlowBallItem;
 import slimeknights.sconstruct.port1211.gadgets.item.PiggybackItem;
+import slimeknights.sconstruct.port1211.gadgets.item.SlimeArmorItem;
 import slimeknights.sconstruct.port1211.gadgets.item.SlimeSlingItem;
 import slimeknights.sconstruct.port1211.gadgets.item.ThrowballItem;
 import slimeknights.sconstruct.port1211.shared.SharedTabs;
@@ -31,6 +33,8 @@ import slimeknights.sconstruct.port1211.world.block.SlimeColor;
  *       carry another on their shoulders.</li>
  *   <li>{@link #GLOW_BALL} — the single {@link GlowBallItem} (SMTCON-135), a thrown projectile
  *       that places a glow block where it lands.</li>
+ *   <li>{@link #ARMOR} — the four-piece slime armor set (SMTCON-136); the boots cushion falls
+ *       and the full set softens knockback (both applied by {@code GadgetEvents}).</li>
  * </ul>
  *
  * <p>The per-colour behaviour lives in the item classes; this hub only wires the registrations
@@ -83,8 +87,26 @@ public final class GadgetItems {
     /** Glow-ball item — a thrown projectile that places a glow block where it lands. */
     public static final DeferredItem<GlowBallItem> GLOW_BALL = TinkerRegistries.ITEMS.registerItem("glow_ball", props -> new GlowBallItem(props.stacksTo(GlowBallItem.STACK_SIZE)));
 
-    /** Immutable insertion-ordered roster of every registered gadget item — slings, throwballs, piggyback, glow ball. */
-    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.of(SLINGS, THROWBALLS, List.of(PIGGYBACK, GLOW_BALL)).flatMap(List::stream)
+    /** Durability factor for slime armor — multiplied per slot by {@link ArmorItem.Type#getDurability}. */
+    private static final int ARMOR_DURABILITY_FACTOR = 13;
+
+    /** Slime helmet — part of the slime armor set. */
+    public static final DeferredItem<SlimeArmorItem> SLIME_HELMET = registerArmor("slime_helmet", ArmorItem.Type.HELMET);
+
+    /** Slime chestplate — part of the slime armor set. */
+    public static final DeferredItem<SlimeArmorItem> SLIME_CHESTPLATE = registerArmor("slime_chestplate", ArmorItem.Type.CHESTPLATE);
+
+    /** Slime leggings — part of the slime armor set. */
+    public static final DeferredItem<SlimeArmorItem> SLIME_LEGGINGS = registerArmor("slime_leggings", ArmorItem.Type.LEGGINGS);
+
+    /** Slime boots — cushion fall damage; part of the slime armor set. */
+    public static final DeferredItem<SlimeArmorItem> SLIME_BOOTS = registerArmor("slime_boots", ArmorItem.Type.BOOTS);
+
+    /** Insertion-ordered roster of the four slime armor pieces, for the creative tab and providers. */
+    public static final List<DeferredItem<SlimeArmorItem>> ARMOR = List.of(SLIME_HELMET, SLIME_CHESTPLATE, SLIME_LEGGINGS, SLIME_BOOTS);
+
+    /** Immutable insertion-ordered roster of every registered gadget item. */
+    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.of(SLINGS, THROWBALLS, List.of(PIGGYBACK, GLOW_BALL), ARMOR).flatMap(List::stream)
             .collect(Collectors.toUnmodifiableList());
 
     private GadgetItems() {
@@ -108,7 +130,7 @@ public final class GadgetItems {
         modBus.addListener(GadgetItems::populateCreativeTab);
     }
 
-    /** Feeds every registered gadget item — slimeslings, throwballs, piggyback, glow ball — to {@code accept}. */
+    /** Feeds every registered gadget item — slimeslings, throwballs, piggyback, glow ball, armor — to {@code accept}. */
     public static void acceptAll(Consumer<ItemLike> accept) {
         for (DeferredItem<? extends net.minecraft.world.item.Item> gadget : ALL) {
             accept.accept(gadget.get());
@@ -128,5 +150,9 @@ public final class GadgetItems {
 
     private static DeferredItem<ThrowballItem> registerThrowball(String colorId, SlimeColor color) {
         return TinkerRegistries.ITEMS.registerItem("throwball_" + colorId, props -> new ThrowballItem(props.stacksTo(ThrowballItem.STACK_SIZE), color));
+    }
+
+    private static DeferredItem<SlimeArmorItem> registerArmor(String id, ArmorItem.Type type) {
+        return TinkerRegistries.ITEMS.registerItem(id, props -> new SlimeArmorItem(GadgetArmorMaterials.SLIME, type, props.durability(type.getDurability(ARMOR_DURABILITY_FACTOR))));
     }
 }
