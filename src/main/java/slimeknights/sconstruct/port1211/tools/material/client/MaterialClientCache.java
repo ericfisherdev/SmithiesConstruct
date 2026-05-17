@@ -1,6 +1,8 @@
 package slimeknights.sconstruct.port1211.tools.material.client;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,6 +37,13 @@ public final class MaterialClientCache {
     private static final AtomicReference<Map<ResourceLocation, Integer>> CACHE = new AtomicReference<>(Map.of());
 
     /**
+     * Id-sorted immutable snapshot of {@link #CACHE}'s key set, recomputed once per
+     * {@link #populate} so {@link #materialIds()} is a plain field read rather than a re-sort
+     * on every call.
+     */
+    private static final AtomicReference<List<ResourceLocation>> SORTED_IDS = new AtomicReference<>(List.of());
+
+    /**
      * Monotonic snapshot counter, bumped on every {@link #populate}. Lets a downstream cache
      * keyed off material colours (the tool model's per-material quad variants) detect a refresh
      * and discard entries that were tinted from the previous snapshot.
@@ -64,11 +73,22 @@ public final class MaterialClientCache {
     }
 
     /**
+     * Id-sorted immutable snapshot of every material id in the client cache. Sorted by string
+     * form so callers that present materials in a deterministic order — the JEI tool-building
+     * category cycles each part slot through this list — get a stable ordering. Empty until the
+     * first {@link #populate} after registry sync.
+     */
+    public static List<ResourceLocation> materialIds() {
+        return SORTED_IDS.get();
+    }
+
+    /**
      * Replace the cache snapshot wholesale. Copies the supplied map so the caller may continue
      * mutating its source without aliasing the cache contents.
      */
     public static void populate(Map<ResourceLocation, Integer> snapshot) {
         CACHE.set(Map.copyOf(snapshot));
+        SORTED_IDS.set(snapshot.keySet().stream().sorted(Comparator.comparing(ResourceLocation::toString)).toList());
         VERSION.incrementAndGet();
     }
 
@@ -92,6 +112,7 @@ public final class MaterialClientCache {
     /** Test seam: clear the cache and reset the version counter (simulates a fresh client). */
     static void clearForTest() {
         CACHE.set(Map.of());
+        SORTED_IDS.set(List.of());
         VERSION.set(0);
     }
 }
