@@ -142,13 +142,18 @@ class GadgetItemsTest {
     }
 
     @Test
+    void registersTheWitherHead() {
+        assertEquals("wither_head", GadgetItems.WITHER_HEAD.getId().getPath(), "the wither head registers under its expected key");
+    }
+
+    @Test
     void acceptAllVisitsEveryGadgetItemExactlyOnce() {
         // The BuildCreativeModeTabContentsEvent listener delegates here, so verifying coverage
         // is the unit-level proxy for "every gadget item appears in the creative inventory".
         List<ItemLike> visited = new ArrayList<>();
         GadgetItems.acceptAll(visited::add);
         Set<ItemLike> canonical = GadgetItems.ALL.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(14, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(14L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(15, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(15L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical roster"));
     }
 
@@ -162,11 +167,12 @@ class GadgetItemsTest {
     @Test
     void allRosterCombinesEveryGadgetItem() {
         List<DeferredItem<? extends Item>> all = GadgetItems.ALL;
-        assertEquals(14, all.size(), "the combined roster is every sling, throwball, piggyback, glow ball, and armor piece");
+        assertEquals(15, all.size(), "the combined roster is every sling, throwball, piggyback, glow ball, wither head, and armor piece");
         assertAll(() -> assertTrue(all.containsAll(GadgetItems.SLINGS), "every sling is in the combined roster"),
                 () -> assertTrue(all.containsAll(GadgetItems.THROWBALLS), "every throwball is in the combined roster"),
                 () -> assertTrue(all.contains(GadgetItems.PIGGYBACK), "the piggyback item is in the combined roster"),
                 () -> assertTrue(all.contains(GadgetItems.GLOW_BALL), "the glow ball is in the combined roster"),
+                () -> assertTrue(all.contains(GadgetItems.WITHER_HEAD), "the wither head is in the combined roster"),
                 () -> assertTrue(all.containsAll(GadgetItems.ARMOR), "every armor piece is in the combined roster"));
     }
 }

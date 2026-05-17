@@ -35,6 +35,7 @@ import slimeknights.sconstruct.port1211.world.block.SlimeColor;
  *       that places a glow block where it lands.</li>
  *   <li>{@link #ARMOR} — the four-piece slime armor set (SMTCON-136); the boots cushion falls
  *       and the full set softens knockback (both applied by {@code GadgetEvents}).</li>
+ *   <li>{@link #WITHER_HEAD} — a wither-themed decoration item (SMTCON-140), visual only.</li>
  * </ul>
  *
  * <p>The per-colour behaviour lives in the item classes; this hub only wires the registrations
@@ -87,6 +88,9 @@ public final class GadgetItems {
     /** Glow-ball item — a thrown projectile that places a glow block where it lands. */
     public static final DeferredItem<GlowBallItem> GLOW_BALL = TinkerRegistries.ITEMS.registerItem("glow_ball", props -> new GlowBallItem(props.stacksTo(GlowBallItem.STACK_SIZE)));
 
+    /** Wither head — a wither-themed decoration item with no behaviour beyond being held. */
+    public static final DeferredItem<net.minecraft.world.item.Item> WITHER_HEAD = TinkerRegistries.ITEMS.registerSimpleItem("wither_head");
+
     /** Durability factor for slime armor — multiplied per slot by {@link ArmorItem.Type#getDurability}. */
     private static final int ARMOR_DURABILITY_FACTOR = 13;
 
@@ -106,7 +110,7 @@ public final class GadgetItems {
     public static final List<DeferredItem<SlimeArmorItem>> ARMOR = List.of(SLIME_HELMET, SLIME_CHESTPLATE, SLIME_LEGGINGS, SLIME_BOOTS);
 
     /** Immutable insertion-ordered roster of every registered gadget item. */
-    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.of(SLINGS, THROWBALLS, List.of(PIGGYBACK, GLOW_BALL), ARMOR).flatMap(List::stream)
+    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.of(SLINGS, THROWBALLS, List.of(PIGGYBACK, GLOW_BALL, WITHER_HEAD), ARMOR).flatMap(List::stream)
             .collect(Collectors.toUnmodifiableList());
 
     private GadgetItems() {
