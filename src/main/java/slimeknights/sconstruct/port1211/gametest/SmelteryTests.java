@@ -168,7 +168,11 @@ public final class SmelteryTests {
         // Pour molten copper into the empty-cast table — casting_copper_ingot is a no-cast
         // SMTCON-128 recipe, so the bare table casts a copper ingot once the metal cools.
         Fluid moltenCopper = SmelteryFluids.get(MoltenMetals.COPPER).source().get();
-        Item copperIngot = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(SmokeTest.NAMESPACE, "ingot_copper"));
+        // BuiltInRegistries.ITEM.get returns Items.AIR (not null) for a missing key — assert the
+        // key exists so a renamed / removed ingot fails clearly rather than as a recipe miss.
+        ResourceLocation copperIngotId = ResourceLocation.fromNamespaceAndPath(SmokeTest.NAMESPACE, "ingot_copper");
+        helper.assertTrue(BuiltInRegistries.ITEM.containsKey(copperIngotId), "the copper ingot item is registered");
+        Item copperIngot = BuiltInRegistries.ITEM.get(copperIngotId);
         // Probe with a generous amount so the FluidIngredient's minimum-mB check passes during
         // lookup; the exact pour then comes from the resolved recipe's own fluid amount. The
         // recipe is pinned to the copper-ingot output so a future no-cast copper recipe cannot
