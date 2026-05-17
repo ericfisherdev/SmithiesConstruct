@@ -106,6 +106,11 @@ dependencies {
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
+    // Patchouli (SMTCON-148) — the in-game guidebook framework that replaces the legacy in-house
+    // book code (Decision D4). A full implementation dependency: the book content references
+    // Patchouli at compile time and Patchouli is required at runtime for the book to open.
+    implementation "vazkii.patchouli:Patchouli:${patchouli_version}"
+
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
     testImplementation 'org.mockito:mockito-core:5.14.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
