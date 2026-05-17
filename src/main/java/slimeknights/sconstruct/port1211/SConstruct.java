@@ -21,7 +21,9 @@ import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
+import slimeknights.sconstruct.port1211.gadgets.GadgetAttachments;
 import slimeknights.sconstruct.port1211.gadgets.GadgetDispenserBehaviors;
+import slimeknights.sconstruct.port1211.gadgets.GadgetEvents;
 import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
 import slimeknights.sconstruct.port1211.gadgets.entity.GadgetEntities;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
@@ -82,14 +84,17 @@ public final class SConstruct {
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
 
-        // SMTCON-132 / SMTCON-133: force GadgetItems and GadgetEntities to load so their static
-        // blocks register the slimesling and throwball items and the throwball entity type
-        // before the registry events fire, and subscribe the creative-tab listener that pushes
-        // the gadget items into SharedTabs.GENERAL. Lives here inline for now; relocates into
-        // the gadgets pulse's register() when that pulse is wired.
+        // SMTCON-132 / SMTCON-133 / SMTCON-134: force GadgetItems, GadgetEntities and
+        // GadgetAttachments to load so their static blocks register the slimesling / throwball /
+        // piggyback items, the throwball entity type, and the piggyback attachment type before
+        // the registry events fire; subscribe the creative-tab listener that pushes the gadget
+        // items into SharedTabs.GENERAL, and the game-bus piggyback ride listeners. Lives here
+        // inline for now; relocates into the gadgets pulse's register() when that pulse is wired.
         GadgetItems.init();
         GadgetEntities.init();
+        GadgetAttachments.init();
         GadgetItems.registerCreativeTabContents(modBus);
+        GadgetEvents.register(NeoForge.EVENT_BUS);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);

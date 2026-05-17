@@ -102,13 +102,19 @@ class GadgetItemsTest {
     }
 
     @Test
+    void registersThePiggybackItem() {
+        assertAll(() -> assertEquals("piggyback", GadgetItems.PIGGYBACK.getId().getPath()),
+                () -> assertEquals(1, new ItemStack(GadgetItems.PIGGYBACK.get()).getMaxStackSize(), "the piggyback item does not stack"));
+    }
+
+    @Test
     void acceptAllVisitsEveryGadgetItemExactlyOnce() {
         // The BuildCreativeModeTabContentsEvent listener delegates here, so verifying coverage
         // is the unit-level proxy for "every gadget item appears in the creative inventory".
         List<ItemLike> visited = new ArrayList<>();
         GadgetItems.acceptAll(visited::add);
         Set<ItemLike> canonical = GadgetItems.ALL.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(8, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(8L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(9, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(9L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical roster"));
     }
 
@@ -120,10 +126,11 @@ class GadgetItemsTest {
     }
 
     @Test
-    void allRosterCombinesSlingsAndThrowballs() {
+    void allRosterCombinesEveryGadgetItem() {
         List<DeferredItem<? extends Item>> all = GadgetItems.ALL;
-        assertEquals(8, all.size(), "the combined roster is every sling plus every throwball");
+        assertEquals(9, all.size(), "the combined roster is every sling, throwball, and the piggyback item");
         assertAll(() -> assertTrue(all.containsAll(GadgetItems.SLINGS), "every sling is in the combined roster"),
-                () -> assertTrue(all.containsAll(GadgetItems.THROWBALLS), "every throwball is in the combined roster"));
+                () -> assertTrue(all.containsAll(GadgetItems.THROWBALLS), "every throwball is in the combined roster"),
+                () -> assertTrue(all.contains(GadgetItems.PIGGYBACK), "the piggyback item is in the combined roster"));
     }
 }

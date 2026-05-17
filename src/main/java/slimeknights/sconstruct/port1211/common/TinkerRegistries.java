@@ -14,6 +14,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -70,13 +71,15 @@ public final class TinkerRegistries {
     public static final DeferredRegister<net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType> STRUCTURE_PIECE_TYPES = DeferredRegister.create(Registries.STRUCTURE_PIECE,
             SConstruct.MOD_ID);
 
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SConstruct.MOD_ID);
+
     /**
      * Every register the hub owns, in attachment order. Listed here so {@link
      * #registerAll(IEventBus)} (and {@link #registryCount()} for tests) doesn't need to be
      * updated when new registries are added — just add the field above and append it here.
      */
     private static final List<DeferredRegister<?>> ALL = List.of(ITEMS, BLOCKS, DATA_COMPONENTS, BLOCK_ENTITY_TYPES, ENTITY_TYPES, MENU_TYPES, RECIPE_TYPES, RECIPE_SERIALIZERS, MOB_EFFECTS,
-            PARTICLE_TYPES, SOUND_EVENTS, CREATIVE_TABS, FLUID_TYPES, FLUIDS, STRUCTURE_TYPES, STRUCTURE_PIECE_TYPES);
+            PARTICLE_TYPES, SOUND_EVENTS, CREATIVE_TABS, FLUID_TYPES, FLUIDS, STRUCTURE_TYPES, STRUCTURE_PIECE_TYPES, ATTACHMENT_TYPES);
 
     private TinkerRegistries() {
     }
