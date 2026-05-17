@@ -3,10 +3,13 @@ package slimeknights.sconstruct.port1211.plugin.jei;
 import net.minecraft.resources.ResourceLocation;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.plugin.jei.category.CastingBasinCategory;
+import slimeknights.sconstruct.port1211.plugin.jei.category.CastingTableCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.MeltingCategory;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 
 /**
@@ -14,9 +17,10 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
  * {@link JeiPlugin} annotation — no manual registration is needed — and calls back into the
  * {@code IModPlugin} hooks during JEI's startup.
  *
- * <p>{@link #registerCategories} registers the recipe categories. SMTCON-151 adds the first,
- * {@link MeltingCategory}; the casting / alloy / tool-building / part-builder / modifier /
- * drying-rack categories follow in SMTCON-152..156. {@code registerRecipes} and
+ * <p>{@link #registerCategories} registers the recipe categories. SMTCON-151 adds
+ * {@link MeltingCategory}; SMTCON-152 adds {@link CastingTableCategory} and
+ * {@link CastingBasinCategory}; the alloy / tool-building / part-builder / modifier /
+ * drying-rack categories follow in SMTCON-153..156. {@code registerRecipes} and
  * {@code registerRecipeCatalysts} keep their default no-op bodies until SMTCON-157 wires the
  * recipe lists and the catalyst blocks.
  */
@@ -33,6 +37,7 @@ public class SmithiesJeiPlugin implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new MeltingCategory(registration.getJeiHelpers().getGuiHelper()));
+        IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
+        registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper));
     }
 }
