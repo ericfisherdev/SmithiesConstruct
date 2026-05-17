@@ -87,8 +87,10 @@ public final class MaterialClientCache {
      * mutating its source without aliasing the cache contents.
      */
     public static void populate(Map<ResourceLocation, Integer> snapshot) {
-        CACHE.set(Map.copyOf(snapshot));
+        // Publish the sorted id list before the colour map so a concurrent reader never sees a
+        // fresh map paired with a stale id list.
         SORTED_IDS.set(snapshot.keySet().stream().sorted(Comparator.comparing(ResourceLocation::toString)).toList());
+        CACHE.set(Map.copyOf(snapshot));
         VERSION.incrementAndGet();
     }
 
