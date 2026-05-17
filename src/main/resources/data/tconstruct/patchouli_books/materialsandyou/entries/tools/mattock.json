@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "$(l)Properties$()$(br2)- Also acts as a hoe$(br)- Tills the ground$(br)- Effective on dirt and wood"
+      "text": "$(l)Properties$()$(br2)- Also acts as a hoe$(br)- Tills the ground$(br)- Effective on dirt, wood, and plants"
     }
   ]
 }
