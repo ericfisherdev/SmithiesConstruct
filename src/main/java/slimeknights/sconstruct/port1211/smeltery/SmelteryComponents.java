@@ -3,11 +3,13 @@ package slimeknights.sconstruct.port1211.smeltery;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -21,6 +23,7 @@ import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SearedTankBE;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SmelteryComponentBlockEntity;
 import slimeknights.sconstruct.port1211.smeltery.block.entity.SmelteryControllerBlockEntity;
+import slimeknights.sconstruct.port1211.smeltery.inventory.SmelteryControllerMenu;
 
 /**
  * Registration hub for the six functional blocks of the multiblock smeltery (SMTCON-112) — the
@@ -105,6 +108,14 @@ public final class SmelteryComponents {
     /** Chute block-entity type. See {@link #TANK_IO_BE} for the deferred self-read pattern. */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryComponentBlockEntity>> CHUTE_BE = TinkerRegistries.BLOCK_ENTITY_TYPES.register("seared_chute",
             () -> BlockEntityType.Builder.of((pos, state) -> new SmelteryComponentBlockEntity(SmelteryComponents.CHUTE_BE.get(), pos, state), SEARED_CHUTE.get()).build(null));
+
+    /**
+     * Menu type for the smeltery controller GUI (SMTCON-125). The client factory reads the
+     * controller's {@link net.minecraft.core.BlockPos} from the open-screen buffer to bind the
+     * menu to its block-entity.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<SmelteryControllerMenu>> SMELTERY_CONTROLLER_MENU = TinkerRegistries.MENU_TYPES.register("smeltery_controller",
+            () -> IMenuTypeExtension.create(SmelteryControllerMenu::new));
 
     /**
      * Immutable insertion-ordered view over all six smeltery component blocks. The single

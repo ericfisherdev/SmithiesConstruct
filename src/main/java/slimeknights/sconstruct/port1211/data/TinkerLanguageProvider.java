@@ -238,6 +238,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("button.sconstruct.tool_station.build", "Build");
         add("button.sconstruct.tool_station.modify", "Modify");
 
+        // SMTCON-125 smeltery controller GUI.
+        add("container.sconstruct.smeltery", "Smeltery");
+        add("gui.sconstruct.smeltery.temperature", "%s K");
+        add("gui.sconstruct.smeltery.tank_empty", "Empty");
+        add("gui.sconstruct.smeltery.tank_fluid", "%s: %s mB");
+
         // SMTCON-107 tool items. Iterate ToolItems.ALL_TOOLS so a tool added to that list
         // lights up here automatically; the display name comes from TOOL_DISPLAY_NAMES keyed by
         // the registration path. A tool present in ALL_TOOLS but absent from the table is a

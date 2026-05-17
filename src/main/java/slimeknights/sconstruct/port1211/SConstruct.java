@@ -30,6 +30,7 @@ import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryEvents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
+import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientMenus;
 import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
@@ -113,6 +114,8 @@ public final class SConstruct {
         // Relocates into the smeltery pulse's register() alongside SmelteryFluids at SMTCON-131.
         if (FMLEnvironment.dist == Dist.CLIENT) {
             SmelteryClientFluidTypes.register(modBus);
+            // SMTCON-125: pair the smeltery controller menu type with its screen.
+            SmelteryClientMenus.register(modBus);
         }
 
         // SMTCON-117: subscribe the smeltery disassembly listener on the game bus so breaking a

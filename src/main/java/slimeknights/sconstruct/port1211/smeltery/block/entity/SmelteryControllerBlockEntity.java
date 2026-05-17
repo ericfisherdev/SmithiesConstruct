@@ -14,10 +14,15 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -36,6 +41,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFuelSource;
 import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
+import slimeknights.sconstruct.port1211.smeltery.inventory.SmelteryControllerMenu;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.ComponentType;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructure;
 import slimeknights.sconstruct.port1211.smeltery.multiblock.SmelteryStructureValidator;
@@ -71,7 +77,7 @@ import slimeknights.sconstruct.port1211.smeltery.network.SmelteryStructureUpdate
  * <p>The controller GUI -- this BE implementing {@link net.minecraft.world.MenuProvider} so the
  * controller block's right-click opens a screen -- arrives in SMTCON-125.
  */
-public class SmelteryControllerBlockEntity extends BlockEntity {
+public class SmelteryControllerBlockEntity extends BlockEntity implements MenuProvider {
 
     /** Initial melting-slot count before SMTCON-115 resizes it to the assembled interior. */
     public static final int INITIAL_MELTING_SLOTS = 9;
@@ -204,6 +210,34 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
      */
     public List<MeltingProgress> getActiveMelts() {
         return Collections.unmodifiableList(activeMelts);
+    }
+
+    /**
+     * The melt progress of the given melting slot as a percentage in {@code [0, 100]}, or
+     * {@code 0} when no melt is running in that slot. Used by the controller menu (SMTCON-125)
+     * to drive the per-slot progress bars.
+     */
+    public int getMeltProgress(int slot) {
+        for (MeltingProgress melt : activeMelts) {
+            if (melt.slot() == slot) {
+                return Math.min(100, melt.elapsedTicks() * 100 / melt.requiredTicks());
+            }
+        }
+        return 0;
+    }
+
+    /** The smeltery controller's menu title. */
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("container.sconstruct.smeltery");
+    }
+
+    /** Opens the {@link SmelteryControllerMenu} for {@code player} (SMTCON-125). */
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        Objects.requireNonNull(playerInventory, "playerInventory");
+        Objects.requireNonNull(player, "player");
+        return new SmelteryControllerMenu(containerId, playerInventory, this);
     }
 
     /**
