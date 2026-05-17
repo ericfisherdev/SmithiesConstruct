@@ -23,10 +23,12 @@ import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.gadgets.GadgetArmorMaterials;
 import slimeknights.sconstruct.port1211.gadgets.GadgetAttachments;
+import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
 import slimeknights.sconstruct.port1211.gadgets.GadgetDispenserBehaviors;
 import slimeknights.sconstruct.port1211.gadgets.GadgetEvents;
 import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
 import slimeknights.sconstruct.port1211.gadgets.entity.GadgetEntities;
+import slimeknights.sconstruct.port1211.gadgets.recipe.GadgetRecipes;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.smeltery.TinkerSmelteryPulse;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
@@ -85,17 +87,20 @@ public final class SConstruct {
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
 
-        // SMTCON-132..136: force the gadget hubs to load so their static blocks register the
-        // slimesling / throwball / piggyback / glow-ball / slime-armor items, the gadget entity
-        // types, the piggyback attachment type, and the slime armor material before the registry
-        // events fire; subscribe the creative-tab listener that pushes the gadget items into
-        // SharedTabs.GENERAL, and the game-bus gadget listeners. Lives here inline for now;
-        // relocates into the gadgets pulse's register() when that pulse is wired.
+        // SMTCON-132..137: force the gadget hubs to load so their static blocks register the
+        // gadget items, blocks, entity types, the piggyback attachment type, the slime armor
+        // material, and the drying recipe type before the registry events fire; subscribe the
+        // creative-tab listeners that push the gadget items and blocks into SharedTabs.GENERAL,
+        // and the game-bus gadget listeners. Lives here inline for now; relocates into the
+        // gadgets pulse's register() when that pulse is wired.
         GadgetItems.init();
+        GadgetBlocks.init();
         GadgetEntities.init();
         GadgetAttachments.init();
         GadgetArmorMaterials.init();
+        GadgetRecipes.init();
         GadgetItems.registerCreativeTabContents(modBus);
+        GadgetBlocks.registerCreativeTabContents(modBus);
         GadgetEvents.register(NeoForge.EVENT_BUS);
 
         modBus.addListener(this::onCommonSetup);
