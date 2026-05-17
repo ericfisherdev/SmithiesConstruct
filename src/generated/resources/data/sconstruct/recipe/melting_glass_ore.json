@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/glass"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_glass"
+  },
+  "temperature": 1400,
+  "time": 144
+}

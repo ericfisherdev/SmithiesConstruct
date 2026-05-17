@@ -207,7 +207,10 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-107 adds the Phase-4 tools roster: 17 tool item names + 1 shuriken + 18 tool
         // part names + 15 material names + 18 trait names = 69 more, for 201 total.
-        assertEquals(201, lang().entrySet().size());
+        //
+        // SMTCON-125 adds the smeltery controller GUI strings: the container title plus the
+        // temperature, tank-empty, and tank-fluid format keys = 4 more, for 205 total.
+        assertEquals(205, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

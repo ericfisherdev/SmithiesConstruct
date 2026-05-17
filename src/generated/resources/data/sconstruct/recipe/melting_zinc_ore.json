@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/zinc"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_zinc"
+  },
+  "temperature": 750,
+  "time": 144
+}

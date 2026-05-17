@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/copper"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_copper"
+  },
+  "temperature": 1200,
+  "time": 144
+}

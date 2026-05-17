@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/lead"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_lead"
+  },
+  "temperature": 800,
+  "time": 144
+}

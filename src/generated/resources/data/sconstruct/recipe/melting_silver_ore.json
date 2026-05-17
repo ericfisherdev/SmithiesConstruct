@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/silver"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_silver"
+  },
+  "temperature": 1000,
+  "time": 144
+}

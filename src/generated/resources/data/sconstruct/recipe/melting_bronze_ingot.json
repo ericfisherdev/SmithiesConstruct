@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/bronze"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_bronze"
+  },
+  "temperature": 970,
+  "time": 72
+}

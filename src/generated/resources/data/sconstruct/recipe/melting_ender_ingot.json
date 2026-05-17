@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/ender"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_ender"
+  },
+  "temperature": 3000,
+  "time": 72
+}

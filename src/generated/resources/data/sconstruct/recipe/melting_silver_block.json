@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/silver"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_silver"
+  },
+  "temperature": 1000,
+  "time": 648
+}

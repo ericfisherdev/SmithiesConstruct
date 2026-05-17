@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/pigiron"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_pigiron"
+  },
+  "temperature": 1350,
+  "time": 648
+}

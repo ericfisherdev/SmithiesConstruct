@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/alubrass"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_alubrass"
+  },
+  "temperature": 1050,
+  "time": 648
+}

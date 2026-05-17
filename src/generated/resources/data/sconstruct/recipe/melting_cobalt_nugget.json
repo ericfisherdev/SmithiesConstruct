@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/cobalt"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_cobalt"
+  },
+  "temperature": 2400,
+  "time": 20
+}

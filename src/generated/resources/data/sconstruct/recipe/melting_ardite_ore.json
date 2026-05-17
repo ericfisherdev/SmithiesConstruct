@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/ardite"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_ardite"
+  },
+  "temperature": 2100,
+  "time": 144
+}

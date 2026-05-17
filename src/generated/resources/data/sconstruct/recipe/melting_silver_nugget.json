@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/silver"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_silver"
+  },
+  "temperature": 1000,
+  "time": 20
+}

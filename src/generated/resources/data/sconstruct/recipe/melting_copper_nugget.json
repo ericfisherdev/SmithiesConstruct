@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/copper"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_copper"
+  },
+  "temperature": 1200,
+  "time": 20
+}

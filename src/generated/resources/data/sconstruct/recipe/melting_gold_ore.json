@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/gold"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_gold"
+  },
+  "temperature": 1150,
+  "time": 144
+}

@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/lead"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_lead"
+  },
+  "temperature": 800,
+  "time": 648
+}

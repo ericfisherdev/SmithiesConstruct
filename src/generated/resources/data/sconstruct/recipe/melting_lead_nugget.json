@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/lead"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_lead"
+  },
+  "temperature": 800,
+  "time": 20
+}

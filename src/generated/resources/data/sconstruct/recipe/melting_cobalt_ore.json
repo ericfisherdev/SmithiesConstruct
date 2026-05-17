@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/cobalt"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_cobalt"
+  },
+  "temperature": 2400,
+  "time": 144
+}

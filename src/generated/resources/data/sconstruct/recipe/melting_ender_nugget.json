@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/ender"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_ender"
+  },
+  "temperature": 3000,
+  "time": 20
+}

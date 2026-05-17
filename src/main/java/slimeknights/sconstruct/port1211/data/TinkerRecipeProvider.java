@@ -3,6 +3,7 @@ package slimeknights.sconstruct.port1211.data;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -11,10 +12,14 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 
@@ -23,6 +28,9 @@ import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.smeltery.MoltenMetal;
+import slimeknights.sconstruct.port1211.smeltery.MoltenMetals;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
@@ -94,6 +102,49 @@ public final class TinkerRecipeProvider extends RecipeProvider {
         // point into the whole tool system — without it the stencil table, part builder, and
         // every part template are unreachable from a fresh world.
         addPatternRecipe(recipeOutput);
+
+        // SMTCON-127: smeltery melting recipes — one per (ingot, block, nugget, ore) form of
+        // every molten metal.
+        addMeltingRecipes(recipeOutput);
+    }
+
+    /** Millibuckets a single ingot melts into — the smeltery's base unit. */
+    private static final int INGOT_MB = 144;
+    /** Millibuckets a storage block melts into (nine ingots). */
+    private static final int BLOCK_MB = INGOT_MB * 9;
+    /** Millibuckets a nugget melts into (one-ninth of an ingot). */
+    private static final int NUGGET_MB = INGOT_MB / 9;
+    /** Millibuckets an ore melts into — twice the ingot yield, the smeltery's ore bonus. */
+    private static final int ORE_MB = INGOT_MB * 2;
+    /** Floor on a melt's duration so a nugget melt is not instantaneous. */
+    private static final int MIN_MELT_TICKS = 20;
+    /** Divisor turning an input's millibucket mass into its melt duration in ticks. */
+    private static final int MELT_MB_PER_TICK = 2;
+
+    /**
+     * Emit a melting recipe for every form of every {@link MoltenMetals#ALL molten metal}: the
+     * common {@code c:ingots}, {@code c:storage_blocks}, {@code c:nuggets}, and {@code c:ores}
+     * tag of each metal melted into the matching amount of its molten fluid. An ore yields twice
+     * the ingot volume. The melt temperature is the metal's own; the duration scales with the
+     * input's millibucket mass so a block takes far longer than a nugget.
+     */
+    private void addMeltingRecipes(RecipeOutput recipeOutput) {
+        for (MoltenMetal metal : MoltenMetals.ALL) {
+            Fluid molten = SmelteryFluids.get(metal).source().get();
+            int temperature = metal.temperature();
+            meltingRecipe(recipeOutput, metal, "ingot", "ingots", molten, INGOT_MB, temperature);
+            meltingRecipe(recipeOutput, metal, "block", "storage_blocks", molten, BLOCK_MB, temperature);
+            meltingRecipe(recipeOutput, metal, "nugget", "nuggets", molten, NUGGET_MB, temperature);
+            meltingRecipe(recipeOutput, metal, "ore", "ores", molten, ORE_MB, temperature);
+        }
+    }
+
+    /** Emit one melting recipe consuming the {@code c:<tagGroup>/<metal>} tag. */
+    private void meltingRecipe(RecipeOutput recipeOutput, MoltenMetal metal, String form, String tagGroup, Fluid molten, int amount, int temperature) {
+        TagKey<Item> inputTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", tagGroup + "/" + metal.id()));
+        int time = Math.max(MIN_MELT_TICKS, amount / MELT_MB_PER_TICK);
+        MeltingRecipeBuilder.melting(Ingredient.of(inputTag), new FluidStack(molten, amount), temperature, time).save(recipeOutput,
+                ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "melting_" + metal.id() + "_" + form));
     }
 
     /**

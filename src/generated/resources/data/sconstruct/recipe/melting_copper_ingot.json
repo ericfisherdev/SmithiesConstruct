@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/copper"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_copper"
+  },
+  "temperature": 1200,
+  "time": 72
+}

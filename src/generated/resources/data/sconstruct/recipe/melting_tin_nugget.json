@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/tin"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_tin"
+  },
+  "temperature": 700,
+  "time": 20
+}

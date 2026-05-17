@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/brass"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_brass"
+  },
+  "temperature": 950,
+  "time": 20
+}

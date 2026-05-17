@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/zinc"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_zinc"
+  },
+  "temperature": 750,
+  "time": 72
+}
