@@ -120,6 +120,7 @@
   "gui.sconstruct.jei.alloying": "Alloying",
   "gui.sconstruct.jei.casting_basin": "Casting Basin",
   "gui.sconstruct.jei.casting_table": "Casting Table",
+  "gui.sconstruct.jei.drying": "Drying",
   "gui.sconstruct.jei.melting": "Melting",
   "gui.sconstruct.jei.modifier.max_level": "Max Level: %s",
   "gui.sconstruct.jei.modifier.slot_cost": "Slot Cost: %s",

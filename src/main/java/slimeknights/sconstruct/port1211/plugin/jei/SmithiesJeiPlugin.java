@@ -6,6 +6,7 @@ import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.plugin.jei.category.AlloyCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.CastingBasinCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.CastingTableCategory;
+import slimeknights.sconstruct.port1211.plugin.jei.category.DryingRackCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.MeltingCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.ModifierCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.PartBuilderCategory;
@@ -25,9 +26,9 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
  * {@link MeltingCategory}; SMTCON-152 adds {@link CastingTableCategory} and
  * {@link CastingBasinCategory}; SMTCON-153 adds {@link AlloyCategory}; SMTCON-154 adds
  * {@link ToolBuildingCategory}; SMTCON-155 adds {@link PartBuilderCategory} and
- * {@link ModifierCategory}; the drying-rack category follows in SMTCON-156.
- * {@code registerRecipes} and {@code registerRecipeCatalysts} keep their default no-op bodies
- * until SMTCON-157 wires the recipe lists and the catalyst blocks.
+ * {@link ModifierCategory}; SMTCON-156 adds {@link DryingRackCategory}. {@code registerRecipes}
+ * and {@code registerRecipeCatalysts} keep their default no-op bodies until SMTCON-157 wires
+ * the recipe lists and the catalyst blocks.
  */
 @JeiPlugin
 public class SmithiesJeiPlugin implements IModPlugin {
@@ -44,6 +45,6 @@ public class SmithiesJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
         registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper), new AlloyCategory(guiHelper),
-                new ToolBuildingCategory(guiHelper), new PartBuilderCategory(guiHelper), new ModifierCategory(guiHelper));
+                new ToolBuildingCategory(guiHelper), new PartBuilderCategory(guiHelper), new ModifierCategory(guiHelper), new DryingRackCategory(guiHelper));
     }
 }
