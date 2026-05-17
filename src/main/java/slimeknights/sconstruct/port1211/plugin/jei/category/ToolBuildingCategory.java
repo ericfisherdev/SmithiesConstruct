@@ -15,7 +15,7 @@ import slimeknights.sconstruct.port1211.tools.PartType;
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
 import slimeknights.sconstruct.port1211.tools.item.ToolParts;
-import slimeknights.sconstruct.port1211.tools.material.MaterialRegistry;
+import slimeknights.sconstruct.port1211.tools.material.client.MaterialClientCache;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
@@ -105,13 +105,15 @@ public class ToolBuildingCategory implements IRecipeCategory<ToolBuildingEntry> 
 
     /**
      * The part item for {@code part}, stamped once per registered material so JEI cycles the
-     * slot through every material. Falls back to a single unstamped part stack when no
-     * materials are loaded — JEI never shows a blank slot, and the part item's own default
-     * material ({@code tconstruct:wood}) keeps the preview meaningful.
+     * slot through every material. Reads {@link MaterialClientCache} — JEI renders client-side,
+     * and the server-side {@code MaterialRegistry} cache is never populated on a remote client.
+     * Falls back to a single unstamped part stack when no materials are loaded (before the first
+     * registry sync) — JEI never shows a blank slot, and the part item's own default material
+     * ({@code tconstruct:wood}) keeps the preview meaningful.
      */
     private static List<ItemStack> materialVariants(PartType part) {
         var partItem = ToolParts.get(part).get();
-        List<ResourceLocation> materials = MaterialRegistry.materialIds();
+        List<ResourceLocation> materials = MaterialClientCache.materialIds();
         if (materials.isEmpty()) {
             return List.of(new ItemStack(partItem));
         }
