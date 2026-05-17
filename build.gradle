@@ -85,7 +85,22 @@ repositories {
     mavenCentral()
     maven { url = 'https://maven.blamejared.com' } // JEI, Patchouli, etc.
     maven { url = 'https://maven.tterrag.com/' }
-    maven { url = 'https://modmaven.dev' }
+    maven {
+        name = 'ModMaven'
+        url = 'https://modmaven.dev' // The One Probe
+        // The One Probe's published POM declares a lower-case artifactId ("theoneprobe") that
+        // does not match the capitalised "TheOneProbe" path, so Gradle rejects the metadata as
+        // inconsistent. Resolve from the jar artifact directly — a self-contained mod jar
+        // declares its own dependencies via neoforge.mods.toml, not the POM, so nothing is lost.
+        metadataSources { artifact() }
+    }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven' // Jade
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
     maven {
         name = 'CurseMaven'
         url = 'https://www.cursemaven.com'
@@ -110,6 +125,16 @@ dependencies {
     // book code (Decision D4). A full implementation dependency: the book content references
     // Patchouli at compile time and Patchouli is required at runtime for the book to open.
     implementation "vazkii.patchouli:Patchouli:${patchouli_version}"
+
+    // Jade & The One Probe (SMTCON-149) — the two tooltip/probe HUD integrations. compileOnly so
+    // the plugin code compiles against their APIs without shipping them; runtimeOnly so both
+    // load in dev (runClient) and players supply them themselves. Jade resolves from the
+    // Modrinth maven by semantic version (CurseMaven would need an opaque per-file numeric id);
+    // The One Probe resolves from the modmaven mirror.
+    compileOnly "maven.modrinth:jade:${jade_version}"
+    runtimeOnly "maven.modrinth:jade:${jade_version}"
+    compileOnly "mcjty.theoneprobe:TheOneProbe:${top_version}"
+    runtimeOnly "mcjty.theoneprobe:TheOneProbe:${top_version}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
     testImplementation 'org.mockito:mockito-core:5.14.2'
