@@ -119,6 +119,14 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
+    @Nullable
+    @Override
+    public net.minecraft.world.MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+        // Defensive null on block-entity loss (chunk-unload race, /setblock without a BE) so the
+        // caller's Player#openMenu cannot NPE.
+        return level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity controller ? controller : null;
+    }
+
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.isClientSide()) {
@@ -126,10 +134,10 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
             // swing animation without firing a duplicate request.
             return InteractionResult.SUCCESS;
         }
-        // SMTCON-114/125: once SmelteryControllerBlockEntity implements MenuProvider and the
-        // controller MenuType + screen exist, this is where the server calls
-        // player.openMenu(getMenuProvider(state, level, pos)). The structural hook is wired here
-        // now; CONSUME is returned so the click is swallowed (no placeholder menu is opened).
+        net.minecraft.world.MenuProvider provider = getMenuProvider(state, level, pos);
+        if (provider != null) {
+            player.openMenu(provider, pos);
+        }
         return InteractionResult.CONSUME;
     }
 }
