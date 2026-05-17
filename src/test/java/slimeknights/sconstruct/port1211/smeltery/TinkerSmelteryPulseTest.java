@@ -2,9 +2,11 @@ package slimeknights.sconstruct.port1211.smeltery;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
@@ -60,6 +62,11 @@ class TinkerSmelteryPulseTest {
             recipes.verify(SmelteryRecipes::init);
             // register() must also subscribe the disassembly listener on the NeoForge game bus.
             events.verify(() -> SmelteryEvents.register(NeoForge.EVENT_BUS));
+            // register() must wire the smeltery capability listener onto the mod bus — the
+            // RegisterCapabilitiesEvent handler is added as a method reference (it is invoked
+            // later by the bus, not during register()), so the contract checked here is that a
+            // listener was attached at all.
+            verify(bus).addListener(any());
         }
     }
 }
