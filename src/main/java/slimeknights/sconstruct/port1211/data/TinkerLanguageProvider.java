@@ -436,6 +436,9 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // The wooden hopper's BlockEntity#getDisplayName resolves this raw container key for the
         // GUI header bar — LanguageProvider has no Block overload that auto-derives it.
         add("container.sconstruct.wooden_hopper", "Wooden Hopper");
+
+        // SMTCON-151: JEI category titles. MeltingCategory#getTitle resolves this key.
+        add("gui.sconstruct.jei.melting", "Melting");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
