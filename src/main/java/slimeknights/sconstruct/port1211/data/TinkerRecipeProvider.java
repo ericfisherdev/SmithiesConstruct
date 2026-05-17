@@ -1,8 +1,11 @@
 package slimeknights.sconstruct.port1211.data;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -14,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
@@ -26,11 +30,13 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
+import slimeknights.sconstruct.port1211.shared.SharedFluids;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
 import slimeknights.sconstruct.port1211.smeltery.MoltenMetal;
 import slimeknights.sconstruct.port1211.smeltery.MoltenMetals;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
+import slimeknights.sconstruct.port1211.smeltery.recipe.FluidIngredient;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
@@ -106,6 +112,110 @@ public final class TinkerRecipeProvider extends RecipeProvider {
         // SMTCON-127: smeltery melting recipes — one per (ingot, block, nugget, ore) form of
         // every molten metal.
         addMeltingRecipes(recipeOutput);
+
+        // SMTCON-128: casting recipes (molten metal → ingot / nugget / block item) and the
+        // metal-alloying recipes.
+        addCastingRecipes(recipeOutput);
+        addAlloyRecipes(recipeOutput);
+    }
+
+    /** Server ticks a cast item solidifies in over on a casting table. */
+    private static final int TABLE_COOLING_TICKS = 40;
+    /** Server ticks a nugget cast solidifies in — quicker, being a smaller pour. */
+    private static final int NUGGET_COOLING_TICKS = 20;
+    /** Server ticks a block cast solidifies in on a casting basin. */
+    private static final int BASIN_COOLING_TICKS = 200;
+
+    /** The molten metal driver entries, keyed by metal id, resolved once for the casting pass. */
+    private Map<String, MoltenMetal> moltenByIdResolved;
+
+    /** Lazily builds the {@code metal id → MoltenMetal} lookup the casting/alloy passes share. */
+    private Map<String, MoltenMetal> moltenById() {
+        if (moltenByIdResolved == null) {
+            Map<String, MoltenMetal> map = new HashMap<>();
+            for (MoltenMetal metal : MoltenMetals.ALL) {
+                map.put(metal.id(), metal);
+            }
+            moltenByIdResolved = map;
+        }
+        return moltenByIdResolved;
+    }
+
+    /**
+     * Emit casting recipes for every shared metal that has a molten fluid: pour 144&nbsp;mB onto
+     * a table for an ingot, 16&nbsp;mB for a nugget, and 1296&nbsp;mB into a basin for a storage
+     * block (only where the metal has a storage block). The cast-bearing tool-part casting
+     * recipes are deferred until the cast (mould) items they need exist.
+     */
+    private void addCastingRecipes(RecipeOutput recipeOutput) {
+        for (int i = 0; i < SharedMetals.ALL.size(); i++) {
+            Metal metal = SharedMetals.ALL.get(i);
+            MoltenMetal molten = moltenById().get(metal.id());
+            if (molten == null) {
+                // No molten fluid for this metal (e.g. electrum, nickel) — nothing to cast from.
+                continue;
+            }
+            Fluid fluid = SmelteryFluids.get(molten).source().get();
+            CastingRecipeBuilder.table(fluidIngredient(fluid, INGOT_MB), new ItemStack(SharedItems.INGOTS.get(i).get()), TABLE_COOLING_TICKS).save(recipeOutput,
+                    smelteryId("casting_" + metal.id() + "_ingot"));
+            CastingRecipeBuilder.table(fluidIngredient(fluid, NUGGET_MB), new ItemStack(SharedItems.NUGGETS.get(i).get()), NUGGET_COOLING_TICKS).save(recipeOutput,
+                    smelteryId("casting_" + metal.id() + "_nugget"));
+            DeferredBlock<Block> block = SharedBlocks.METAL_BLOCKS.get(metal.id());
+            if (block != null) {
+                CastingRecipeBuilder.basin(fluidIngredient(fluid, BLOCK_MB), new ItemStack(block.get()), BASIN_COOLING_TICKS).save(recipeOutput, smelteryId("casting_" + metal.id() + "_block"));
+            }
+        }
+    }
+
+    /**
+     * Emit the metal-alloying recipes — the molten-fluid combinations the smeltery turns into a
+     * new molten metal. Only alloys whose every input and output molten fluid is registered are
+     * emitted; alubrass and electrum are deferred pending their missing fluids.
+     */
+    private void addAlloyRecipes(RecipeOutput recipeOutput) {
+        Fluid copper = moltenFluid("copper");
+        Fluid zinc = moltenFluid("zinc");
+        Fluid tin = moltenFluid("tin");
+        Fluid iron = moltenFluid("iron");
+        Fluid emerald = moltenFluid("emerald");
+        Fluid blood = SharedFluids.BLOOD.get();
+
+        AlloyRecipeBuilder.alloy(new FluidStack(moltenFluid("brass"), INGOT_MB * 4), moltenMetal("brass").temperature()).input(copper, INGOT_MB * 3).input(zinc, INGOT_MB).save(recipeOutput,
+                smelteryId("alloy_brass"));
+        AlloyRecipeBuilder.alloy(new FluidStack(moltenFluid("bronze"), INGOT_MB * 4), moltenMetal("bronze").temperature()).input(copper, INGOT_MB * 3).input(tin, INGOT_MB).save(recipeOutput,
+                smelteryId("alloy_bronze"));
+        AlloyRecipeBuilder.alloy(new FluidStack(moltenFluid("manyullyn"), INGOT_MB * 2), moltenMetal("manyullyn").temperature()).input(moltenFluid("cobalt"), INGOT_MB)
+                .input(moltenFluid("ardite"), INGOT_MB).save(recipeOutput, smelteryId("alloy_manyullyn"));
+        AlloyRecipeBuilder.alloy(new FluidStack(moltenFluid("pigiron"), INGOT_MB), moltenMetal("pigiron").temperature()).input(iron, INGOT_MB).input(blood, INGOT_MB).input(emerald, INGOT_MB)
+                .save(recipeOutput, smelteryId("alloy_pigiron"));
+    }
+
+    /**
+     * The molten metal driver entry for the given id. Fails loudly during datagen if no such
+     * molten metal exists, rather than letting a {@code null} surface as an opaque NPE deeper in
+     * the recipe build.
+     */
+    private MoltenMetal moltenMetal(String metalId) {
+        MoltenMetal metal = moltenById().get(metalId);
+        if (metal == null) {
+            throw new IllegalStateException("no molten metal registered for id '" + metalId + "' — alloy recipe datagen cannot proceed");
+        }
+        return metal;
+    }
+
+    /** The registered molten source fluid for the metal of the given id. */
+    private Fluid moltenFluid(String metalId) {
+        return SmelteryFluids.get(moltenMetal(metalId)).source().get();
+    }
+
+    /** A {@link FluidIngredient} requiring {@code amount} mB of exactly {@code fluid}. */
+    private static FluidIngredient fluidIngredient(Fluid fluid, int amount) {
+        return new FluidIngredient(HolderSet.direct(fluid.builtInRegistryHolder()), amount);
+    }
+
+    /** A recipe id under the mod namespace. */
+    private static ResourceLocation smelteryId(String path) {
+        return ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, path);
     }
 
     /** Millibuckets a single ingot melts into — the smeltery's base unit. */

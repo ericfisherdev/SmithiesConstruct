@@ -1,0 +1,22 @@
+{
+  "type": "sconstruct:alloy",
+  "inputs": [
+    {
+      "amount": 144,
+      "fluid": "sconstruct:molten_iron"
+    },
+    {
+      "amount": 144,
+      "fluid": "sconstruct:blood"
+    },
+    {
+      "amount": 144,
+      "fluid": "sconstruct:molten_emerald"
+    }
+  ],
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_pigiron"
+  },
+  "temperature": 1350
+}

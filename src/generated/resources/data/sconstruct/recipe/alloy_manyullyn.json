@@ -1,0 +1,18 @@
+{
+  "type": "sconstruct:alloy",
+  "inputs": [
+    {
+      "amount": 144,
+      "fluid": "sconstruct:molten_cobalt"
+    },
+    {
+      "amount": 144,
+      "fluid": "sconstruct:molten_ardite"
+    }
+  ],
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_manyullyn"
+  },
+  "temperature": 2600
+}

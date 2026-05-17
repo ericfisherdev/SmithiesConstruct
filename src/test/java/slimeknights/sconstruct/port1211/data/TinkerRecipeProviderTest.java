@@ -2,8 +2,10 @@ package slimeknights.sconstruct.port1211.data;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -161,6 +163,32 @@ class TinkerRecipeProviderTest {
                 assertNotNull(cl.getResource(RECIPE_ROOT + "melting_" + metal.id() + "_" + form + ".json"), "melting_" + metal.id() + "_" + form + ".json missing");
             }
         }
+    }
+
+    @Test
+    void castingRecipesPourMoltenMetalIntoTheMatchingItem() {
+        // SMTCON-128: a table casting recipe pours 144 mB of molten metal into the metal's ingot.
+        JsonObject ingot = loadRecipe("casting_cobalt_ingot.json");
+        assertAll(() -> assertEquals("sconstruct:casting", ingot.get("type").getAsString()), () -> assertFalse(ingot.get("is_basin").getAsBoolean()),
+                () -> assertEquals("sconstruct:molten_cobalt", ingot.getAsJsonObject("fluid").get("fluid").getAsString()),
+                () -> assertEquals(144, ingot.getAsJsonObject("fluid").get("amount").getAsInt()),
+                () -> assertEquals("sconstruct:ingot_cobalt", ingot.getAsJsonObject("output").get("id").getAsString()));
+
+        JsonObject block = loadRecipe("casting_cobalt_block.json");
+        assertAll(() -> assertTrue(block.get("is_basin").getAsBoolean(), "a block cast is a basin recipe"), () -> assertEquals(1296, block.getAsJsonObject("fluid").get("amount").getAsInt()));
+    }
+
+    @Test
+    void alloyRecipesCombineMoltenInputsIntoANewMoltenMetal() {
+        // SMTCON-128: brass alloys from three parts molten copper and one part molten zinc.
+        JsonObject brass = loadRecipe("alloy_brass.json");
+        JsonObject copper = brass.getAsJsonArray("inputs").get(0).getAsJsonObject();
+        JsonObject zinc = brass.getAsJsonArray("inputs").get(1).getAsJsonObject();
+        assertAll(() -> assertEquals("sconstruct:alloy", brass.get("type").getAsString()), () -> assertEquals(2, brass.getAsJsonArray("inputs").size(), "brass alloys from two inputs"),
+                () -> assertEquals("sconstruct:molten_copper", copper.get("fluid").getAsString()), () -> assertEquals(432, copper.get("amount").getAsInt(), "three parts molten copper"),
+                () -> assertEquals("sconstruct:molten_zinc", zinc.get("fluid").getAsString()), () -> assertEquals(144, zinc.get("amount").getAsInt(), "one part molten zinc"),
+                () -> assertEquals("sconstruct:molten_brass", brass.getAsJsonObject("output").get("id").getAsString()),
+                () -> assertEquals(576, brass.getAsJsonObject("output").get("amount").getAsInt()));
     }
 
     private static JsonObject loadRecipe(String fileName) {
