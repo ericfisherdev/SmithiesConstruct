@@ -172,6 +172,7 @@ class TinkerRecipeProviderTest {
         assertAll(() -> assertEquals("sconstruct:casting", ingot.get("type").getAsString()), () -> assertFalse(ingot.get("is_basin").getAsBoolean()),
                 () -> assertEquals("sconstruct:molten_cobalt", ingot.getAsJsonObject("fluid").get("fluid").getAsString()),
                 () -> assertEquals(144, ingot.getAsJsonObject("fluid").get("amount").getAsInt()),
+                () -> assertEquals(40, ingot.get("cooling_time").getAsInt(), "an ingot cast cools in the table cooling time"),
                 () -> assertEquals("sconstruct:ingot_cobalt", ingot.getAsJsonObject("output").get("id").getAsString()));
 
         JsonObject block = loadRecipe("casting_cobalt_block.json");
@@ -188,7 +189,8 @@ class TinkerRecipeProviderTest {
                 () -> assertEquals("sconstruct:molten_copper", copper.get("fluid").getAsString()), () -> assertEquals(432, copper.get("amount").getAsInt(), "three parts molten copper"),
                 () -> assertEquals("sconstruct:molten_zinc", zinc.get("fluid").getAsString()), () -> assertEquals(144, zinc.get("amount").getAsInt(), "one part molten zinc"),
                 () -> assertEquals("sconstruct:molten_brass", brass.getAsJsonObject("output").get("id").getAsString()),
-                () -> assertEquals(576, brass.getAsJsonObject("output").get("amount").getAsInt()));
+                () -> assertEquals(576, brass.getAsJsonObject("output").get("amount").getAsInt()),
+                () -> assertEquals(950, brass.get("temperature").getAsInt(), "brass alloys at the brass temperature"));
     }
 
     private static JsonObject loadRecipe(String fileName) {

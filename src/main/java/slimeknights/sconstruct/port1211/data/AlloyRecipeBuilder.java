@@ -25,10 +25,14 @@ public final class AlloyRecipeBuilder {
     private final int temperature;
 
     private AlloyRecipeBuilder(FluidStack output, int temperature) {
-        this.output = Objects.requireNonNull(output, "output");
+        Objects.requireNonNull(output, "output");
+        if (output.isEmpty()) {
+            throw new IllegalArgumentException("output must be a non-empty fluid stack");
+        }
         if (temperature <= 0) {
             throw new IllegalArgumentException("temperature must be a positive kelvin value: " + temperature);
         }
+        this.output = output.copy();
         this.temperature = temperature;
     }
 
