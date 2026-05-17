@@ -98,6 +98,9 @@ public final class SmelteryTests {
     /** Brass alloys from 144 mB molten zinc — the amount the SMTCON-128 recipe demands. */
     private static final int BRASS_ZINC_MB = 144;
 
+    /** The molten-brass yield of the SMTCON-128 brass alloy recipe — 432 + 144 mB combined. */
+    private static final int BRASS_YIELD_MB = 576;
+
     /** Tick budget for a melt / cast loop — larger than any recipe duration these tests use. */
     private static final int TICK_BUDGET = 400;
 
@@ -133,7 +136,8 @@ public final class SmelteryTests {
 
         // Drop an iron ingot into melting slot 0 and resolve its melting recipe. The slot-change
         // trigger that does this automatically is a later ticket, so the test plays that role.
-        controller.getItemHandler().insertItem(0, new ItemStack(Items.IRON_INGOT), false);
+        ItemStack remainder = controller.getItemHandler().insertItem(0, new ItemStack(Items.IRON_INGOT), false);
+        helper.assertTrue(remainder.isEmpty(), "melting slot 0 accepts the whole iron ingot");
         MeltingRecipe recipe = meltingRecipeFor(helper, new ItemStack(Items.IRON_INGOT));
         controller.addMelt(new MeltingProgress(0, recipe.time(), recipe.output()));
 
@@ -209,7 +213,7 @@ public final class SmelteryTests {
 
         FluidStack output = recipe.output();
         helper.assertTrue(output.getFluid().isSame(moltenBrass), "the matched alloy recipe yields molten brass");
-        helper.assertTrue(output.getAmount() > 0, "the alloy recipe yields a positive molten-brass amount");
+        helper.assertValueEqual(output.getAmount(), BRASS_YIELD_MB, "the alloy recipe yields the SMTCON-128 brass amount");
         helper.succeed();
     }
 
