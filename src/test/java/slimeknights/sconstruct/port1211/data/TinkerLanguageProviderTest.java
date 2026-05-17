@@ -221,16 +221,19 @@ class TinkerLanguageProviderTest {
         // hopper container-title key = 21 more, for 290 total.
         //
         // SMTCON-151 adds the JEI melting category title = 1 more, for 291 total.
-        assertEquals(291, lang().entrySet().size());
+        //
+        // SMTCON-152 adds the JEI casting-table and casting-basin category titles = 2 more,
+        // for 293 total.
+        assertEquals(293, lang().entrySet().size());
     }
 
     @Test
-    void jeiMeltingCategoryTitleIsPinned() {
-        // SMTCON-151: a raw count check can't catch a mistyped JEI key — pin the key and value
-        // so a typo surfaces as a test failure, not raw key-text in the in-game JEI title.
+    void jeiCategoryTitlesArePinned() {
+        // SMTCON-151/152: a raw count check can't catch a mistyped JEI key — pin each key and
+        // value so a typo surfaces as a test failure, not raw key-text in the in-game JEI title.
         JsonObject lang = lang();
-        assertTrue(lang.has("gui.sconstruct.jei.melting"), "gui.sconstruct.jei.melting missing");
-        assertEquals("Melting", lang.get("gui.sconstruct.jei.melting").getAsString());
+        assertAll(() -> assertEquals("Melting", lang.get("gui.sconstruct.jei.melting").getAsString()), () -> assertEquals("Casting Table", lang.get("gui.sconstruct.jei.casting_table").getAsString()),
+                () -> assertEquals("Casting Basin", lang.get("gui.sconstruct.jei.casting_basin").getAsString()));
     }
 
     @Test
