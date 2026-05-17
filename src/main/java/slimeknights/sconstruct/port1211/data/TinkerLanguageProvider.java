@@ -240,9 +240,9 @@ public final class TinkerLanguageProvider extends LanguageProvider {
 
         // SMTCON-125 smeltery controller GUI.
         add("container.sconstruct.smeltery", "Smeltery");
-        add("gui.sconstruct.smeltery.temperature", "%s K");
+        add("gui.sconstruct.smeltery.temperature", "%1$s K");
         add("gui.sconstruct.smeltery.tank_empty", "Empty");
-        add("gui.sconstruct.smeltery.tank_fluid", "%s: %s mB");
+        add("gui.sconstruct.smeltery.tank_fluid", "%1$s: %2$s mB");
 
         // SMTCON-107 tool items. Iterate ToolItems.ALL_TOOLS so a tool added to that list
         // lights up here automatically; the display name comes from TOOL_DISPLAY_NAMES keyed by
