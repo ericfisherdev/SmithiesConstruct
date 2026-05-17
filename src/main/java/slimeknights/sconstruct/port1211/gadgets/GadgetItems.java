@@ -11,6 +11,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
+import slimeknights.sconstruct.port1211.gadgets.item.PiggybackItem;
 import slimeknights.sconstruct.port1211.gadgets.item.SlimeSlingItem;
 import slimeknights.sconstruct.port1211.gadgets.item.ThrowballItem;
 import slimeknights.sconstruct.port1211.shared.SharedTabs;
@@ -25,6 +26,8 @@ import slimeknights.sconstruct.port1211.world.block.SlimeColor;
  *       shares the {@link #SLING_DURABILITY} budget and a max stack size of one.</li>
  *   <li>{@link #THROWBALLS} — one {@link ThrowballItem} per {@link SlimeColor} (SMTCON-133), a
  *       thrown projectile that applies a colour-specific area effect on impact.</li>
+ *   <li>{@link #PIGGYBACK} — the single {@link PiggybackItem} (SMTCON-134) that lets a player
+ *       carry another on their shoulders.</li>
  * </ul>
  *
  * <p>The per-colour behaviour lives in the item classes; this hub only wires the registrations
@@ -71,8 +74,12 @@ public final class GadgetItems {
     /** Insertion-ordered roster of every registered throwball, for the creative tab and providers. */
     public static final List<DeferredItem<ThrowballItem>> THROWBALLS = List.of(THROWBALL_BLUE, THROWBALL_PURPLE, THROWBALL_MAGMA, THROWBALL_BLOOD);
 
-    /** Immutable insertion-ordered roster of every registered gadget item — slings then throwballs. */
-    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.concat(SLINGS.stream(), THROWBALLS.stream()).collect(Collectors.toUnmodifiableList());
+    /** Piggyback item — right-click another player to carry them on your shoulders. */
+    public static final DeferredItem<PiggybackItem> PIGGYBACK = TinkerRegistries.ITEMS.registerItem("piggyback", props -> new PiggybackItem(props.stacksTo(1)));
+
+    /** Immutable insertion-ordered roster of every registered gadget item — slings, throwballs, piggyback. */
+    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.of(SLINGS, THROWBALLS, List.of(PIGGYBACK)).flatMap(List::stream)
+            .collect(Collectors.toUnmodifiableList());
 
     private GadgetItems() {
     }
@@ -95,13 +102,10 @@ public final class GadgetItems {
         modBus.addListener(GadgetItems::populateCreativeTab);
     }
 
-    /** Feeds every registered gadget item — slimeslings then throwballs — to {@code accept}. */
+    /** Feeds every registered gadget item — slimeslings, throwballs, piggyback — to {@code accept}. */
     public static void acceptAll(Consumer<ItemLike> accept) {
-        for (DeferredItem<SlimeSlingItem> sling : SLINGS) {
-            accept.accept(sling.get());
-        }
-        for (DeferredItem<ThrowballItem> throwball : THROWBALLS) {
-            accept.accept(throwball.get());
+        for (DeferredItem<? extends net.minecraft.world.item.Item> gadget : ALL) {
+            accept.accept(gadget.get());
         }
     }
 

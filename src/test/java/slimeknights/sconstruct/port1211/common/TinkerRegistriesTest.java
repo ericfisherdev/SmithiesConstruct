@@ -47,7 +47,8 @@ class TinkerRegistriesTest {
                 () -> assertEquals(Registries.SOUND_EVENT.location(), TinkerRegistries.SOUND_EVENTS.getRegistryName()),
                 () -> assertEquals(Registries.CREATIVE_MODE_TAB.location(), TinkerRegistries.CREATIVE_TABS.getRegistryName()),
                 () -> assertEquals(NeoForgeRegistries.Keys.FLUID_TYPES.location(), TinkerRegistries.FLUID_TYPES.getRegistryName()),
-                () -> assertEquals(Registries.FLUID.location(), TinkerRegistries.FLUIDS.getRegistryName()));
+                () -> assertEquals(Registries.FLUID.location(), TinkerRegistries.FLUIDS.getRegistryName()),
+                () -> assertEquals(NeoForgeRegistries.Keys.ATTACHMENT_TYPES.location(), TinkerRegistries.ATTACHMENT_TYPES.getRegistryName()));
     }
 
     @Test
@@ -83,7 +84,7 @@ class TinkerRegistriesTest {
         return new DeferredRegister<?>[] { TinkerRegistries.ITEMS, TinkerRegistries.BLOCKS, TinkerRegistries.DATA_COMPONENTS, TinkerRegistries.BLOCK_ENTITY_TYPES, TinkerRegistries.ENTITY_TYPES,
                 TinkerRegistries.MENU_TYPES, TinkerRegistries.RECIPE_TYPES, TinkerRegistries.RECIPE_SERIALIZERS, TinkerRegistries.MOB_EFFECTS, TinkerRegistries.PARTICLE_TYPES,
                 TinkerRegistries.SOUND_EVENTS, TinkerRegistries.CREATIVE_TABS, TinkerRegistries.FLUID_TYPES, TinkerRegistries.FLUIDS, TinkerRegistries.STRUCTURE_TYPES,
-                TinkerRegistries.STRUCTURE_PIECE_TYPES, };
+                TinkerRegistries.STRUCTURE_PIECE_TYPES, TinkerRegistries.ATTACHMENT_TYPES, };
     }
 
     @Test
