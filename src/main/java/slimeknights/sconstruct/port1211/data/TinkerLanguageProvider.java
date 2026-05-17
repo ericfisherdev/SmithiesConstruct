@@ -442,6 +442,8 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // SMTCON-152: casting JEI category titles, resolved by Casting{Table,Basin}Category#getTitle.
         add("gui.sconstruct.jei.casting_table", "Casting Table");
         add("gui.sconstruct.jei.casting_basin", "Casting Basin");
+        // SMTCON-153: alloy JEI category title, resolved by AlloyCategory#getTitle.
+        add("gui.sconstruct.jei.alloying", "Alloying");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
