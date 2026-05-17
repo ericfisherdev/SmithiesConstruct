@@ -219,7 +219,9 @@ class TinkerLanguageProviderTest {
         // 4 throwballs, piggyback, glow ball, wither head, 4 armor pieces) + 5 gadget blocks
         // (drying rack, wooden hopper, stone ladder, dried clay, dried clay brick) + 1 wooden
         // hopper container-title key = 21 more, for 290 total.
-        assertEquals(290, lang().entrySet().size());
+        //
+        // SMTCON-151 adds the JEI melting category title = 1 more, for 291 total.
+        assertEquals(291, lang().entrySet().size());
     }
 
     @Test
