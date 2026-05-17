@@ -12,6 +12,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
+import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
@@ -133,6 +135,48 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         for (MoltenFluidSet set : SmelteryFluids.ALL) {
             registerSpriteItem(set.bucket());
         }
+
+        // SMTCON-143: Phase-6 gadget items + block-items.
+        //   - the 15 gadget items (slings, throwballs, piggyback, glow ball, wither head, armor)
+        //     get the flat item/generated sprite treatment, layer0 → sconstruct:item/<id>.
+        //   - dried clay + dried clay brick parent their cube_all block models like any cube.
+        //   - the drying rack's block model varies per DRYING_STATE, so the block-item parents
+        //     the "empty" state model — the resting inventory look.
+        //   - the wooden hopper's block-item parents the down-facing hopper model
+        //     (block/wooden_hopper) emitted by TinkerBlockStateProvider.
+        //   - the stone ladder's block-item gets a flat item/generated sprite (vanilla ladders
+        //     are flat sprites in inventory, not 3D models).
+        for (DeferredItem<? extends Item> holder : GadgetItems.ALL) {
+            registerSpriteItem(holder);
+        }
+        registerBlockItemFromBlockModel(GadgetBlocks.DRIED_CLAY);
+        registerBlockItemFromBlockModel(GadgetBlocks.DRIED_CLAY_BRICK);
+        registerBlockItemParentedTo(GadgetBlocks.DRYING_RACK, "block/drying_rack_empty");
+        registerBlockItemParentedTo(GadgetBlocks.WOODEN_HOPPER, "block/wooden_hopper");
+        registerLadderItem(GadgetBlocks.STONE_LADDER);
+    }
+
+    /**
+     * Emit an item model for a block-item that parents an explicit block model path rather than
+     * the {@code block/<registry_path>} default. Used where the block's model name diverges from
+     * its registry id — the drying rack (per-state models) and the wooden hopper (the funnel
+     * model is the down-facing variant).
+     */
+    private void registerBlockItemParentedTo(DeferredBlock<? extends Block> blockHolder, String modelPath) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(blockHolder.get());
+        withExistingParent(blockId.getPath(), ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), modelPath));
+    }
+
+    /**
+     * Emit a flat {@code item/generated} inventory model for a ladder-style block-item, pointing
+     * {@code layer0} at the block-tree sprite. Mirrors vanilla's ladder: the inventory icon is a
+     * flat sprite, not the 3D rung model.
+     */
+    private void registerLadderItem(DeferredBlock<? extends Block> blockHolder) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(blockHolder.get());
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        singleTexture(blockId.getPath(), ResourceLocation.parse("item/generated"), "layer0", texture);
     }
 
     /**

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "drying_state=done": {
+      "model": "sconstruct:block/drying_rack_done"
+    },
+    "drying_state=drying": {
+      "model": "sconstruct:block/drying_rack_drying"
+    },
+    "drying_state=empty": {
+      "model": "sconstruct:block/drying_rack_empty"
+    }
+  }
+}

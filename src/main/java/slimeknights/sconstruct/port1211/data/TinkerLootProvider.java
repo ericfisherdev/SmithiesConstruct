@@ -23,15 +23,17 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 public final class TinkerLootProvider extends LootTableProvider {
 
     public TinkerLootProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, Set.of(),
-                List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK),
-                        new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK),
-                        // SMTCON-90: pattern chest drop-self loot table. Chest contents are
-                        // dropped by PatternChestBlock#onRemove via Containers.dropContents,
-                        // not by the loot table — keeping the responsibilities separate avoids
-                        // a double-drop on break.
-                        new LootTableProvider.SubProviderEntry(ToolBlockLoot::new, LootContextParamSets.BLOCK), new LootTableProvider.SubProviderEntry(SlimeMobLoot::new, LootContextParamSets.ENTITY),
-                        new LootTableProvider.SubProviderEntry(SlimeIslandChestLoot::new, LootContextParamSets.CHEST)),
-                registries);
+        super(output, Set.of(), List.of(new LootTableProvider.SubProviderEntry(SharedBlockLoot::new, LootContextParamSets.BLOCK),
+                new LootTableProvider.SubProviderEntry(WorldBlockLoot::new, LootContextParamSets.BLOCK),
+                // SMTCON-90: pattern chest drop-self loot table. Chest contents are
+                // dropped by PatternChestBlock#onRemove via Containers.dropContents,
+                // not by the loot table — keeping the responsibilities separate avoids
+                // a double-drop on break.
+                new LootTableProvider.SubProviderEntry(ToolBlockLoot::new, LootContextParamSets.BLOCK),
+                // SMTCON-143: Phase-6 gadget block drop-self loot tables. The drying
+                // rack's held item and the wooden hopper's container contents are
+                // dropped by their block classes, not the loot table — see GadgetBlockLoot.
+                new LootTableProvider.SubProviderEntry(GadgetBlockLoot::new, LootContextParamSets.BLOCK), new LootTableProvider.SubProviderEntry(SlimeMobLoot::new, LootContextParamSets.ENTITY),
+                new LootTableProvider.SubProviderEntry(SlimeIslandChestLoot::new, LootContextParamSets.CHEST)), registries);
     }
 }

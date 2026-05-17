@@ -36,6 +36,10 @@
     "sconstruct:seared_paver_stairs",
     "sconstruct:seared_paver_slab",
     "sconstruct:casting_table",
-    "sconstruct:casting_basin"
+    "sconstruct:casting_basin",
+    "sconstruct:stone_ladder",
+    "sconstruct:wooden_hopper",
+    "sconstruct:dried_clay",
+    "sconstruct:dried_clay_brick"
   ]
 }

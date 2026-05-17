@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "P P",
+    "PCP",
+    " P "
+  ],
+  "result": {
+    "count": 1,
+    "id": "sconstruct:wooden_hopper"
+  }
+}

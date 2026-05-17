@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "S": {
+      "item": "minecraft:stone_slab"
+    }
+  },
+  "pattern": [
+    "S S",
+    "SSS",
+    "S S"
+  ],
+  "result": {
+    "count": 3,
+    "id": "sconstruct:stone_ladder"
+  }
+}
