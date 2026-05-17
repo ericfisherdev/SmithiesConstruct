@@ -20,6 +20,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 
 import org.junit.jupiter.api.Test;
 
+import slimeknights.sconstruct.port1211.gadgets.item.GlowBallItem;
 import slimeknights.sconstruct.port1211.gadgets.item.SlimeSlingItem;
 import slimeknights.sconstruct.port1211.gadgets.item.ThrowballItem;
 import slimeknights.sconstruct.port1211.world.block.SlimeColor;
@@ -108,13 +109,20 @@ class GadgetItemsTest {
     }
 
     @Test
+    void registersTheGlowBall() {
+        assertAll(() -> assertEquals("glow_ball", GadgetItems.GLOW_BALL.getId().getPath()),
+                () -> assertEquals(GlowBallItem.STACK_SIZE, new ItemStack(GadgetItems.GLOW_BALL.get()).getMaxStackSize(), "the glow ball stacks like a snowball"),
+                () -> assertTrue(GadgetItems.GLOW_BALL.get() instanceof ProjectileItem, "the glow ball must be a ProjectileItem for dispenser support"));
+    }
+
+    @Test
     void acceptAllVisitsEveryGadgetItemExactlyOnce() {
         // The BuildCreativeModeTabContentsEvent listener delegates here, so verifying coverage
         // is the unit-level proxy for "every gadget item appears in the creative inventory".
         List<ItemLike> visited = new ArrayList<>();
         GadgetItems.acceptAll(visited::add);
         Set<ItemLike> canonical = GadgetItems.ALL.stream().map(DeferredItem::get).collect(Collectors.toSet());
-        assertAll(() -> assertEquals(9, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(9L, visited.stream().distinct().count(), "no duplicates"),
+        assertAll(() -> assertEquals(10, visited.size(), "visitor must reach every gadget item exactly once"), () -> assertEquals(10L, visited.stream().distinct().count(), "no duplicates"),
                 () -> assertEquals(canonical, new HashSet<>(visited), "visited set must equal the canonical roster"));
     }
 
@@ -128,9 +136,10 @@ class GadgetItemsTest {
     @Test
     void allRosterCombinesEveryGadgetItem() {
         List<DeferredItem<? extends Item>> all = GadgetItems.ALL;
-        assertEquals(9, all.size(), "the combined roster is every sling, throwball, and the piggyback item");
+        assertEquals(10, all.size(), "the combined roster is every sling, throwball, the piggyback item, and the glow ball");
         assertAll(() -> assertTrue(all.containsAll(GadgetItems.SLINGS), "every sling is in the combined roster"),
                 () -> assertTrue(all.containsAll(GadgetItems.THROWBALLS), "every throwball is in the combined roster"),
-                () -> assertTrue(all.contains(GadgetItems.PIGGYBACK), "the piggyback item is in the combined roster"));
+                () -> assertTrue(all.contains(GadgetItems.PIGGYBACK), "the piggyback item is in the combined roster"),
+                () -> assertTrue(all.contains(GadgetItems.GLOW_BALL), "the glow ball is in the combined roster"));
     }
 }

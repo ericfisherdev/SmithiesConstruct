@@ -13,8 +13,9 @@ import slimeknights.sconstruct.port1211.common.TinkerRegistries;
  * Gadget-entity registration hub. Mirrors {@code ToolEntities} but scoped to the Phase-6
  * gadget projectiles so the gadgets subsystem owns its own entity surface.
  *
- * <p>SMTCON-133 registers a single entity type — the {@link ThrowballEntity}. One entity type
- * serves every throwball colour; the colour is carried on the projectile's item stack.
+ * <p>SMTCON-133 registers the {@link ThrowballEntity}; SMTCON-135 adds the {@link GlowBallEntity}.
+ * One entity type serves every throwball colour; the colour is carried on the projectile's item
+ * stack.
  */
 public final class GadgetEntities {
 
@@ -22,11 +23,16 @@ public final class GadgetEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<ThrowballEntity>> THROWBALL = TinkerRegistries.ENTITY_TYPES.register("throwball", () -> EntityType.Builder
             .<ThrowballEntity> of(ThrowballEntity::new, MobCategory.MISC).sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(10).build(SConstruct.MOD_ID + ":throwball"));
 
+    /** Thrown glow-ball projectile — see {@link GlowBallEntity}. */
+    public static final DeferredHolder<EntityType<?>, EntityType<GlowBallEntity>> GLOW_BALL = TinkerRegistries.ENTITY_TYPES.register("glow_ball",
+            () -> EntityType.Builder.<GlowBallEntity> of(GlowBallEntity::new, MobCategory.MISC).sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(10).build(SConstruct.MOD_ID + ":glow_ball"));
+
     private GadgetEntities() {
     }
 
-    /** Forces class load so the static field initialiser registers the throwball entity type. */
+    /** Forces class load so the static field initialisers register every gadget entity type. */
     public static void init() {
         Objects.requireNonNull(THROWBALL);
+        Objects.requireNonNull(GLOW_BALL);
     }
 }
