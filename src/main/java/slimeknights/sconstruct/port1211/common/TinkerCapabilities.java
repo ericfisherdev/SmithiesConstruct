@@ -10,7 +10,6 @@ import com.mojang.logging.LogUtils;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.gadgets.GadgetCapabilities;
-import slimeknights.sconstruct.port1211.smeltery.SmelteryCapabilities;
 import slimeknights.sconstruct.port1211.tools.ToolCapabilities;
 
 /**
@@ -22,10 +21,14 @@ import slimeknights.sconstruct.port1211.tools.ToolCapabilities;
  *
  * <p>{@code @EventBusSubscriber(modid = MOD_ID, bus = MOD)} wires the static handler to the
  * mod bus during mod construction; no manual {@code addListener} call needed from
- * {@link SConstruct}. The per-pulse helpers — {@link SmelteryCapabilities},
- * {@link GadgetCapabilities}, {@link ToolCapabilities} — currently ship empty stubs; Phase 2+
- * fills them in as content lands. The dispatcher logs each delegation so a server boot log
- * confirms all three pulse hooks fired (per the ticket AC).
+ * {@link SConstruct}. The per-pulse helpers — {@link GadgetCapabilities},
+ * {@link ToolCapabilities} — register their capabilities here. The dispatcher logs each
+ * delegation so a server boot log confirms the pulse hooks fired.
+ *
+ * <p>The smeltery's capability bindings are <em>not</em> dispatched here: they reference
+ * block-entity types that exist only while the {@code smeltery} pulse is enabled, so
+ * {@code TinkerSmelteryPulse#register} subscribes {@code SmelteryCapabilities} itself —
+ * disabling the pulse then skips the bindings instead of resolving unregistered holders.
  */
 @EventBusSubscriber(modid = SConstruct.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class TinkerCapabilities {
@@ -55,7 +58,6 @@ public final class TinkerCapabilities {
      */
     static void configure(RegisterCapabilitiesEvent event) {
         LOGGER.info("SConstruct: dispatching RegisterCapabilitiesEvent to per-pulse helpers");
-        SmelteryCapabilities.register(event);
         GadgetCapabilities.register(event);
         ToolCapabilities.register(event);
     }
