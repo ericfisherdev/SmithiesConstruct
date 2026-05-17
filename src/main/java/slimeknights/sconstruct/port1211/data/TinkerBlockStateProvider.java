@@ -198,8 +198,10 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
             if (facing == Direction.DOWN) {
                 return ConfiguredModel.builder().modelFile(down).build();
             }
-            // hopper_side faces north by default; rotate it to the chosen horizontal direction.
-            return ConfiguredModel.builder().modelFile(side).rotationY((int) facing.toYRot()).build();
+            // hopper_side faces north by default; getOpposite().toYRot() maps each facing to the
+            // vanilla hopper's rotation (north=0, east=90, south=180, west=270) — plain toYRot()
+            // would spin every side a half-turn the wrong way.
+            return ConfiguredModel.builder().modelFile(side).rotationY((int) facing.getOpposite().toYRot()).build();
         });
     }
 
