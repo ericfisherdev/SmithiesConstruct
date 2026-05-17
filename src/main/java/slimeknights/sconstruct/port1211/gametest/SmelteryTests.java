@@ -5,9 +5,12 @@ import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -158,9 +161,12 @@ public final class SmelteryTests {
         // Pour molten copper into the empty-cast table — casting_copper_ingot is a no-cast
         // SMTCON-128 recipe, so the bare table casts a copper ingot once the metal cools.
         Fluid moltenCopper = SmelteryFluids.get(MoltenMetals.COPPER).source().get();
+        Item copperIngot = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(SmokeTest.NAMESPACE, "ingot_copper"));
         // Probe with a generous amount so the FluidIngredient's minimum-mB check passes during
-        // lookup; the exact pour then comes from the resolved recipe's own fluid amount.
-        CastingRecipe recipe = castingRecipeFor(helper, new FluidStack(moltenCopper, FluidType.BUCKET_VOLUME));
+        // lookup; the exact pour then comes from the resolved recipe's own fluid amount. The
+        // recipe is pinned to the copper-ingot output so a future no-cast copper recipe cannot
+        // make this test pass without still exercising the ingot path.
+        CastingRecipe recipe = castingRecipeFor(helper, new FluidStack(moltenCopper, FluidType.BUCKET_VOLUME), copperIngot);
         int filled = table.getFluidHandler().fill(new FluidStack(moltenCopper, recipe.fluid().amount()), IFluidHandler.FluidAction.EXECUTE);
         helper.assertValueEqual(filled, recipe.fluid().amount(), "the table accepts a full casting recipe's worth of molten copper");
 
@@ -171,6 +177,7 @@ public final class SmelteryTests {
         ItemStack cast = table.getCastHandler().getStackInSlot(0);
         helper.assertFalse(cast.isEmpty(), "the cooled cast produced an item");
         helper.assertTrue(ItemStack.isSameItem(cast, recipe.output()), "the cast item is the recipe's copper ingot");
+        helper.assertValueEqual(cast.getCount(), recipe.output().getCount(), "the cast stack size matches the recipe output");
         helper.assertTrue(table.getFluidHandler().getFluidInTank(0).isEmpty(), "the table tank is emptied once the cast completes");
         helper.succeed();
     }
@@ -256,23 +263,25 @@ public final class SmelteryTests {
     }
 
     /**
-     * Resolves the no-cast casting-table recipe for {@code fluid}, failing the test when none is
-     * registered. The recipes are matched directly: a no-cast {@link CastingRecipeInput} carries
-     * an empty cast slot, so {@code RecipeManager#getRecipeFor} would short-circuit it away.
+     * Resolves the no-cast casting-table recipe that pours {@code fluid} into {@code expectedOutput},
+     * failing the test when none is registered. The recipes are matched directly: a no-cast
+     * {@link CastingRecipeInput} carries an empty cast slot, so {@code RecipeManager#getRecipeFor}
+     * would short-circuit it away. Filtering on the output item keeps the test pinned to the
+     * specific recipe under test rather than whichever no-cast recipe happens to match first.
      */
     // See alloyBrass — the borrowed ServerLevel is not this code's to close.
     @SuppressWarnings("PMD.CloseResource")
-    private static CastingRecipe castingRecipeFor(GameTestHelper helper, FluidStack fluid) {
+    private static CastingRecipe castingRecipeFor(GameTestHelper helper, FluidStack fluid, Item expectedOutput) {
         ServerLevel level = helper.getLevel();
         CastingRecipeInput input = new CastingRecipeInput(fluid, ItemStack.EMPTY, false);
         CastingRecipe match = null;
         for (RecipeHolder<CastingRecipe> holder : level.getRecipeManager().getAllRecipesFor(SmelteryRecipes.CASTING_TYPE.get())) {
-            if (holder.value().matches(input, level)) {
+            if (holder.value().matches(input, level) && holder.value().output().is(expectedOutput)) {
                 match = holder.value();
                 break;
             }
         }
-        helper.assertTrue(match != null, "a casting-table recipe is registered for " + fluid.getFluid());
+        helper.assertTrue(match != null, "a casting-table recipe for " + expectedOutput + " is registered for " + fluid.getFluid());
         return match;
     }
 }

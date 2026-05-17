@@ -206,12 +206,19 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
         // carries no items, and a cast-less casting recipe legitimately runs with an empty cast
         // slot — so match directly against the full recipe list, the same way acceptsFluid does,
         // rather than letting the empty-input fast path hide every no-cast recipe.
+        //
+        // A FluidIngredient matches any tank holding at least its amount, so a full ingot's worth
+        // of metal satisfies the nugget recipe as well as the ingot recipe. Pick the recipe
+        // demanding the most fluid, so the cast scales with the metal poured rather than always
+        // solidifying into the smallest variant.
+        CastingRecipe best = null;
         for (RecipeHolder<CastingRecipe> holder : level.getRecipeManager().getAllRecipesFor(SmelteryRecipes.CASTING_TYPE.get())) {
-            if (holder.value().matches(input, level)) {
-                return Optional.of(holder.value());
+            CastingRecipe candidate = holder.value();
+            if (candidate.matches(input, level) && (best == null || candidate.fluid().amount() > best.fluid().amount())) {
+                best = candidate;
             }
         }
-        return Optional.empty();
+        return Optional.ofNullable(best);
     }
 
     /**
