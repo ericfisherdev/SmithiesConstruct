@@ -14,6 +14,11 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
+import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
+import slimeknights.sconstruct.port1211.smeltery.MoltenFluidSet;
+import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
@@ -118,6 +123,16 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // models emitted by TinkerBlockStateProvider above.
         registerBlockItemFromBlockModel(ToolStationRegistry.TOOL_STATION);
         registerBlockItemFromBlockModel(ToolStationRegistry.TOOL_FORGE);
+
+        // SMTCON-129: the smeltery block items (seared blocks, the six components, the two
+        // casting blocks) parent their block models; the 20 molten-metal buckets get the flat
+        // sprite treatment, with runtime tinting handled by their fluid-type extensions.
+        SearedBlocks.ALL.forEach(this::registerBlockItemFromBlockModel);
+        SmelteryComponents.ALL.forEach(this::registerBlockItemFromBlockModel);
+        CastingBlocks.ALL.forEach(this::registerBlockItemFromBlockModel);
+        for (MoltenFluidSet set : SmelteryFluids.ALL) {
+            registerSpriteItem(set.bucket());
+        }
     }
 
     /**

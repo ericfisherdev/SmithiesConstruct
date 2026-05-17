@@ -16,6 +16,9 @@ import slimeknights.sconstruct.port1211.common.TinkerTags;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.block.SlimePlantSet;
 
@@ -91,6 +94,23 @@ public final class TinkerBlockTagsProvider extends BlockTagsProvider {
         // can target one tag instead of enumerating per-colour fields.
         for (SlimePlantSet set : WorldBlocks.PLANT_SETS.values()) {
             tag(TinkerTags.Blocks.SLIMEGRASS).add(set.grass().get());
+        }
+
+        // SMTCON-129: smeltery structural tags. The six functional component blocks go in
+        // SMELTERY_COMPONENT; every plain seared block is valid as both smeltery floor and
+        // wall, so SMELTERY_FLOOR and SMELTERY_WALL each collect the whole seared roster. Each
+        // smeltery block is also pickaxe-mineable, matching its stone-tier hardness.
+        for (DeferredBlock<? extends Block> holder : SmelteryComponents.ALL) {
+            tag(TinkerTags.Blocks.SMELTERY_COMPONENT).add(holder.get());
+            tag(BlockTags.MINEABLE_WITH_PICKAXE).add(holder.get());
+        }
+        for (DeferredBlock<? extends Block> holder : SearedBlocks.ALL) {
+            tag(TinkerTags.Blocks.SMELTERY_FLOOR).add(holder.get());
+            tag(TinkerTags.Blocks.SMELTERY_WALL).add(holder.get());
+            tag(BlockTags.MINEABLE_WITH_PICKAXE).add(holder.get());
+        }
+        for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
+            tag(BlockTags.MINEABLE_WITH_PICKAXE).add(holder.get());
         }
     }
 

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "sconstruct:block/seared_brick",
+    "side": "sconstruct:block/seared_brick",
+    "top": "sconstruct:block/seared_brick"
+  }
+}

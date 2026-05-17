@@ -1,0 +1,10 @@
+{
+  "values": [
+    "sconstruct:smeltery_controller",
+    "sconstruct:seared_tank_io",
+    "sconstruct:seared_tank_in",
+    "sconstruct:seared_tank_gauge",
+    "sconstruct:seared_drain",
+    "sconstruct:seared_chute"
+  ]
+}

@@ -22,6 +22,7 @@ import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.tools.PartType;
 import slimeknights.sconstruct.port1211.tools.item.ToolCore;
 import slimeknights.sconstruct.port1211.tools.item.ToolItems;
@@ -173,6 +174,15 @@ public final class TinkerItemTagsProvider extends ItemTagsProvider {
         for (PartType part : PartType.values()) {
             tag(itemTag(SConstruct.MOD_ID, "tool_parts/" + part.id())).add(ToolParts.get(part).get());
         }
+
+        // SMTCON-129: mirror the three smeltery block tags onto the item registry so a recipe
+        // or UI asking for "any smeltery component / floor / wall" item picks up the block
+        // items without a parallel list. Plus c:tanks/seared collecting the two seared tanks
+        // under the common namespace for cross-mod fluid-storage interop.
+        copy(TinkerTags.Blocks.SMELTERY_COMPONENT, itemTag(SConstruct.MOD_ID, "smeltery/component"));
+        copy(TinkerTags.Blocks.SMELTERY_FLOOR, itemTag(SConstruct.MOD_ID, "smeltery/floor"));
+        copy(TinkerTags.Blocks.SMELTERY_WALL, itemTag(SConstruct.MOD_ID, "smeltery/wall"));
+        tag(itemTag("c", "tanks/seared")).add(SmelteryComponents.SEARED_TANK_IO.get().asItem(), SmelteryComponents.SEARED_TANK_IN.get().asItem());
     }
 
     private static TagKey<Item> itemTag(String namespace, String path) {

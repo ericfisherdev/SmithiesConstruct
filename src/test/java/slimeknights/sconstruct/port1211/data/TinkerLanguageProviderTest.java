@@ -210,7 +210,11 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-125 adds the smeltery controller GUI strings: the container title plus the
         // temperature, tank-empty, and tank-fluid format keys = 4 more, for 205 total.
-        assertEquals(205, lang().entrySet().size());
+        //
+        // SMTCON-129 adds the smeltery content display names: 16 seared blocks + 6 component
+        // blocks + 2 casting blocks + 20 molten-fluid blocks + 20 molten buckets = 64 more,
+        // for 269 total.
+        assertEquals(269, lang().entrySet().size());
     }
 
     @SuppressWarnings("PMD.UseProperClassLoader") // proper context loader checked first; fallback fires only when null

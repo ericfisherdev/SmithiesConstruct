@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "sconstruct:block/seared_drain",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "sconstruct:block/seared_drain"
+    },
+    "facing=south": {
+      "model": "sconstruct:block/seared_drain",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "sconstruct:block/seared_drain",
+      "y": 270
+    }
+  }
+}

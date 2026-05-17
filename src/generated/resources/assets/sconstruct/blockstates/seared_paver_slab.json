@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "sconstruct:block/seared_paver_slab"
+    },
+    "type=double": {
+      "model": "sconstruct:block/seared_paver"
+    },
+    "type=top": {
+      "model": "sconstruct:block/seared_paver_slab_top"
+    }
+  }
+}
