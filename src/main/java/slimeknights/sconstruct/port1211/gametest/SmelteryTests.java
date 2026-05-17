@@ -16,6 +16,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -123,8 +124,7 @@ public final class SmelteryTests {
     public static void meltIron(GameTestHelper helper) {
         buildSmeltery(helper, true);
         // Lava in the seared tank is the smeltery's fuel — without it drawFuel pauses the melt.
-        SearedTankBE tank = (SearedTankBE) helper.getBlockEntity(TANK);
-        helper.assertTrue(tank != null, "seared tank block entity attaches");
+        SearedTankBE tank = blockEntityAt(helper, TANK, SearedTankBE.class, "seared tank");
         tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, 2000), IFluidHandler.FluidAction.EXECUTE);
 
         SmelteryControllerBlockEntity controller = controllerAt(helper);
@@ -155,8 +155,7 @@ public final class SmelteryTests {
     public static void castIngot(GameTestHelper helper) {
         BlockPos tablePos = new BlockPos(1, BASE_Y, 1);
         helper.setBlock(tablePos, CastingBlocks.CASTING_TABLE.get());
-        AbstractCastingBlockEntity table = (AbstractCastingBlockEntity) helper.getBlockEntity(tablePos);
-        helper.assertTrue(table != null, "casting table block entity attaches");
+        AbstractCastingBlockEntity table = blockEntityAt(helper, tablePos, AbstractCastingBlockEntity.class, "casting table");
 
         // Pour molten copper into the empty-cast table — casting_copper_ingot is a no-cast
         // SMTCON-128 recipe, so the bare table casts a copper ingot once the metal cools.
@@ -247,9 +246,18 @@ public final class SmelteryTests {
 
     /** Fetches the controller block entity, failing the test if it did not attach. */
     private static SmelteryControllerBlockEntity controllerAt(GameTestHelper helper) {
-        SmelteryControllerBlockEntity controller = (SmelteryControllerBlockEntity) helper.getBlockEntity(CONTROLLER);
-        helper.assertTrue(controller != null, "smeltery controller block entity attaches");
-        return controller;
+        return blockEntityAt(helper, CONTROLLER, SmelteryControllerBlockEntity.class, "smeltery controller");
+    }
+
+    /**
+     * Fetches the block entity at {@code pos}, asserting it is of the expected type before
+     * downcasting — a wiring change then fails with a clear assertion message rather than a
+     * {@link ClassCastException}.
+     */
+    private static <T extends BlockEntity> T blockEntityAt(GameTestHelper helper, BlockPos pos, Class<T> type, String description) {
+        BlockEntity be = helper.getBlockEntity(pos);
+        helper.assertTrue(type.isInstance(be), description + " block entity attaches");
+        return type.cast(be);
     }
 
     /** Resolves the melting recipe for {@code stack}, failing the test when none is registered. */
@@ -274,11 +282,13 @@ public final class SmelteryTests {
     private static CastingRecipe castingRecipeFor(GameTestHelper helper, FluidStack fluid, Item expectedOutput) {
         ServerLevel level = helper.getLevel();
         CastingRecipeInput input = new CastingRecipeInput(fluid, ItemStack.EMPTY, false);
+        // Pick the greatest-fluid match, mirroring AbstractCastingBlockEntity#findCastingRecipe,
+        // so the test resolves the same recipe the casting tick would run.
         CastingRecipe match = null;
         for (RecipeHolder<CastingRecipe> holder : level.getRecipeManager().getAllRecipesFor(SmelteryRecipes.CASTING_TYPE.get())) {
-            if (holder.value().matches(input, level) && holder.value().output().is(expectedOutput)) {
-                match = holder.value();
-                break;
+            CastingRecipe candidate = holder.value();
+            if (candidate.matches(input, level) && candidate.output().is(expectedOutput) && (match == null || candidate.fluid().amount() > match.fluid().amount())) {
+                match = candidate;
             }
         }
         helper.assertTrue(match != null, "a casting-table recipe for " + expectedOutput + " is registered for " + fluid.getFluid());
