@@ -122,6 +122,8 @@ public class AlloyCategory implements IRecipeCategory<RecipeHolder<AlloyRecipe>>
         for (int i = 1; i < inputCount; i++) {
             graphics.drawString(font, "+", PLUS_X, FIRST_ROW_Y + i * ROW_PITCH - 9, TEXT_COLOR, false);
         }
-        graphics.drawString(font, recipe.value().temperature() + " K", OUTPUT_X, OUTPUT_Y + 18, TEXT_COLOR, false);
+        Component temperatureText = Component.translatable("gui." + SConstruct.MOD_ID + ".smeltery.temperature", recipe.value().temperature());
+        int temperatureX = OUTPUT_X + 8 - font.width(temperatureText) / 2;
+        graphics.drawString(font, temperatureText, temperatureX, OUTPUT_Y + 18, TEXT_COLOR, false);
     }
 }
