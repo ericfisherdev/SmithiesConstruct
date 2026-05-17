@@ -3,6 +3,7 @@ package slimeknights.sconstruct.port1211.shared;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -116,6 +117,14 @@ public final class SharedItems {
      */
     public static final DeferredItem<BucketItem> BUCKET_BLOOD = TinkerRegistries.ITEMS.registerItem("blood_bucket",
             props -> new BucketItem(SharedFluids.BLOOD.get(), props.craftRemainder(Items.BUCKET).stacksTo(1)));
+
+    /**
+     * The "Materials and You" guidebook (SMTCON-158) — right-clicking it opens the Patchouli
+     * book {@code tconstruct:materialsandyou}. The book id keeps the legacy {@code tconstruct}
+     * namespace so a book-content datapack written against the 1.12 mod resolves unchanged.
+     */
+    public static final DeferredItem<GuidebookItem> MATERIALS_BOOK = TinkerRegistries.ITEMS.registerItem("book_materials",
+            props -> new GuidebookItem(props, ResourceLocation.fromNamespaceAndPath("tconstruct", "materialsandyou")));
 
     /**
      * Immutable insertion-ordered view over every registered ingot. Downstream providers

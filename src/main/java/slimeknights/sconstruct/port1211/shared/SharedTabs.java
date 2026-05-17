@@ -86,5 +86,6 @@ public final class SharedTabs {
         accept.accept(SharedItems.MUDBRICK.get());
         accept.accept(SharedItems.BACON.get());
         accept.accept(SharedItems.BUCKET_BLOOD.get());
+        accept.accept(SharedItems.MATERIALS_BOOK.get());
     }
 }
