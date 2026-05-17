@@ -2,6 +2,8 @@ package slimeknights.sconstruct.port1211.gadgets;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.IEventBus;
@@ -10,22 +12,27 @@ import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
 import slimeknights.sconstruct.port1211.gadgets.item.SlimeSlingItem;
+import slimeknights.sconstruct.port1211.gadgets.item.ThrowballItem;
 import slimeknights.sconstruct.port1211.shared.SharedTabs;
 import slimeknights.sconstruct.port1211.world.block.SlimeColor;
 
 /**
- * Registration hub for the Phase-6 gadget items. SMTCON-132 ships the first four: one
- * {@link SlimeSlingItem} per {@link SlimeColor}, each registered under
- * {@link TinkerRegistries#ITEMS}.
+ * Registration hub for the Phase-6 gadget items, all registered under
+ * {@link TinkerRegistries#ITEMS}:
  *
- * <p>Every slimesling shares the {@link #SLING_DURABILITY} budget and a max stack size of one
- * (a charged tool, like a bow). The per-colour launch profile and on-release side effect live
- * in {@link SlimeSlingItem}; this hub only wires the registrations and exposes the
- * {@link #ALL} roster for the creative-tab listener and downstream data providers.
+ * <ul>
+ *   <li>{@link #SLINGS} — one {@link SlimeSlingItem} per {@link SlimeColor} (SMTCON-132). Each
+ *       shares the {@link #SLING_DURABILITY} budget and a max stack size of one.</li>
+ *   <li>{@link #THROWBALLS} — one {@link ThrowballItem} per {@link SlimeColor} (SMTCON-133), a
+ *       thrown projectile that applies a colour-specific area effect on impact.</li>
+ * </ul>
+ *
+ * <p>The per-colour behaviour lives in the item classes; this hub only wires the registrations
+ * and exposes the rosters for the creative-tab listener and downstream data providers.
  *
  * <p>{@link #init()} forces the {@code DeferredItem} field initialisers to run before the item
  * registry event fires; {@link #registerCreativeTabContents(IEventBus)} subscribes the
- * {@link BuildCreativeModeTabContentsEvent} listener that appends every slimesling to
+ * {@link BuildCreativeModeTabContentsEvent} listener that appends every gadget item to
  * {@link SharedTabs#GENERAL}. Both are invoked from {@code SConstruct} for now; they relocate
  * into the gadgets pulse's {@code register()} when that pulse is wired.
  */
@@ -47,14 +54,32 @@ public final class GadgetItems {
     public static final DeferredItem<SlimeSlingItem> SLING_BLOOD = registerSling("blood", SlimeColor.BLOOD);
 
     /** Insertion-ordered roster of every registered slimesling, for the creative tab and providers. */
-    public static final List<DeferredItem<SlimeSlingItem>> ALL = List.of(SLING_BLUE, SLING_PURPLE, SLING_MAGMA, SLING_BLOOD);
+    public static final List<DeferredItem<SlimeSlingItem>> SLINGS = List.of(SLING_BLUE, SLING_PURPLE, SLING_MAGMA, SLING_BLOOD);
+
+    /** Blue throwball — slows every living entity caught in the impact radius. */
+    public static final DeferredItem<ThrowballItem> THROWBALL_BLUE = registerThrowball("blue", SlimeColor.BLUE);
+
+    /** Purple throwball — a purely cosmetic explosion on impact, no block or entity damage. */
+    public static final DeferredItem<ThrowballItem> THROWBALL_PURPLE = registerThrowball("purple", SlimeColor.PURPLE);
+
+    /** Magma throwball — sets every living entity caught in the impact radius on fire. */
+    public static final DeferredItem<ThrowballItem> THROWBALL_MAGMA = registerThrowball("magma", SlimeColor.MAGMA);
+
+    /** Blood throwball — weakens every living entity caught in the impact radius. */
+    public static final DeferredItem<ThrowballItem> THROWBALL_BLOOD = registerThrowball("blood", SlimeColor.BLOOD);
+
+    /** Insertion-ordered roster of every registered throwball, for the creative tab and providers. */
+    public static final List<DeferredItem<ThrowballItem>> THROWBALLS = List.of(THROWBALL_BLUE, THROWBALL_PURPLE, THROWBALL_MAGMA, THROWBALL_BLOOD);
+
+    /** Immutable insertion-ordered roster of every registered gadget item — slings then throwballs. */
+    public static final List<DeferredItem<? extends net.minecraft.world.item.Item>> ALL = Stream.concat(SLINGS.stream(), THROWBALLS.stream()).collect(Collectors.toUnmodifiableList());
 
     private GadgetItems() {
     }
 
     /**
      * No-op that forces this class to load so the {@code DeferredItem} field initialisers above
-     * run, registering every slimesling against {@link TinkerRegistries#ITEMS} before the item
+     * run, registering every gadget item against {@link TinkerRegistries#ITEMS} before the item
      * registry event fires.
      */
     public static void init() {
@@ -63,18 +88,20 @@ public final class GadgetItems {
     }
 
     /**
-     * Subscribes a {@link BuildCreativeModeTabContentsEvent} listener that appends every
-     * slimesling to {@link SharedTabs#GENERAL}. Called from {@code SConstruct} during mod
-     * construction.
+     * Subscribes a {@link BuildCreativeModeTabContentsEvent} listener that appends every gadget
+     * item to {@link SharedTabs#GENERAL}. Called from {@code SConstruct} during mod construction.
      */
     public static void registerCreativeTabContents(IEventBus modBus) {
         modBus.addListener(GadgetItems::populateCreativeTab);
     }
 
-    /** Feeds every registered slimesling to {@code accept} in registration order. */
+    /** Feeds every registered gadget item — slimeslings then throwballs — to {@code accept}. */
     public static void acceptAll(Consumer<ItemLike> accept) {
-        for (DeferredItem<SlimeSlingItem> sling : ALL) {
+        for (DeferredItem<SlimeSlingItem> sling : SLINGS) {
             accept.accept(sling.get());
+        }
+        for (DeferredItem<ThrowballItem> throwball : THROWBALLS) {
+            accept.accept(throwball.get());
         }
     }
 
@@ -87,5 +114,9 @@ public final class GadgetItems {
 
     private static DeferredItem<SlimeSlingItem> registerSling(String colorId, SlimeColor color) {
         return TinkerRegistries.ITEMS.registerItem("slimesling_" + colorId, props -> new SlimeSlingItem(props.durability(SLING_DURABILITY).stacksTo(1), color));
+    }
+
+    private static DeferredItem<ThrowballItem> registerThrowball(String colorId, SlimeColor color) {
+        return TinkerRegistries.ITEMS.registerItem("throwball_" + colorId, props -> new ThrowballItem(props.stacksTo(ThrowballItem.STACK_SIZE), color));
     }
 }
