@@ -36,7 +36,11 @@ public final class CastingRecipeBuilder {
             throw new IllegalArgumentException("coolingTime must be a positive tick count: " + coolingTime);
         }
         this.coolingTime = coolingTime;
-        this.output = Objects.requireNonNull(output, "output");
+        Objects.requireNonNull(output, "output");
+        if (output.isEmpty()) {
+            throw new IllegalArgumentException("output must be a non-empty item stack");
+        }
+        this.output = output.copy();
         this.basin = basin;
     }
 
