@@ -2,16 +2,19 @@ package slimeknights.sconstruct.port1211.smeltery;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
+import java.util.function.Consumer;
+
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
@@ -62,11 +65,25 @@ class TinkerSmelteryPulseTest {
             recipes.verify(SmelteryRecipes::init);
             // register() must also subscribe the disassembly listener on the NeoForge game bus.
             events.verify(() -> SmelteryEvents.register(NeoForge.EVENT_BUS));
-            // register() must wire the smeltery capability listener onto the mod bus — the
-            // RegisterCapabilitiesEvent handler is added as a method reference (it is invoked
-            // later by the bus, not during register()), so the contract checked here is that a
-            // listener was attached at all.
-            verify(bus).addListener(any());
+            assertRegisterWiresTheCapabilityListener(bus);
+        }
+    }
+
+    /**
+     * Confirms {@code register()} wired {@link SmelteryCapabilities#register} onto the mod bus.
+     * The handler is added as a method reference — the bus invokes it later, not during
+     * {@code register()} — so the listener {@link Consumer} is captured and then driven with a
+     * mock {@link RegisterCapabilitiesEvent}; only the real {@code SmelteryCapabilities::register}
+     * reference forwards that event into the mocked-static helper.
+     */
+    private static void assertRegisterWiresTheCapabilityListener(IEventBus bus) {
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Consumer<RegisterCapabilitiesEvent>> listener = ArgumentCaptor.forClass(Consumer.class);
+        verify(bus).addListener(listener.capture());
+        RegisterCapabilitiesEvent event = mock(RegisterCapabilitiesEvent.class);
+        try (MockedStatic<SmelteryCapabilities> capabilities = mockStatic(SmelteryCapabilities.class)) {
+            listener.getValue().accept(event);
+            capabilities.verify(() -> SmelteryCapabilities.register(event));
         }
     }
 }
