@@ -453,6 +453,8 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.jei.modifiers", "Modifiers");
         add("gui.sconstruct.jei.modifier.max_level", "Max Level: %s");
         add("gui.sconstruct.jei.modifier.slot_cost", "Slot Cost: %s");
+        // SMTCON-156: drying-rack JEI category title, resolved by DryingRackCategory#getTitle.
+        add("gui.sconstruct.jei.drying", "Drying");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
