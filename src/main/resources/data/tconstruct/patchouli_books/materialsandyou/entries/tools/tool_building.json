@@ -1,0 +1,20 @@
+{
+  "name": "Building Tools",
+  "icon": "sconstruct:tool_station",
+  "category": "tconstruct:tools",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Smithies' Construct tools are built from parts rather than crafted in a grid. Shape each part from a pattern and a material at the Part Builder, then assemble the parts at the Tool Station."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Every part carries the stats of the material it is made from, so the same tool can be fast and fragile or slow and sturdy depending on what you build it from."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Heavier tools \u2014 the hammer, excavator, lumber axe, cleaver, and the bows \u2014 must be assembled at the Tool Forge instead of the Tool Station."
+    }
+  ]
+}

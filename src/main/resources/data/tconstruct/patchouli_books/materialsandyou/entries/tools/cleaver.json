@@ -1,0 +1,16 @@
+{
+  "name": "Cleaver",
+  "icon": "sconstruct:cleaver",
+  "category": "tconstruct:tools",
+  "sortnum": 16,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Cleaver is a heavy offensive weapon with powerful but slow strikes. Each killing blow has a chance to behead the foe."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Requires a Tool Forge$(br)- High damage but slow$(br)- Beheading II$(br)- Two handed"
+    }
+  ]
+}

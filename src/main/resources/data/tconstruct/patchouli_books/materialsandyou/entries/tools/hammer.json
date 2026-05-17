@@ -1,0 +1,16 @@
+{
+  "name": "Hammer",
+  "icon": "sconstruct:hammer",
+  "category": "tconstruct:tools",
+  "sortnum": 10,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Hammer is a broad mining tool. It harvests blocks in a wide range and is effective against the undead, making it ideal for clearing large areas."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Requires a Tool Forge$(br)- 3x3 area mining$(br)- Effective on stone and ores$(br)- Bonus damage against undead"
+    }
+  ]
+}

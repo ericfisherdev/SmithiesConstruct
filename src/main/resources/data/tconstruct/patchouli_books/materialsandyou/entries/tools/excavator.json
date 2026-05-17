@@ -1,0 +1,16 @@
+{
+  "name": "Excavator",
+  "icon": "sconstruct:excavator",
+  "category": "tconstruct:tools",
+  "sortnum": 11,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Excavator is a broad digging tool. It harvests soil and snow in a wide range."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Requires a Tool Forge$(br)- 3x3 area mining$(br)- Effective on dirt, sand, and gravel$(br)- Can create paths"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Modifiers",
+  "icon": "minecraft:lapis_lazuli",
+  "category": "tconstruct:tools",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Modifiers upgrade a finished tool \u2014 extra damage, faster mining, auto-repair, and more. Apply them at the Tool Station's Modify action. Each tool starts with a limited number of free modifier slots."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A full list of every modifier, its level cap, and its slot cost is added to this page by the custom modifier page type (SMTCON-162/163). Until then, browse modifiers in JEI."
+    }
+  ]
+}
