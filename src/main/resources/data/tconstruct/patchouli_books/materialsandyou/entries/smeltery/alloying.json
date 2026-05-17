@@ -1,0 +1,16 @@
+{
+  "name": "Alloying",
+  "icon": "sconstruct:smeltery_controller",
+  "category": "tconstruct:smeltery",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "When the smeltery holds the right molten fluids and is hot enough, it combines them into an $(l)alloy$(). Three parts molten copper plus one part molten zinc become four parts molten brass."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Alloying runs automatically every tick the inputs and temperature are satisfied — no interaction needed. Pour the inputs in, keep the smeltery hot, and drain the alloy back out.$(br2)Check JEI for the full list of alloy recipes."
+    }
+  ]
+}

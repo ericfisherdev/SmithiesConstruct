@@ -1,0 +1,16 @@
+{
+  "name": "Casting",
+  "icon": "sconstruct:casting_table",
+  "category": "tconstruct:smeltery",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Pour a molten fluid onto a $(l)casting table$() to cast tool parts and small items. Place a cast on the table first to shape the result; without a cast, the fluid sets into an ingot."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A $(l)casting basin$() works the same way for blocks and larger items.$(br2)Each casting recipe has a $(l)cooling time$() — the fluid must finish cooling before the result can be removed."
+    }
+  ]
+}
