@@ -225,6 +225,15 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void jeiMeltingCategoryTitleIsPinned() {
+        // SMTCON-151: a raw count check can't catch a mistyped JEI key — pin the key and value
+        // so a typo surfaces as a test failure, not raw key-text in the in-game JEI title.
+        JsonObject lang = lang();
+        assertTrue(lang.has("gui.sconstruct.jei.melting"), "gui.sconstruct.jei.melting missing");
+        assertEquals("Melting", lang.get("gui.sconstruct.jei.melting").getAsString());
+    }
+
+    @Test
     void smelteryDisplayNamesArePinned() {
         // SMTCON-129: a raw count check can't catch a wrong key/value pair. Pin one representative
         // entry per smeltery surface — a seared block, a component, a molten-fluid block, and a
