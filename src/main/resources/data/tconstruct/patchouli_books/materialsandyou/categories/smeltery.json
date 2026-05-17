@@ -1,0 +1,6 @@
+{
+  "name": "Mighty Smelting",
+  "description": "Build a smeltery to melt metals and other materials into fluids, then cast and alloy them. This chapter covers the multiblock structure and every recipe it can run.",
+  "icon": "sconstruct:smeltery_controller",
+  "sortnum": 1
+}

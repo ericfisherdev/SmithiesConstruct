@@ -1,0 +1,16 @@
+{
+  "name": "Melting",
+  "icon": "sconstruct:smeltery_controller",
+  "category": "tconstruct:smeltery",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Drop an item into one of the smeltery's melting slots and, once the structure is hot enough, it slowly melts into a molten fluid. Ingots, ores, blocks, and many tool materials all have melting recipes."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Each recipe has a $(l)temperature$() the smeltery must reach and a melt $(l)time$(). Hotter fuels and a larger structure melt more items at once.$(br2)Check JEI for the full list of melting recipes."
+    }
+  ]
+}

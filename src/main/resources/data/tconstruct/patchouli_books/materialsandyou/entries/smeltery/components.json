@@ -1,0 +1,20 @@
+{
+  "name": "Smeltery Components",
+  "icon": "sconstruct:seared_drain",
+  "category": "tconstruct:smeltery",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Tanks$() store the fuel and the molten fluids. The smeltery needs at least one tank for fuel; adding more increases both the fuel reserve and the fluid capacity."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Drains$() let fluid move in and out of the structure. Attach a $(l)faucet$() to a drain to pour fluid into casting tables and basins, or connect fluid pipes from other mods to pump fluid through the drain."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Seared glass$() and $(l)tank gauges$() let you see the fluid levels inside the smeltery without breaking the structure."
+    }
+  ]
+}
