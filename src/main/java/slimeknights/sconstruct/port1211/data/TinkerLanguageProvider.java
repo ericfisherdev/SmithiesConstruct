@@ -446,6 +446,13 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.jei.alloying", "Alloying");
         // SMTCON-154: tool-building JEI category title, resolved by ToolBuildingCategory#getTitle.
         add("gui.sconstruct.jei.tool_building", "Tool Building");
+        // SMTCON-155: part-builder and modifier JEI categories. The category titles are resolved
+        // by Part{Builder,Modifier}Category#getTitle; the two modifier.* keys format the level
+        // cap and slot cost lines ModifierCategory#draw renders.
+        add("gui.sconstruct.jei.part_building", "Part Building");
+        add("gui.sconstruct.jei.modifiers", "Modifiers");
+        add("gui.sconstruct.jei.modifier.max_level", "Max Level: %s");
+        add("gui.sconstruct.jei.modifier.slot_cost", "Slot Cost: %s");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {

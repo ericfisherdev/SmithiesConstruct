@@ -1,21 +1,13 @@
 package slimeknights.sconstruct.port1211.plugin.jei.category;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import slimeknights.sconstruct.port1211.SConstruct;
-import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
-import slimeknights.sconstruct.port1211.tools.PartType;
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.ToolStationRegistry;
-import slimeknights.sconstruct.port1211.tools.item.ToolParts;
-import slimeknights.sconstruct.port1211.tools.material.client.MaterialClientCache;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
@@ -98,32 +90,9 @@ public class ToolBuildingCategory implements IRecipeCategory<ToolBuildingEntry> 
         ToolDefinition definition = recipe.definition();
         for (int i = 0; i < definition.getPartCount(); i++) {
             IRecipeSlotBuilder slot = builder.addInputSlot(FIRST_PART_X + i * SLOT_PITCH, SLOT_Y);
-            slot.addItemStacks(materialVariants(definition.getPartSlot(i)));
+            slot.addItemStacks(PartMaterialPreview.stampedVariants(definition.getPartSlot(i)));
         }
         builder.addOutputSlot(OUTPUT_X, SLOT_Y).addItemStack(new ItemStack(recipe.tool()));
-    }
-
-    /**
-     * The part item for {@code part}, stamped once per registered material so JEI cycles the
-     * slot through every material. Reads {@link MaterialClientCache} — JEI renders client-side,
-     * and the server-side {@code MaterialRegistry} cache is never populated on a remote client.
-     * Falls back to a single unstamped part stack when no materials are loaded (before the first
-     * registry sync) — JEI never shows a blank slot, and the part item's own default material
-     * ({@code tconstruct:wood}) keeps the preview meaningful.
-     */
-    private static List<ItemStack> materialVariants(PartType part) {
-        var partItem = ToolParts.get(part).get();
-        List<ResourceLocation> materials = MaterialClientCache.materialIds();
-        if (materials.isEmpty()) {
-            return List.of(new ItemStack(partItem));
-        }
-        List<ItemStack> variants = new ArrayList<>(materials.size());
-        for (ResourceLocation material : materials) {
-            ItemStack stack = new ItemStack(partItem);
-            stack.set(TinkerDataComponents.PART_MATERIAL.get(), material);
-            variants.add(stack);
-        }
-        return variants;
     }
 
     @Override
