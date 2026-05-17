@@ -13,6 +13,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.common.TinkerTags;
+import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
@@ -112,6 +113,16 @@ public final class TinkerBlockTagsProvider extends BlockTagsProvider {
         for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
             tag(BlockTags.MINEABLE_WITH_PICKAXE).add(holder.get());
         }
+
+        // SMTCON-143: Phase-6 gadget block tags.
+        //   - stone ladder MUST be in BlockTags.CLIMBABLE — that membership (not the block class)
+        //     is what makes a ladder climbable; it is also pickaxe-mined, matching its stone tier.
+        //   - drying rack is a wooden block, axe-mined.
+        //   - wooden hopper, dried clay, and dried clay brick are stone/pickaxe-mined.
+        tag(BlockTags.CLIMBABLE).add(GadgetBlocks.STONE_LADDER.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(GadgetBlocks.STONE_LADDER.get());
+        tag(BlockTags.MINEABLE_WITH_AXE).add(GadgetBlocks.DRYING_RACK.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(GadgetBlocks.WOODEN_HOPPER.get(), GadgetBlocks.DRIED_CLAY.get(), GadgetBlocks.DRIED_CLAY_BRICK.get());
     }
 
     private static Map<String, Metal> indexMetalsById() {

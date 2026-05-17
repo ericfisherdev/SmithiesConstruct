@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "sconstruct:slimeball_purple"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "T": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    "LT",
+    " B"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sconstruct:slimesling_purple"
+  }
+}

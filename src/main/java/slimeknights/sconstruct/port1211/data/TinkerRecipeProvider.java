@@ -28,6 +28,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
+import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedFluids;
@@ -117,6 +119,103 @@ public final class TinkerRecipeProvider extends RecipeProvider {
         // metal-alloying recipes.
         addCastingRecipes(recipeOutput);
         addAlloyRecipes(recipeOutput);
+
+        // SMTCON-143: Phase-6 gadget crafting recipes (slimeslings, throwballs, piggyback, glow
+        // ball, slime armor, the three gadget blocks) and the drying-rack drying recipes.
+        addGadgetCraftingRecipes(recipeOutput);
+        addDryingRecipes(recipeOutput);
+    }
+
+    /**
+     * Emit the gadget crafting-table recipes (SMTCON-143). Each follows the legacy 1.12 shape as
+     * closely as the available ingredients allow; the unlock criterion fires on the simplest
+     * precursor item the recipe consumes.
+     */
+    private void addGadgetCraftingRecipes(RecipeOutput output) {
+        // 4 slimeslings — leather + a matching-colour slimeball + string, in an L shape evoking
+        // a sling: leather and string on the top row, the slimeball pouch below the string.
+        // The colour-to-slimeball pairing matches the sling for each colour exactly.
+        addSlingRecipe(output, "blue", SharedItems.SLIMEBALL_BLUE.get(), GadgetItems.SLING_BLUE.get());
+        addSlingRecipe(output, "purple", SharedItems.SLIMEBALL_PURPLE.get(), GadgetItems.SLING_PURPLE.get());
+        addSlingRecipe(output, "magma", SharedItems.SLIMEBALL_MAGMA.get(), GadgetItems.SLING_MAGMA.get());
+        addSlingRecipe(output, "blood", SharedItems.SLIMEBALL_BLOOD.get(), GadgetItems.SLING_BLOOD.get());
+
+        // 4 throwballs — 4 matching-colour slimeballs in a 2×2. Shaped 2×2 (not shapeless) so the
+        // recipe reads as "pack four slimeballs into a ball" in the recipe book.
+        addThrowballRecipe(output, SharedItems.SLIMEBALL_BLUE.get(), GadgetItems.THROWBALL_BLUE.get());
+        addThrowballRecipe(output, SharedItems.SLIMEBALL_PURPLE.get(), GadgetItems.THROWBALL_PURPLE.get());
+        addThrowballRecipe(output, SharedItems.SLIMEBALL_MAGMA.get(), GadgetItems.THROWBALL_MAGMA.get());
+        addThrowballRecipe(output, SharedItems.SLIMEBALL_BLOOD.get(), GadgetItems.THROWBALL_BLOOD.get());
+
+        // Piggyback — leather over a saddle (shapeless). The saddle is the "carry" component;
+        // the leather pads it. Unlocks on the saddle, the rarer of the two ingredients.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, GadgetItems.PIGGYBACK.get()).requires(Items.LEATHER).requires(Items.SADDLE).unlockedBy("has_saddle", has(Items.SADDLE)).save(output);
+
+        // Glow ball — 4 glowstone dust in a 2×2, mirroring vanilla's glowstone-block ratio at a
+        // smaller scale. One ball per craft keeps the thrown light source a cheap consumable.
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, GadgetItems.GLOW_BALL.get()).pattern("GG").pattern("GG").define('G', Items.GLOWSTONE_DUST)
+                .unlockedBy("has_glowstone_dust", has(Items.GLOWSTONE_DUST)).save(output);
+
+        // Slime armor — the four pieces use vanilla armor crafting shapes (helmet 5, chestplate
+        // 8, leggings 7, boots 4). Congealed slime does not exist in this mod, so blue slimeballs
+        // (SLIMEBALL_BLUE) stand in as the crafting material — the standard slime crafting unit.
+        Item slime = SharedItems.SLIMEBALL_BLUE.get();
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, GadgetItems.SLIME_HELMET.get()).pattern("SSS").pattern("S S").define('S', slime).unlockedBy("has_slimeball", has(slime)).save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, GadgetItems.SLIME_CHESTPLATE.get()).pattern("S S").pattern("SSS").pattern("SSS").define('S', slime).unlockedBy("has_slimeball", has(slime))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, GadgetItems.SLIME_LEGGINGS.get()).pattern("SSS").pattern("S S").pattern("S S").define('S', slime).unlockedBy("has_slimeball", has(slime))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, GadgetItems.SLIME_BOOTS.get()).pattern("S S").pattern("S S").define('S', slime).unlockedBy("has_slimeball", has(slime)).save(output);
+
+        // Drying rack — 4 sticks framing a single plank, in an H shape evoking the rack's slats.
+        // Planks drawn from the vanilla ItemTags.PLANKS so any wood works.
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, GadgetBlocks.DRYING_RACK_ITEM.get()).pattern("SPS").pattern("SSS").define('S', Items.STICK).define('P', ItemTags.PLANKS)
+                .unlockedBy("has_stick", has(Items.STICK)).save(output);
+
+        // Wooden hopper — the vanilla hopper shape (V of planks around a centred chest), built
+        // entirely from wood: a pre-iron-tier hopper, so no iron in the recipe.
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, GadgetBlocks.WOODEN_HOPPER_ITEM.get()).pattern("P P").pattern("PCP").pattern(" P ").define('P', ItemTags.PLANKS).define('C', Items.CHEST)
+                .unlockedBy("has_chest", has(Items.CHEST)).save(output);
+
+        // Stone ladder — 7 stone slabs in the vanilla ladder shape, yielding 3 like a vanilla
+        // ladder. Stone slabs make it the stone-tier sibling of the wooden ladder.
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, GadgetBlocks.STONE_LADDER_ITEM.get(), 3).pattern("S S").pattern("SSS").pattern("S S").define('S', Items.STONE_SLAB)
+                .unlockedBy("has_stone_slab", has(Items.STONE_SLAB)).save(output);
+
+        // Wither head — intentionally has no crafting recipe. It is a decorative item (SMTCON-140)
+        // with no behaviour; the legacy 1.12 mod did not ship a recipe for it either, so it is
+        // creative-tab / loot only.
+
+        // Dried clay / dried clay brick — intentionally have no crafting recipe here. They are
+        // decoration blocks produced by the drying mechanic in a future task (mud-brick → dried
+        // clay drying chain); shipping a placeholder crafting recipe now would have to be removed
+        // when that chain lands. They remain creative-tab obtainable.
+    }
+
+    /** Emit one slimesling crafting recipe — leather + string + a matching-colour slimeball. */
+    private void addSlingRecipe(RecipeOutput output, String colorId, Item slimeball, Item sling) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, sling).pattern("LT").pattern(" B").define('L', Items.LEATHER).define('T', Items.STRING).define('B', slimeball)
+                .unlockedBy("has_slimeball", has(slimeball)).save(output, ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "slimesling_" + colorId));
+    }
+
+    /** Emit one throwball crafting recipe — 4 matching-colour slimeballs in a 2×2. */
+    private void addThrowballRecipe(RecipeOutput output, Item slimeball, Item throwball) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, throwball).pattern("SS").pattern("SS").define('S', slimeball).unlockedBy("has_slimeball", has(slimeball)).save(output);
+    }
+
+    /** Server ticks the two default drying recipes take — a slow, decorative-paced dry. */
+    private static final int DRY_TIME_TICKS = 400;
+
+    /**
+     * Emit the two default drying-rack recipes (SMTCON-143). Both use only vanilla items so they
+     * genuinely function the moment the rack is placed: a wet sponge dries into a sponge, and
+     * kelp dries into dried kelp — satisfying SMTCON-137's deferred "default drying recipes work"
+     * acceptance criterion.
+     */
+    private void addDryingRecipes(RecipeOutput output) {
+        DryingRecipeBuilder.drying(Ingredient.of(Items.WET_SPONGE), new ItemStack(Items.SPONGE), DRY_TIME_TICKS).save(output,
+                ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "drying_sponge"));
+        DryingRecipeBuilder.drying(Ingredient.of(Items.KELP), new ItemStack(Items.DRIED_KELP), DRY_TIME_TICKS).save(output, ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "drying_kelp"));
     }
 
     /** Server ticks a cast item solidifies in over on a casting table. */

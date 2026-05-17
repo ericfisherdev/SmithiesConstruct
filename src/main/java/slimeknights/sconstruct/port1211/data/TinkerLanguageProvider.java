@@ -409,6 +409,33 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         // raw key is written explicitly.
         add(slimeknights.sconstruct.port1211.world.WorldEntities.BLUESLIME.get(), "Blueslime");
         add(slimeknights.sconstruct.port1211.world.WorldEntities.HUGESLIME.get(), "Huge Slime");
+
+        // SMTCON-143: Phase-6 gadget item + block display names. Item ids do not title-case
+        // cleanly into their friendly names (e.g. "slimesling_blue" → "Blue Slimesling"), so each
+        // is written explicitly. 15 items + 5 blocks + 1 wooden-hopper container title key.
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLING_BLUE.get(), "Blue Slimesling");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLING_PURPLE.get(), "Purple Slimesling");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLING_MAGMA.get(), "Magma Slimesling");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLING_BLOOD.get(), "Blood Slimesling");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.THROWBALL_BLUE.get(), "Blue Throwball");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.THROWBALL_PURPLE.get(), "Purple Throwball");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.THROWBALL_MAGMA.get(), "Magma Throwball");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.THROWBALL_BLOOD.get(), "Blood Throwball");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.PIGGYBACK.get(), "Piggyback");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.GLOW_BALL.get(), "Glow Ball");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.WITHER_HEAD.get(), "Wither Head");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLIME_HELMET.get(), "Slime Helmet");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLIME_CHESTPLATE.get(), "Slime Chestplate");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLIME_LEGGINGS.get(), "Slime Leggings");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetItems.SLIME_BOOTS.get(), "Slime Boots");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetBlocks.DRYING_RACK.get(), "Drying Rack");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetBlocks.WOODEN_HOPPER.get(), "Wooden Hopper");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetBlocks.STONE_LADDER.get(), "Stone Ladder");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetBlocks.DRIED_CLAY.get(), "Dried Clay");
+        add(slimeknights.sconstruct.port1211.gadgets.GadgetBlocks.DRIED_CLAY_BRICK.get(), "Dried Clay Bricks");
+        // The wooden hopper's BlockEntity#getDisplayName resolves this raw container key for the
+        // GUI header bar — LanguageProvider has no Block overload that auto-derives it.
+        add("container.sconstruct.wooden_hopper", "Wooden Hopper");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {

@@ -214,7 +214,12 @@ class TinkerLanguageProviderTest {
         // SMTCON-129 adds the smeltery content display names: 16 seared blocks + 6 component
         // blocks + 2 casting blocks + 20 molten-fluid blocks + 20 molten buckets = 64 more,
         // for 269 total.
-        assertEquals(269, lang().entrySet().size());
+        //
+        // SMTCON-143 adds the Phase-6 gadget display names: 15 gadget items (4 slimeslings,
+        // 4 throwballs, piggyback, glow ball, wither head, 4 armor pieces) + 5 gadget blocks
+        // (drying rack, wooden hopper, stone ladder, dried clay, dried clay brick) + 1 wooden
+        // hopper container-title key = 21 more, for 290 total.
+        assertEquals(290, lang().entrySet().size());
     }
 
     @Test

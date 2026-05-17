@@ -60,13 +60,14 @@ class TinkerBlockTagsProviderTest {
 
     @Test
     void mineableWithAxeIncludesGlowFirewoodLavawoodAndEverySlimeLogVariant() {
-        // Decoratives (3) plus the Phase-3 slime logs: 4 normal + 4 stripped = 8 logs, 11
-        // entries total. A future colour addition lights up here automatically when the test
-        // is re-pinned; until then, drifting the set surfaces the snapshot/lang mismatch.
+        // Decoratives (3) plus the Phase-3 slime logs: 4 normal + 4 stripped = 8 logs, plus the
+        // SMTCON-143 wooden drying rack = 12 entries total. A future colour addition lights up
+        // here automatically when the test is re-pinned; until then, drifting the set surfaces
+        // the snapshot/lang mismatch.
         Set<String> values = loadValues("data/minecraft/tags/block/mineable/axe.json");
         Set<String> expected = Set.of("sconstruct:glow", "sconstruct:firewood", "sconstruct:lavawood", "sconstruct:slime_blue_log", "sconstruct:slime_purple_log", "sconstruct:slime_magma_log",
                 "sconstruct:slime_blood_log", "sconstruct:stripped_slime_blue_log", "sconstruct:stripped_slime_purple_log", "sconstruct:stripped_slime_magma_log",
-                "sconstruct:stripped_slime_blood_log");
+                "sconstruct:stripped_slime_blood_log", "sconstruct:drying_rack");
         assertEquals(expected, values);
     }
 

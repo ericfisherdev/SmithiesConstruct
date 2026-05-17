@@ -1,18 +1,24 @@
 package slimeknights.sconstruct.port1211.data;
 
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
+import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
+import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
+import slimeknights.sconstruct.port1211.gadgets.block.DryingRackBlock;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
 import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
@@ -120,6 +126,81 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
             registerCubeAll(holder.get());
         }
+
+        // SMTCON-143: Phase-6 gadget blocks.
+        //   - dried clay + dried clay brick are plain full cubes — cube_all.
+        //   - the drying rack swaps its model with the DRYING_STATE property (empty/drying/done);
+        //     each state gets a cube_all model so every state has a valid variant.
+        //   - the stone ladder mirrors the vanilla ladder: a "ladder"-shaped model rotated by
+        //     the FACING property.
+        //   - the wooden hopper mirrors the vanilla hopper blockstate (FACING down + 4 horizontal).
+        registerCubeAll(GadgetBlocks.DRIED_CLAY.get());
+        registerCubeAll(GadgetBlocks.DRIED_CLAY_BRICK.get());
+        registerDryingRack(GadgetBlocks.DRYING_RACK.get());
+        registerStoneLadder(GadgetBlocks.STONE_LADDER.get());
+        registerWoodenHopper(GadgetBlocks.WOODEN_HOPPER.get());
+    }
+
+    /**
+     * Emit the drying-rack blockstate — one {@code cube_all}-style model per {@link DryingState}
+     * value so every {@code DRYING_STATE} the block can hold has a valid variant. Each state
+     * model points at its own sprite ({@code block/drying_rack_<state>}) so the rack can visibly
+     * change as its contents dry; the PNGs land in SMTCON-144.
+     */
+    private void registerDryingRack(Block block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        getVariantBuilder(block).forAllStates(state -> {
+            String stateName = state.getValue(DryingRackBlock.DRYING_STATE).getSerializedName();
+            ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath() + "_" + stateName);
+            models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+            return ConfiguredModel.builder().modelFile(models().cubeAll(blockId.getPath() + "_" + stateName, texture)).build();
+        });
+    }
+
+    /**
+     * Emit the stone-ladder blockstate — a single {@code minecraft:block/ladder}-parented model
+     * textured with {@code block/stone_ladder}, rotated to face the player's chosen wall by the
+     * {@code FACING} property (north 0°, south 180°, west 270°, east 90°). Mirrors the vanilla
+     * ladder blockstate exactly.
+     */
+    private void registerStoneLadder(Block block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        // Parent the vanilla ladder model so the rung geometry + cutout render type come for
+        // free; only the "texture" sprite differs from a wooden ladder.
+        BlockModelBuilder model = models().withExistingParent(blockId.getPath(), ResourceLocation.parse("block/ladder")).texture("texture", texture).texture("particle", texture);
+        horizontalBlock(block, model);
+    }
+
+    /**
+     * Emit the wooden-hopper blockstate — the vanilla hopper shape mapped over the hopper's
+     * {@code FACING} property. Two models parent the vanilla hopper templates:
+     * {@code minecraft:block/hopper} for the down-facing default and
+     * {@code minecraft:block/hopper_side} for the four horizontal facings, each rotated to match.
+     * Both are textured with the three vanilla hopper sprites so the wooden hopper renders as a
+     * valid hopper until its own sprites land in SMTCON-144.
+     */
+    private void registerWoodenHopper(Block block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation top = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath() + "_top");
+        ResourceLocation outside = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath() + "_outside");
+        ResourceLocation inside = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath() + "_inside");
+        models().existingFileHelper.trackGenerated(top, PackType.CLIENT_RESOURCES, ".png", "textures");
+        models().existingFileHelper.trackGenerated(outside, PackType.CLIENT_RESOURCES, ".png", "textures");
+        models().existingFileHelper.trackGenerated(inside, PackType.CLIENT_RESOURCES, ".png", "textures");
+        BlockModelBuilder down = models().withExistingParent(blockId.getPath(), ResourceLocation.parse("block/hopper")).texture("top", top).texture("side", outside).texture("inside", inside)
+                .texture("particle", outside);
+        BlockModelBuilder side = models().withExistingParent(blockId.getPath() + "_side", ResourceLocation.parse("block/hopper_side")).texture("top", top).texture("side", outside)
+                .texture("inside", inside).texture("particle", outside);
+        getVariantBuilder(block).forAllStates(state -> {
+            Direction facing = state.getValue(HopperBlock.FACING);
+            if (facing == Direction.DOWN) {
+                return ConfiguredModel.builder().modelFile(down).build();
+            }
+            // hopper_side faces north by default; rotate it to the chosen horizontal direction.
+            return ConfiguredModel.builder().modelFile(side).rotationY((int) facing.toYRot()).build();
+        });
     }
 
     /** Emit a stairs blockstate + model for a seared stair, textured with its base block. */

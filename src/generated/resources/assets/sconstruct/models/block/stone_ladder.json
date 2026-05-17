@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/ladder",
+  "textures": {
+    "particle": "sconstruct:block/stone_ladder",
+    "texture": "sconstruct:block/stone_ladder"
+  }
+}
