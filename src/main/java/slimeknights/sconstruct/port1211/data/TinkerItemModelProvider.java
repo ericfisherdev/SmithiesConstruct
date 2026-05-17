@@ -68,6 +68,7 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         registerSpriteItem(SharedItems.BACON);
         registerSpriteItem(SharedItems.MUDBRICK);
         registerSpriteItem(SharedItems.BUCKET_BLOOD);
+        registerSpriteItem(SharedItems.MATERIALS_BOOK);
 
         // Phase-3 slime fluid buckets: one filled bucket per SlimeFluidSet. Each gets the
         // same flat sprite treatment as BUCKET_BLOOD — runtime tinting lives in the fluid

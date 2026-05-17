@@ -54,8 +54,8 @@ class SharedTabsTest {
         SharedTabs.acceptAll(visited::add);
 
         // Coverage size: metal blocks (13) + decoratives (3) + ingots (15) + nuggets (15)
-        // + slimeballs (4) + 3 miscs (mudbrick, bacon, blood bucket).
-        int expectedSize = SharedBlocks.METAL_BLOCKS.size() + 3 + SharedItems.INGOTS.size() + SharedItems.NUGGETS.size() + SharedItems.SLIMEBALLS.size() + 3;
+        // + slimeballs (4) + 4 miscs (mudbrick, bacon, blood bucket, materials book).
+        int expectedSize = SharedBlocks.METAL_BLOCKS.size() + 3 + SharedItems.INGOTS.size() + SharedItems.NUGGETS.size() + SharedItems.SLIMEBALLS.size() + 4;
         assertEquals(expectedSize, visited.size(), "wrong number of items accepted into GENERAL");
 
         // No duplicates per AC — collecting into a Set of identity-keyed items must match the

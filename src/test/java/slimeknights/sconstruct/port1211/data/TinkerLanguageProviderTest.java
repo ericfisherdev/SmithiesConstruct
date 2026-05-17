@@ -233,7 +233,10 @@ class TinkerLanguageProviderTest {
         // max-level and slot-cost format keys = 4 more, for 299 total.
         //
         // SMTCON-156 adds the JEI drying category title = 1 more, for 300 total.
-        assertEquals(300, lang().entrySet().size());
+        //
+        // SMTCON-158 adds the Materials and You book item name plus the Patchouli book name and
+        // landing-text keys = 3 more, for 303 total.
+        assertEquals(303, lang().entrySet().size());
     }
 
     @Test
