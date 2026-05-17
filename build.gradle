@@ -99,6 +99,13 @@ dependencies {
     // TODO: pin a 1.21.1-compatible Mantle once available.
     // implementation "slimeknights.mantle:Mantle:1.21.1-x.y.z"
 
+    // JEI (SMTCON-147) — the recipe-viewer integration. The API jars are compile-only so the
+    // plugin code can reference JEI types without shipping JEI; the full NeoForge jar is
+    // runtime-only so JEI loads in dev (runClient) and players supply it themselves.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
     testImplementation 'org.mockito:mockito-core:5.14.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
