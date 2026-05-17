@@ -6,12 +6,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
+import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.port1211.tools.PatternChestRegistry;
 import slimeknights.sconstruct.port1211.tools.StencilTableRegistry;
@@ -92,6 +97,67 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         registerCubeBottomTop(PartBuilderRegistry.PART_BUILDER.get(), tableSide, "block/part_builder_top", tableSide);
         registerCubeBottomTop(ToolStationRegistry.TOOL_STATION.get(), tableSide, "block/tool_station_top", tableSide);
         registerCubeBottomTop(ToolStationRegistry.TOOL_FORGE.get(), tableSide, "block/tool_forge_top", tableSide);
+
+        // SMTCON-129: the smeltery blocks. Plain seared blocks are cube_all; the seared brick /
+        // paver stair and slab variants get the matching shape pointing at their base brick
+        // texture. The six component blocks are horizontally directional, so each gets the four
+        // facing variants of a cube_all model. The casting table and basin are cube_all for now.
+        for (DeferredBlock<? extends Block> holder : SearedBlocks.ALL) {
+            Block block = holder.get();
+            if (block instanceof StairBlock stairs) {
+                registerSearedStairs(stairs);
+            }
+            else if (block instanceof SlabBlock slab) {
+                registerSearedSlab(slab);
+            }
+            else {
+                registerCubeAll(block);
+            }
+        }
+        for (DeferredBlock<? extends Block> holder : SmelteryComponents.ALL) {
+            registerHorizontalCube(holder.get());
+        }
+        for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
+            registerCubeAll(holder.get());
+        }
+    }
+
+    /** Emit a stairs blockstate + model for a seared stair, textured with its base block. */
+    private void registerSearedStairs(StairBlock stairs) {
+        ResourceLocation texture = searedBaseTexture(stairs, "_stairs");
+        models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        stairsBlock(stairs, texture);
+    }
+
+    /** Emit a slab blockstate + model for a seared slab, textured with its base block. */
+    private void registerSearedSlab(SlabBlock slab) {
+        ResourceLocation texture = searedBaseTexture(slab, "_slab");
+        models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        ResourceLocation doubleSlabModel = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "block/" + baseName(slab, "_slab"));
+        slabBlock(slab, doubleSlabModel, texture);
+    }
+
+    /** The {@code block/<base>} texture of a seared stair/slab, with {@code suffix} stripped off. */
+    private static ResourceLocation searedBaseTexture(Block variant, String suffix) {
+        return ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "block/" + baseName(variant, suffix));
+    }
+
+    /** The registry path of {@code variant} with the trailing {@code suffix} removed. */
+    private static String baseName(Block variant, String suffix) {
+        String path = BuiltInRegistries.BLOCK.getKey(variant).getPath();
+        return path.endsWith(suffix) ? path.substring(0, path.length() - suffix.length()) : path;
+    }
+
+    /**
+     * Emit a horizontally-directional blockstate for a smeltery component block — the four
+     * facing variants of a single {@code cube_all} model so the placed block has a valid
+     * variant for every {@code FACING} state.
+     */
+    private void registerHorizontalCube(Block block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        horizontalBlock(block, models().cubeAll(blockId.getPath(), texture));
     }
 
     /**

@@ -1,0 +1,20 @@
+{
+  "values": [
+    "sconstruct:seared_stone",
+    "sconstruct:seared_cobble",
+    "sconstruct:seared_paver",
+    "sconstruct:seared_brick",
+    "sconstruct:seared_brick_chiseled",
+    "sconstruct:seared_brick_squared",
+    "sconstruct:seared_brick_creeper",
+    "sconstruct:seared_brick_road",
+    "sconstruct:seared_brick_fancy",
+    "sconstruct:seared_brick_triangle",
+    "sconstruct:seared_glass",
+    "sconstruct:seared_window",
+    "sconstruct:seared_brick_stairs",
+    "sconstruct:seared_brick_slab",
+    "sconstruct:seared_paver_stairs",
+    "sconstruct:seared_paver_slab"
+  ]
+}

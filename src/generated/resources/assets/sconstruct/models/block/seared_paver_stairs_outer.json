@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "sconstruct:block/seared_paver",
+    "side": "sconstruct:block/seared_paver",
+    "top": "sconstruct:block/seared_paver"
+  }
+}

@@ -2,6 +2,7 @@ package slimeknights.sconstruct.port1211.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,10 +33,22 @@ class TinkerBlockTagsProviderTest {
 
     @Test
     void mineableWithPickaxeIncludesEveryMetalBlock() {
+        // The pickaxe tag also collects the SMTCON-129 smeltery blocks, so assert the metal
+        // blocks are a subset rather than the whole tag.
         Set<String> expected = Set.of("sconstruct:block_cobalt", "sconstruct:block_ardite", "sconstruct:block_manyullyn", "sconstruct:block_knightslime", "sconstruct:block_pigiron",
                 "sconstruct:block_silver", "sconstruct:block_copper", "sconstruct:block_tin", "sconstruct:block_zinc", "sconstruct:block_brass", "sconstruct:block_alubrass",
                 "sconstruct:block_electrum", "sconstruct:block_steel");
-        assertEquals(expected, loadValues("data/minecraft/tags/block/mineable/pickaxe.json"));
+        assertTrue(loadValues("data/minecraft/tags/block/mineable/pickaxe.json").containsAll(expected), "every metal block must be pickaxe-mineable");
+    }
+
+    @Test
+    void mineableWithPickaxeIncludesEverySmelteryBlock() {
+        // SMTCON-129: the seared blocks, the six component blocks, and the two casting blocks
+        // are all stone-tier and so pickaxe-mineable.
+        Set<String> pickaxe = loadValues("data/minecraft/tags/block/mineable/pickaxe.json");
+        Set<String> smeltery = Set.of("sconstruct:seared_brick", "sconstruct:seared_glass", "sconstruct:smeltery_controller", "sconstruct:seared_tank_io", "sconstruct:seared_drain",
+                "sconstruct:seared_chute", "sconstruct:casting_table", "sconstruct:casting_basin");
+        assertTrue(pickaxe.containsAll(smeltery), "every smeltery block must be pickaxe-mineable");
     }
 
     @Test

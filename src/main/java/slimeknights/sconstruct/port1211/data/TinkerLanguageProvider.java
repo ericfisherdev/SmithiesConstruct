@@ -3,13 +3,20 @@ package slimeknights.sconstruct.port1211.data;
 import java.util.Map;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.registries.DeferredBlock;
 
 import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.shared.Metal;
 import slimeknights.sconstruct.port1211.shared.SharedBlocks;
 import slimeknights.sconstruct.port1211.shared.SharedItems;
 import slimeknights.sconstruct.port1211.shared.SharedMetals;
+import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
+import slimeknights.sconstruct.port1211.smeltery.MoltenFluidSet;
+import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
+import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.port1211.world.SlimeFluidSet;
 import slimeknights.sconstruct.port1211.world.WorldBlocks;
 import slimeknights.sconstruct.port1211.world.WorldFluids;
@@ -244,6 +251,22 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.smeltery.tank_empty", "Empty");
         add("gui.sconstruct.smeltery.tank_fluid", "%1$s: %2$s mB");
 
+        // SMTCON-129: smeltery block + molten-fluid display names. Each name is the title-cased
+        // registry path — the registrar ids already read as words once underscores are spaces.
+        for (DeferredBlock<? extends Block> holder : SearedBlocks.ALL) {
+            add(holder.get(), prettify(holder.getId().getPath()));
+        }
+        for (DeferredBlock<? extends Block> holder : SmelteryComponents.ALL) {
+            add(holder.get(), prettify(holder.getId().getPath()));
+        }
+        for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
+            add(holder.get(), prettify(holder.getId().getPath()));
+        }
+        for (MoltenFluidSet molten : SmelteryFluids.ALL) {
+            add(molten.block().get(), prettify(molten.block().getId().getPath()));
+            add(molten.bucket().get(), prettify(molten.bucket().getId().getPath()));
+        }
+
         // SMTCON-107 tool items. Iterate ToolItems.ALL_TOOLS so a tool added to that list
         // lights up here automatically; the display name comes from TOOL_DISPLAY_NAMES keyed by
         // the registration path. A tool present in ALL_TOOLS but absent from the table is a
@@ -402,6 +425,17 @@ public final class TinkerLanguageProvider extends LanguageProvider {
      * is defence-in-depth — if a caller ever invokes this directly with an empty string the
      * fall through returns it verbatim instead of throwing StringIndexOutOfBoundsException.
      */
+    /** Title-cases an underscore-separated registry path, e.g. {@code molten_iron} → {@code Molten Iron}. */
+    private static String prettify(String id) {
+        String[] words = id.split("_");
+        for (int i = 0; i < words.length; i++) {
+            if (!words[i].isEmpty()) {
+                words[i] = Character.toUpperCase(words[i].charAt(0)) + words[i].substring(1);
+            }
+        }
+        return String.join(" ", words);
+    }
+
     private static String metalDisplayName(String id) {
         String override = METAL_DISPLAY_NAMES.get(id);
         if (override != null) {
