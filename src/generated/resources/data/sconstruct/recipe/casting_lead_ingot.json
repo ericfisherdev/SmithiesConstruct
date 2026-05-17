@@ -1,0 +1,13 @@
+{
+  "type": "sconstruct:casting",
+  "cooling_time": 40,
+  "fluid": {
+    "amount": 144,
+    "fluid": "sconstruct:molten_lead"
+  },
+  "is_basin": false,
+  "output": {
+    "count": 1,
+    "id": "sconstruct:ingot_lead"
+  }
+}

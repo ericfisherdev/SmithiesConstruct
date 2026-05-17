@@ -1,0 +1,13 @@
+{
+  "type": "sconstruct:casting",
+  "cooling_time": 200,
+  "fluid": {
+    "amount": 1296,
+    "fluid": "sconstruct:molten_knightslime"
+  },
+  "is_basin": true,
+  "output": {
+    "count": 1,
+    "id": "sconstruct:block_knightslime"
+  }
+}
