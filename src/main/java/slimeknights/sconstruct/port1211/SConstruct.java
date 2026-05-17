@@ -2,14 +2,12 @@ package slimeknights.sconstruct.port1211;
 
 import java.util.List;
 
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -23,15 +21,7 @@ import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
-import slimeknights.sconstruct.port1211.gadgets.GadgetArmorMaterials;
-import slimeknights.sconstruct.port1211.gadgets.GadgetAttachments;
-import slimeknights.sconstruct.port1211.gadgets.GadgetBlocks;
-import slimeknights.sconstruct.port1211.gadgets.GadgetDispenserBehaviors;
-import slimeknights.sconstruct.port1211.gadgets.GadgetEvents;
-import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
-import slimeknights.sconstruct.port1211.gadgets.client.GadgetEntityRenderers;
-import slimeknights.sconstruct.port1211.gadgets.entity.GadgetEntities;
-import slimeknights.sconstruct.port1211.gadgets.recipe.GadgetRecipes;
+import slimeknights.sconstruct.port1211.gadgets.TinkerGadgetsPulse;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.smeltery.TinkerSmelteryPulse;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
@@ -90,28 +80,13 @@ public final class SConstruct {
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
 
-        // SMTCON-132..141: force the gadget hubs to load so their static blocks register the
-        // gadget items, blocks, entity types, the piggyback attachment type, the slime armor
-        // material, and the drying recipe type before the registry events fire; subscribe the
-        // creative-tab listeners that push the gadget items and blocks into SharedTabs.GENERAL,
-        // and the game-bus gadget listeners. Lives here inline for now; relocates into the
-        // gadgets pulse's register() when that pulse is wired.
-        GadgetItems.init();
-        GadgetBlocks.init();
-        GadgetEntities.init();
-        GadgetAttachments.init();
-        GadgetArmorMaterials.init();
-        GadgetRecipes.init();
-        GadgetItems.registerCreativeTabContents(modBus);
-        GadgetBlocks.registerCreativeTabContents(modBus);
-        GadgetEvents.register(NeoForge.EVENT_BUS);
-        // SMTCON-141: on a physical client, bind the gadget projectile entities to their
-        // renderers. Guarded by FMLEnvironment.dist so the client-only renderer class never
-        // resolves on a dedicated server.
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            GadgetEntityRenderers.register(modBus);
-        }
-
+        // The whole Phase-6 gadget content stack — the slimesling / throwball / glow-ball /
+        // piggyback items, the slime armor set, the wither head, the drying rack / wooden
+        // hopper / stone ladder / dried clay blocks, the gadget entity and recipe types, the
+        // piggyback attachment, the capability bindings, the gameplay listeners, the dispenser
+        // behaviours, and the client-side projectile renderers — is registered by
+        // TinkerGadgetsPulse, gated by the "gadgets" config flag (see the PulseLoader.boot call
+        // below). It lived inline here through Phases 1-6 until the pulse landed (SMTCON-146).
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
         NeoForge.EVENT_BUS.register(this);
@@ -120,16 +95,13 @@ public final class SConstruct {
         // {@link Config#pulseGate} so each pulse's per-id flag in the COMMON TOML controls
         // whether its register/setup hooks run — disabling "shared" here skips every Phase-2
         // registration cleanly, leaving the mod with only foundation infrastructure.
-        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse(), new ToolsPulse(), new TinkerSmelteryPulse());
+        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse(), new ToolsPulse(), new TinkerSmelteryPulse(), new TinkerGadgetsPulse());
         PulseLoader.boot(modBus, pulses, Config.pulseGate());
         LOGGER.info("SConstruct 1.21.1 port: foundation infrastructure wired ({} pulses)", pulses.size());
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
         LOGGER.info("SConstruct 1.21.1 port: common setup (stub)");
-        // SMTCON-133: register the throwball dispenser behaviours. DispenserBlock's behaviour
-        // registry is not thread-safe, so the work is enqueued onto the main thread.
-        event.enqueueWork(GadgetDispenserBehaviors::register);
     }
 
     @SubscribeEvent
