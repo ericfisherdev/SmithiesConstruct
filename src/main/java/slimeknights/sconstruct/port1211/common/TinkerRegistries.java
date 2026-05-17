@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -73,13 +74,15 @@ public final class TinkerRegistries {
 
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SConstruct.MOD_ID);
 
+    public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, SConstruct.MOD_ID);
+
     /**
      * Every register the hub owns, in attachment order. Listed here so {@link
      * #registerAll(IEventBus)} (and {@link #registryCount()} for tests) doesn't need to be
      * updated when new registries are added — just add the field above and append it here.
      */
     private static final List<DeferredRegister<?>> ALL = List.of(ITEMS, BLOCKS, DATA_COMPONENTS, BLOCK_ENTITY_TYPES, ENTITY_TYPES, MENU_TYPES, RECIPE_TYPES, RECIPE_SERIALIZERS, MOB_EFFECTS,
-            PARTICLE_TYPES, SOUND_EVENTS, CREATIVE_TABS, FLUID_TYPES, FLUIDS, STRUCTURE_TYPES, STRUCTURE_PIECE_TYPES, ATTACHMENT_TYPES);
+            PARTICLE_TYPES, SOUND_EVENTS, CREATIVE_TABS, FLUID_TYPES, FLUIDS, STRUCTURE_TYPES, STRUCTURE_PIECE_TYPES, ATTACHMENT_TYPES, ARMOR_MATERIALS);
 
     private TinkerRegistries() {
     }
