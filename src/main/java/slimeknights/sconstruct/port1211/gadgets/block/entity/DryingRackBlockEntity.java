@@ -118,11 +118,17 @@ public class DryingRackBlockEntity extends BlockEntity {
             return;
         }
         DryingState target;
-        if (inputHandler.getStackInSlot(0).isEmpty()) {
+        ItemStack item = inputHandler.getStackInSlot(0);
+        if (item.isEmpty()) {
             target = DryingState.EMPTY;
         }
+        else if (findDryingRecipe(item).isPresent()) {
+            // An item with a drying recipe is mid-dry — DRYING from the moment it is placed.
+            target = DryingState.DRYING;
+        }
         else {
-            target = dryProgress > 0 ? DryingState.DRYING : DryingState.DONE;
+            // A finished output, or an item with no drying recipe, simply rests on the rack.
+            target = DryingState.DONE;
         }
         BlockState current = getBlockState();
         if (current.hasProperty(DryingRackBlock.DRYING_STATE) && current.getValue(DryingRackBlock.DRYING_STATE) != target) {
