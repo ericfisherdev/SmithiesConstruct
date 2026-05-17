@@ -9,26 +9,23 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import slimeknights.sconstruct.port1211.SConstruct;
-import slimeknights.sconstruct.port1211.gadgets.GadgetCapabilities;
 import slimeknights.sconstruct.port1211.tools.ToolCapabilities;
 
 /**
- * Central dispatcher for {@link RegisterCapabilitiesEvent}. Concentrates every capability
- * registration the mod performs into a single auditable location — instead of three or four
- * {@code @SubscribeEvent} annotations scattered across pulse classes, every per-pulse helper
- * lives in its pulse package and is invoked from one place here. A reviewer reading this file
- * sees the entire capability surface area at a glance.
+ * Central dispatcher for {@link RegisterCapabilitiesEvent}. Concentrates the capability
+ * registration of the always-on subsystems into a single auditable location, invoking each
+ * per-pulse helper from one place here.
  *
  * <p>{@code @EventBusSubscriber(modid = MOD_ID, bus = MOD)} wires the static handler to the
  * mod bus during mod construction; no manual {@code addListener} call needed from
- * {@link SConstruct}. The per-pulse helpers — {@link GadgetCapabilities},
- * {@link ToolCapabilities} — register their capabilities here. The dispatcher logs each
- * delegation so a server boot log confirms the pulse hooks fired.
+ * {@link SConstruct}. The dispatcher logs the delegation so a server boot log confirms the
+ * hook fired.
  *
- * <p>The smeltery's capability bindings are <em>not</em> dispatched here: they reference
- * block-entity types that exist only while the {@code smeltery} pulse is enabled, so
- * {@code TinkerSmelteryPulse#register} subscribes {@code SmelteryCapabilities} itself —
- * disabling the pulse then skips the bindings instead of resolving unregistered holders.
+ * <p>The smeltery's and the gadgets' capability bindings are <em>not</em> dispatched here: they
+ * reference block-entity types that exist only while their pulse is enabled, so
+ * {@code TinkerSmelteryPulse} and {@code TinkerGadgetsPulse} each subscribe their own
+ * capability helper — disabling a pulse then skips its bindings instead of resolving
+ * unregistered holders. Only {@link ToolCapabilities} remains centrally dispatched.
  */
 @EventBusSubscriber(modid = SConstruct.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class TinkerCapabilities {
@@ -48,17 +45,14 @@ public final class TinkerCapabilities {
     }
 
     /**
-     * Dispatch the supplied capability-registration event into every per-pulse helper.
+     * Dispatch the supplied capability-registration event into the centrally-managed helpers.
      * Package-private for tests; production code reaches this via {@link #onRegisterCapabilities}.
      *
-     * <p>Adding a new pulse: append its helper class to its own pulse package and add a
-     * delegation line here. Removing a pulse's capability surface: drop its line. The order
-     * shouldn't matter (each helper registers disjoint capabilities), but the logged sequence
-     * provides a stable reading order for the boot log.
+     * <p>Pulse-gated subsystems (smeltery, gadgets) subscribe their own capability helpers from
+     * their pulse instead — see this class's javadoc.
      */
     static void configure(RegisterCapabilitiesEvent event) {
-        LOGGER.info("SConstruct: dispatching RegisterCapabilitiesEvent to per-pulse helpers");
-        GadgetCapabilities.register(event);
+        LOGGER.info("SConstruct: dispatching RegisterCapabilitiesEvent to the tool capability helper");
         ToolCapabilities.register(event);
     }
 }
