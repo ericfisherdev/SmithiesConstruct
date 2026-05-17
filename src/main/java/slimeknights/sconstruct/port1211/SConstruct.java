@@ -29,6 +29,7 @@ import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryEvents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
+import slimeknights.sconstruct.port1211.smeltery.client.SmelteryBlockEntityRenderers;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientMenus;
 import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
@@ -116,6 +117,8 @@ public final class SConstruct {
             SmelteryClientFluidTypes.register(modBus);
             // SMTCON-125: pair the smeltery controller menu type with its screen.
             SmelteryClientMenus.register(modBus);
+            // SMTCON-126: bind the controller block-entity to its in-bowl fluid renderer.
+            SmelteryBlockEntityRenderers.register(modBus);
         }
 
         // SMTCON-117: subscribe the smeltery disassembly listener on the game bus so breaking a
