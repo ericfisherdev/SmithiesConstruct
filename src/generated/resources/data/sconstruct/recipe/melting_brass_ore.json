@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/brass"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_brass"
+  },
+  "temperature": 950,
+  "time": 144
+}

@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/brass"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_brass"
+  },
+  "temperature": 950,
+  "time": 72
+}

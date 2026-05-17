@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/bronze"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_bronze"
+  },
+  "temperature": 970,
+  "time": 144
+}

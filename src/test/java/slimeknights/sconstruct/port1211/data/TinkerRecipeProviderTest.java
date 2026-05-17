@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import slimeknights.sconstruct.port1211.smeltery.MoltenMetal;
+import slimeknights.sconstruct.port1211.smeltery.MoltenMetals;
 import slimeknights.sconstruct.port1211.world.block.SlimeColor;
 
 /**
@@ -133,6 +135,31 @@ class TinkerRecipeProviderTest {
         for (String id : metalIds) {
             assertNotNull(cl.getResource(RECIPE_ROOT + "ingot_" + id + "_from_nuggets.json"), "ingot_" + id + "_from_nuggets.json missing");
             assertNotNull(cl.getResource(RECIPE_ROOT + "nugget_" + id + ".json"), "nugget_" + id + ".json missing");
+        }
+    }
+
+    @Test
+    void meltingRecipesMeltTaggedInputsIntoTheMatchingMoltenFluid() {
+        // SMTCON-127: an ingot melt yields 144 mB of the metal's molten fluid at its
+        // temperature; an ore melt yields double — the smeltery ore bonus.
+        JsonObject ingot = loadRecipe("melting_iron_ingot.json");
+        assertAll(() -> assertEquals("sconstruct:melting", ingot.get("type").getAsString()), () -> assertEquals("c:ingots/iron", ingot.getAsJsonObject("input").get("tag").getAsString()),
+                () -> assertEquals("sconstruct:molten_iron", ingot.getAsJsonObject("output").get("id").getAsString()),
+                () -> assertEquals(144, ingot.getAsJsonObject("output").get("amount").getAsInt()), () -> assertEquals(1500, ingot.get("temperature").getAsInt()));
+
+        JsonObject ore = loadRecipe("melting_iron_ore.json");
+        assertEquals(288, ore.getAsJsonObject("output").get("amount").getAsInt(), "an ore melt yields twice the ingot volume");
+    }
+
+    @Test
+    void everyMoltenMetalHasItsFourMeltingForms() {
+        // Iterate the canonical metal list directly so this stays correct as metals are
+        // added or removed — each emits an ingot / block / nugget / ore melting recipe.
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        for (MoltenMetal metal : MoltenMetals.ALL) {
+            for (String form : new String[] { "ingot", "block", "nugget", "ore" }) {
+                assertNotNull(cl.getResource(RECIPE_ROOT + "melting_" + metal.id() + "_" + form + ".json"), "melting_" + metal.id() + "_" + form + ".json missing");
+            }
         }
     }
 

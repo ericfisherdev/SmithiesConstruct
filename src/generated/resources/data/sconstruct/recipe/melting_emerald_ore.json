@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/emerald"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_emerald"
+  },
+  "temperature": 2500,
+  "time": 144
+}

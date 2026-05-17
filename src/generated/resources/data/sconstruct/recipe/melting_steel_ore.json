@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/steel"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_steel"
+  },
+  "temperature": 1450,
+  "time": 144
+}

@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/emerald"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_emerald"
+  },
+  "temperature": 2500,
+  "time": 72
+}

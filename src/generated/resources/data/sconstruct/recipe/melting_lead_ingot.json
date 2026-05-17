@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/lead"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_lead"
+  },
+  "temperature": 800,
+  "time": 72
+}

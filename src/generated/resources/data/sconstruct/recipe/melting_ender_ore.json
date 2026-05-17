@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/ender"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_ender"
+  },
+  "temperature": 3000,
+  "time": 144
+}

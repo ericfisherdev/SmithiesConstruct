@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/emerald"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_emerald"
+  },
+  "temperature": 2500,
+  "time": 20
+}

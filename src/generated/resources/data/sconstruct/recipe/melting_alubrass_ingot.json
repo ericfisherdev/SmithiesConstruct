@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/alubrass"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_alubrass"
+  },
+  "temperature": 1050,
+  "time": 72
+}

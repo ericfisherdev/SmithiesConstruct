@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/iron"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_iron"
+  },
+  "temperature": 1500,
+  "time": 144
+}

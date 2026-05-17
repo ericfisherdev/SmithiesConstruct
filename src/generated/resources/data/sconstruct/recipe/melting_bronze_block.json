@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/bronze"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_bronze"
+  },
+  "temperature": 970,
+  "time": 648
+}

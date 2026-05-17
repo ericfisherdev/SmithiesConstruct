@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/zinc"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_zinc"
+  },
+  "temperature": 750,
+  "time": 648
+}

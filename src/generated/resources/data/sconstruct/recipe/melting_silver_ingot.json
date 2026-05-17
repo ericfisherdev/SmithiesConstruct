@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/silver"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_silver"
+  },
+  "temperature": 1000,
+  "time": 72
+}

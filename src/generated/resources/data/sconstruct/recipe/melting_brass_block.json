@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/brass"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_brass"
+  },
+  "temperature": 950,
+  "time": 648
+}

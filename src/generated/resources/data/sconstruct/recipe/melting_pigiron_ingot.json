@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/pigiron"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_pigiron"
+  },
+  "temperature": 1350,
+  "time": 72
+}

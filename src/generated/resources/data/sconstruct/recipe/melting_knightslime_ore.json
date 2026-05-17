@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/knightslime"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_knightslime"
+  },
+  "temperature": 1100,
+  "time": 144
+}

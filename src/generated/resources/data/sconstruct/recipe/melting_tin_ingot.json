@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/tin"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_tin"
+  },
+  "temperature": 700,
+  "time": 72
+}

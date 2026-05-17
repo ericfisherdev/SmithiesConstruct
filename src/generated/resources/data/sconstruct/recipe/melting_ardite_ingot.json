@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ingots/ardite"
+  },
+  "output": {
+    "amount": 144,
+    "id": "sconstruct:molten_ardite"
+  },
+  "temperature": 2100,
+  "time": 72
+}

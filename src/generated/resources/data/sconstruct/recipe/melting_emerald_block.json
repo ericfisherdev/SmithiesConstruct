@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/emerald"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_emerald"
+  },
+  "temperature": 2500,
+  "time": 648
+}

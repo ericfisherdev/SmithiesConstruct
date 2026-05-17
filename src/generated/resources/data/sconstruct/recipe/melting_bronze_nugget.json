@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/bronze"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_bronze"
+  },
+  "temperature": 970,
+  "time": 20
+}

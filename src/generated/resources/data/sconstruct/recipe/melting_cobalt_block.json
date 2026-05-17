@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/cobalt"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_cobalt"
+  },
+  "temperature": 2400,
+  "time": 648
+}

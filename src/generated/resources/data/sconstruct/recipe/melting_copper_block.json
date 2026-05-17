@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/copper"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_copper"
+  },
+  "temperature": 1200,
+  "time": 648
+}

@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/obsidian"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_obsidian"
+  },
+  "temperature": 2700,
+  "time": 144
+}

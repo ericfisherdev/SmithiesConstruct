@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/gold"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_gold"
+  },
+  "temperature": 1150,
+  "time": 648
+}

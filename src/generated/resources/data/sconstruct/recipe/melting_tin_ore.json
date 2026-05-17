@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/tin"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_tin"
+  },
+  "temperature": 700,
+  "time": 144
+}

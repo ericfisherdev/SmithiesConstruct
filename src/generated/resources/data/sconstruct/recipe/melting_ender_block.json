@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/ender"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_ender"
+  },
+  "temperature": 3000,
+  "time": 648
+}

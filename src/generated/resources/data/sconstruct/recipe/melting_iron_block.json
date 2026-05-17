@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:storage_blocks/iron"
+  },
+  "output": {
+    "amount": 1296,
+    "id": "sconstruct:molten_iron"
+  },
+  "temperature": 1500,
+  "time": 648
+}

@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:nuggets/ardite"
+  },
+  "output": {
+    "amount": 16,
+    "id": "sconstruct:molten_ardite"
+  },
+  "temperature": 2100,
+  "time": 20
+}

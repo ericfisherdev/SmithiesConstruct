@@ -1,0 +1,12 @@
+{
+  "type": "sconstruct:melting",
+  "input": {
+    "tag": "c:ores/manyullyn"
+  },
+  "output": {
+    "amount": 288,
+    "id": "sconstruct:molten_manyullyn"
+  },
+  "temperature": 2600,
+  "time": 144
+}
