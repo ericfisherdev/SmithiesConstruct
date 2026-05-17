@@ -26,12 +26,12 @@ ordering = "NONE"
 side = "BOTH"
 
 # Patchouli backs the in-game guidebook (Decision D4) — declared in build.gradle as a full
-# implementation dependency, so the loader must require it at runtime. The version range is
-# kept broad: Patchouli's internal mod version differs from the Maven coordinate and is stable
-# across the 1.x line.
+# implementation dependency, so the loader must require it at runtime. The range covers the
+# whole 1.x line (Patchouli's internal mod version differs from the Maven coordinate) while
+# excluding a hypothetical 2.x that could carry breaking API changes.
 [[dependencies.${mod_id}]]
 modId = "patchouli"
 type = "required"
-versionRange = "[1.0,)"
+versionRange = "[1.0,2.0)"
 ordering = "NONE"
 side = "BOTH"
