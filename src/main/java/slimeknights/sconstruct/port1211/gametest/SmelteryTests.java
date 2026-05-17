@@ -104,6 +104,9 @@ public final class SmelteryTests {
     /** Tick budget for a melt / cast loop — larger than any recipe duration these tests use. */
     private static final int TICK_BUDGET = 400;
 
+    /** Lava loaded into the seared fuel tank — comfortably more than any melt these tests run. */
+    private static final int LAVA_FUEL_MB = 2000;
+
     private SmelteryTests() {
     }
 
@@ -128,7 +131,8 @@ public final class SmelteryTests {
         buildSmeltery(helper, true);
         // Lava in the seared tank is the smeltery's fuel — without it drawFuel pauses the melt.
         SearedTankBE tank = blockEntityAt(helper, TANK, SearedTankBE.class, "seared tank");
-        tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, 2000), IFluidHandler.FluidAction.EXECUTE);
+        int lavaFilled = tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, LAVA_FUEL_MB), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertValueEqual(lavaFilled, LAVA_FUEL_MB, "the seared tank accepts the full lava fuel load");
 
         SmelteryControllerBlockEntity controller = controllerAt(helper);
         controller.tryAssemble();
