@@ -78,6 +78,7 @@ class SharedTabsTest {
                 () -> assertTrue(items.contains(SharedItems.NUGGET_COBALT.get()), "nuggets family missing"),
                 () -> assertTrue(items.contains(SharedItems.SLIMEBALL_BLUE.get()), "slimeballs family missing"), () -> assertTrue(items.contains(SharedItems.BACON.get()), "bacon missing"),
                 () -> assertTrue(items.contains(SharedItems.MUDBRICK.get()), "mudbrick missing"), () -> assertTrue(items.contains(SharedItems.BUCKET_BLOOD.get()), "blood bucket missing"),
+                () -> assertTrue(items.contains(SharedItems.MATERIALS_BOOK.get()), "materials book missing"),
                 () -> assertTrue(items.contains(SharedBlocks.COBALT.get().asItem()), "metal storage block items missing"),
                 () -> assertTrue(items.contains(SharedBlocks.GLOW.get().asItem()), "glow decorative missing"));
     }

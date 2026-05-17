@@ -252,6 +252,18 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void smtcon158BookKeysArePinned() {
+        // A raw count check can't catch a mistyped book key — pin the item name and the two
+        // Patchouli i18n keys (book.json sets i18n=true) so a typo fails here rather than
+        // rendering raw key-text on the in-game book.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Materials and You", lang.get("item.sconstruct.book_materials").getAsString()),
+                () -> assertEquals("Materials and You", lang.get("book.tconstruct.materialsandyou.name").getAsString()),
+                () -> assertEquals("Welcome to Smithies' Construct! This guidebook will teach you everything you need to know about tools, materials, and the smeltery.",
+                        lang.get("book.tconstruct.materialsandyou.landing").getAsString()));
+    }
+
+    @Test
     void smelteryDisplayNamesArePinned() {
         // SMTCON-129: a raw count check can't catch a wrong key/value pair. Pin one representative
         // entry per smeltery surface — a seared block, a component, a molten-fluid block, and a
