@@ -2,14 +2,12 @@ package slimeknights.sconstruct.port1211;
 
 import java.util.List;
 
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
@@ -24,15 +22,7 @@ import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
-import slimeknights.sconstruct.port1211.smeltery.CastingBlocks;
-import slimeknights.sconstruct.port1211.smeltery.SearedBlocks;
-import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
-import slimeknights.sconstruct.port1211.smeltery.SmelteryEvents;
-import slimeknights.sconstruct.port1211.smeltery.SmelteryFluids;
-import slimeknights.sconstruct.port1211.smeltery.client.SmelteryBlockEntityRenderers;
-import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
-import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientMenus;
-import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
+import slimeknights.sconstruct.port1211.smeltery.TinkerSmelteryPulse;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
 import slimeknights.sconstruct.port1211.world.TinkerWorldPulse;
 
@@ -81,50 +71,13 @@ public final class SConstruct {
         // the PulseLoader.boot call below). It lived inline here through Phases 1-4 until the
         // pulse landed (SMTCON-107).
 
-        // SMTCON-109: force SmelteryFluids to load so its static block registers all 20
-        // molten-metal fluid sets (FluidType + source/flowing fluids + LiquidBlock + bucket)
-        // before the registry events fire. Lives here inline for now; relocates into the
-        // smeltery pulse's register() when SMTCON-131 wires that pulse.
-        SmelteryFluids.init();
-
-        // SMTCON-111: force SearedBlocks to load so its static block registers the 16 seared
-        // construction blocks (+ block items) before the registry events fire. Lives here
-        // inline for now; relocates into the smeltery pulse's register() at SMTCON-131.
-        SearedBlocks.init();
-
-        // SMTCON-112: force SmelteryComponents to load so its static block registers the 6
-        // smeltery component blocks (controller + 5 components) plus their block items and
-        // block-entity types before the registry events fire. Lives here inline for now;
-        // relocates into the smeltery pulse's register() at SMTCON-131.
-        SmelteryComponents.init();
-
-        // SMTCON-113: force CastingBlocks to load so its static block registers the casting
-        // table and basin blocks, their block items, and their block-entity types before the
-        // registry events fire. Lives here inline for now; relocates into the smeltery pulse's
-        // register() at SMTCON-131.
-        CastingBlocks.init();
-
-        // SMTCON-120: force SmelteryRecipes to load so its static block registers the melting
-        // recipe type and serializer before the registry events fire. Lives here inline for now;
-        // relocates into the smeltery pulse's register() at SMTCON-131.
-        SmelteryRecipes.init();
-
-        // SMTCON-110: on a physical client, bind each molten-metal fluid type to its
-        // IClientFluidTypeExtensions (shared texture pair + per-metal tint + warm fog). Guarded
-        // by FMLEnvironment.dist so the client-only class never resolves on a dedicated server.
-        // Relocates into the smeltery pulse's register() alongside SmelteryFluids at SMTCON-131.
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            SmelteryClientFluidTypes.register(modBus);
-            // SMTCON-125: pair the smeltery controller menu type with its screen.
-            SmelteryClientMenus.register(modBus);
-            // SMTCON-126: bind the controller block-entity to its in-bowl fluid renderer.
-            SmelteryBlockEntityRenderers.register(modBus);
-        }
-
-        // SMTCON-117: subscribe the smeltery disassembly listener on the game bus so breaking a
-        // seared or component block re-validates any nearby smeltery controller. Lives here
-        // inline for now; relocates into the smeltery pulse's register() at SMTCON-131.
-        SmelteryEvents.register(NeoForge.EVENT_BUS);
+        // The whole Phase-5 smeltery content stack — the 20 molten-metal fluids, the seared
+        // construction blocks, the six component blocks, the casting table / basin, the melting
+        // / casting / alloy recipe types, the capability bindings, the disassembly listener, and
+        // the client-side fluid / menu / renderer wiring — is registered by
+        // TinkerSmelteryPulse#register, gated by the "smeltery" config flag (see the
+        // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
+        // landed (SMTCON-131).
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
@@ -134,7 +87,7 @@ public final class SConstruct {
         // {@link Config#pulseGate} so each pulse's per-id flag in the COMMON TOML controls
         // whether its register/setup hooks run — disabling "shared" here skips every Phase-2
         // registration cleanly, leaving the mod with only foundation infrastructure.
-        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse(), new ToolsPulse());
+        List<Pulse> pulses = List.of(new TinkerSharedPulse(), new TinkerWorldPulse(), new ToolsPulse(), new TinkerSmelteryPulse());
         PulseLoader.boot(modBus, pulses, Config.pulseGate());
         LOGGER.info("SConstruct 1.21.1 port: foundation infrastructure wired ({} pulses)", pulses.size());
     }
