@@ -42,6 +42,14 @@ public final class FluidRenderer {
     private record QuadContext(VertexConsumer consumer, Matrix4f matrix, int light, int color, float u0, float u1, float v0, float v1) {
     }
 
+    /** One of the five fluid faces — the top surface and the four inner walls. */
+    private enum Face {
+        TOP, WEST, EAST, NORTH, SOUTH
+    }
+
+    /** The five faces, cached so the per-frame render loop allocates no {@code values()} array. */
+    private static final Face[] FACES = Face.values();
+
     /**
      * Submits the fluid surface and side quads filling {@code box} up to {@code fillFraction} of
      * its height. Five quads are drawn — the top surface plus the four inner walls — inset
@@ -72,21 +80,52 @@ public final class FluidRenderer {
 
         QuadContext ctx = new QuadContext(buffers.getBuffer(RenderType.translucent()), poseStack.last().pose(), light, color, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1());
 
-        // Top surface — the fluid level the player looks down on.
-        quad(ctx, new float[] { minX, topY, minZ, minX, topY, maxZ, maxX, topY, maxZ, maxX, topY, minZ }, 0.0F, 1.0F, 0.0F);
-        // Four inner walls, drawn from the floor up to the surface, each facing the bowl interior.
-        quad(ctx, new float[] { minX, minY, minZ, minX, minY, maxZ, minX, topY, maxZ, minX, topY, minZ }, 1.0F, 0.0F, 0.0F);
-        quad(ctx, new float[] { maxX, minY, maxZ, maxX, minY, minZ, maxX, topY, minZ, maxX, topY, maxZ }, -1.0F, 0.0F, 0.0F);
-        quad(ctx, new float[] { maxX, minY, minZ, minX, minY, minZ, minX, topY, minZ, maxX, topY, minZ }, 0.0F, 0.0F, 1.0F);
-        quad(ctx, new float[] { minX, minY, maxZ, maxX, minY, maxZ, maxX, topY, maxZ, minX, topY, maxZ }, 0.0F, 0.0F, -1.0F);
+        // The top surface plus the four inner walls — each quad's corners are derived from the
+        // box extents inside quad(), so the per-frame render path allocates no scratch arrays.
+        for (Face face : FACES) {
+            quad(ctx, face, minX, maxX, minZ, maxZ, minY, topY);
+        }
     }
 
-    /** Emits one four-vertex quad whose corners are the twelve floats of {@code corners}. */
-    private static void quad(QuadContext ctx, float[] corners, float nx, float ny, float nz) {
-        vertex(ctx, corners[0], corners[1], corners[2], ctx.u0(), ctx.v1(), nx, ny, nz);
-        vertex(ctx, corners[3], corners[4], corners[5], ctx.u1(), ctx.v1(), nx, ny, nz);
-        vertex(ctx, corners[6], corners[7], corners[8], ctx.u1(), ctx.v0(), nx, ny, nz);
-        vertex(ctx, corners[9], corners[10], corners[11], ctx.u0(), ctx.v0(), nx, ny, nz);
+    /**
+     * Emits the four-vertex quad for {@code face}, deriving its corners and normal from the
+     * fluid-box extents. The top surface sits at {@code topY}; each wall runs from {@code minY}
+     * up to {@code topY} and faces the bowl interior. Corners are computed inline, so the
+     * per-frame render path allocates nothing.
+     */
+    private static void quad(QuadContext ctx, Face face, float minX, float maxX, float minZ, float maxZ, float minY, float topY) {
+        switch (face) {
+        case TOP -> {
+            vertex(ctx, minX, topY, minZ, ctx.u0(), ctx.v1(), 0.0F, 1.0F, 0.0F);
+            vertex(ctx, minX, topY, maxZ, ctx.u1(), ctx.v1(), 0.0F, 1.0F, 0.0F);
+            vertex(ctx, maxX, topY, maxZ, ctx.u1(), ctx.v0(), 0.0F, 1.0F, 0.0F);
+            vertex(ctx, maxX, topY, minZ, ctx.u0(), ctx.v0(), 0.0F, 1.0F, 0.0F);
+        }
+        case WEST -> {
+            vertex(ctx, minX, minY, minZ, ctx.u0(), ctx.v1(), 1.0F, 0.0F, 0.0F);
+            vertex(ctx, minX, minY, maxZ, ctx.u1(), ctx.v1(), 1.0F, 0.0F, 0.0F);
+            vertex(ctx, minX, topY, maxZ, ctx.u1(), ctx.v0(), 1.0F, 0.0F, 0.0F);
+            vertex(ctx, minX, topY, minZ, ctx.u0(), ctx.v0(), 1.0F, 0.0F, 0.0F);
+        }
+        case EAST -> {
+            vertex(ctx, maxX, minY, maxZ, ctx.u0(), ctx.v1(), -1.0F, 0.0F, 0.0F);
+            vertex(ctx, maxX, minY, minZ, ctx.u1(), ctx.v1(), -1.0F, 0.0F, 0.0F);
+            vertex(ctx, maxX, topY, minZ, ctx.u1(), ctx.v0(), -1.0F, 0.0F, 0.0F);
+            vertex(ctx, maxX, topY, maxZ, ctx.u0(), ctx.v0(), -1.0F, 0.0F, 0.0F);
+        }
+        case NORTH -> {
+            vertex(ctx, maxX, minY, minZ, ctx.u0(), ctx.v1(), 0.0F, 0.0F, 1.0F);
+            vertex(ctx, minX, minY, minZ, ctx.u1(), ctx.v1(), 0.0F, 0.0F, 1.0F);
+            vertex(ctx, minX, topY, minZ, ctx.u1(), ctx.v0(), 0.0F, 0.0F, 1.0F);
+            vertex(ctx, maxX, topY, minZ, ctx.u0(), ctx.v0(), 0.0F, 0.0F, 1.0F);
+        }
+        case SOUTH -> {
+            vertex(ctx, minX, minY, maxZ, ctx.u0(), ctx.v1(), 0.0F, 0.0F, -1.0F);
+            vertex(ctx, maxX, minY, maxZ, ctx.u1(), ctx.v1(), 0.0F, 0.0F, -1.0F);
+            vertex(ctx, maxX, topY, maxZ, ctx.u1(), ctx.v0(), 0.0F, 0.0F, -1.0F);
+            vertex(ctx, minX, topY, maxZ, ctx.u0(), ctx.v0(), 0.0F, 0.0F, -1.0F);
+        }
+        }
     }
 
     /** Emits one quad vertex in the {@code BLOCK} vertex format used by the translucent layer. */
