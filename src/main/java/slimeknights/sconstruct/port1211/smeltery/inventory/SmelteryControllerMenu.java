@@ -103,35 +103,35 @@ public final class SmelteryControllerMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Registers the temperature and per-slot melt-progress data slots. Each reads its value
-     * from the controller block-entity on the server; on the client they hold the synced value
-     * the menu's change broadcast keeps current while the screen is open.
+     * Registers the temperature and per-slot melt-progress data slots. The slots are plain
+     * standalone holders: the server refreshes them from the controller in
+     * {@link #broadcastChanges()} and the vanilla menu sync mirrors the values to the client,
+     * where {@link DataSlot#get()} then returns the synced value the screen reads.
      */
     private void addDataSlots() {
-        addDataSlot(beDataSlot(currentTemperature, () -> controller == null ? 0 : controller.getCurrentTemperature()));
-        addDataSlot(beDataSlot(targetTemperature, () -> controller == null ? 0 : controller.getTargetTemperature()));
+        addDataSlot(currentTemperature);
+        addDataSlot(targetTemperature);
         for (int slot = 0; slot < MELTING_SLOTS; slot++) {
-            int index = slot;
-            meltProgress[slot] = beDataSlot(DataSlot.standalone(), () -> controller == null ? 0 : controller.getMeltProgress(index));
-        }
-        for (DataSlot progress : meltProgress) {
-            addDataSlot(progress);
+            meltProgress[slot] = DataSlot.standalone();
+            addDataSlot(meltProgress[slot]);
         }
     }
 
-    /** Wraps a backing {@link DataSlot} so its {@code get} reads live block-entity state. */
-    private static DataSlot beDataSlot(DataSlot backing, java.util.function.IntSupplier source) {
-        return new DataSlot() {
-            @Override
-            public int get() {
-                return source.getAsInt();
+    /**
+     * Copies the controller's live state into the data slots before the standard sync runs, so
+     * every change is broadcast to the client this tick. Server-side only — the client never
+     * calls {@code broadcastChanges} — so the client's slots keep the values delivered by sync.
+     */
+    @Override
+    public void broadcastChanges() {
+        if (controller != null) {
+            currentTemperature.set(controller.getCurrentTemperature());
+            targetTemperature.set(controller.getTargetTemperature());
+            for (int slot = 0; slot < meltProgress.length; slot++) {
+                meltProgress[slot].set(controller.getMeltProgress(slot));
             }
-
-            @Override
-            public void set(int value) {
-                backing.set(value);
-            }
-        };
+        }
+        super.broadcastChanges();
     }
 
     /** The controller backing this menu, or {@code null} on a client stub with no block-entity. */
@@ -163,9 +163,10 @@ public final class SmelteryControllerMenu extends AbstractContainerMenu {
             return player.level().isClientSide();
         }
         BlockPos pos = controller.getBlockPos();
-        // The controller may have been broken while the menu stayed open — a stale block-entity
-        // reference must not keep the menu interactable over a ghost block.
-        if (!player.level().getBlockState(pos).is(SmelteryComponents.SMELTERY_CONTROLLER.get())) {
+        // The controller may have been broken — or broken and replaced — while the menu stayed
+        // open; require the live block-entity to still be the very controller this menu was
+        // built against so a stale reference cannot keep the menu interactable.
+        if (!controller.equals(player.level().getBlockEntity(pos))) {
             return false;
         }
         return player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= INTERACT_DISTANCE_SQ;
