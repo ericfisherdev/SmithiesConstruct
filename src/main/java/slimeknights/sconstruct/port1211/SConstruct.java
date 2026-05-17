@@ -21,6 +21,7 @@ import slimeknights.sconstruct.port1211.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.common.pulse.PulseLoader;
 import slimeknights.sconstruct.port1211.data.DataGenerators;
+import slimeknights.sconstruct.port1211.gadgets.GadgetItems;
 import slimeknights.sconstruct.port1211.shared.TinkerSharedPulse;
 import slimeknights.sconstruct.port1211.smeltery.TinkerSmelteryPulse;
 import slimeknights.sconstruct.port1211.tools.ToolsPulse;
@@ -78,6 +79,13 @@ public final class SConstruct {
         // TinkerSmelteryPulse#register, gated by the "smeltery" config flag (see the
         // PulseLoader.boot call below). It lived inline here through Phases 1-5 until the pulse
         // landed (SMTCON-131).
+
+        // SMTCON-132: force GadgetItems to load so its static block registers the four
+        // slimesling items before the item registry event fires, and subscribe the creative-tab
+        // listener that pushes them into SharedTabs.GENERAL. Lives here inline for now;
+        // relocates into the gadgets pulse's register() when that pulse is wired.
+        GadgetItems.init();
+        GadgetItems.registerCreativeTabContents(modBus);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(DataGenerators::onGather);
