@@ -1,7 +1,9 @@
 package slimeknights.sconstruct.port1211.tools.material;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -91,6 +93,16 @@ public final class MaterialRegistry {
      */
     public static Optional<Material> lookup(ResourceLocation id) {
         return get(id).map(Holder::value);
+    }
+
+    /**
+     * Id-sorted immutable snapshot of every material id in the current cache. Sorted by string
+     * form so callers that present materials in a deterministic order — the JEI tool-building
+     * category cycles each part slot through this list — get a stable ordering across reloads.
+     * Empty until the first {@code /reload} populates the cache.
+     */
+    public static List<ResourceLocation> materialIds() {
+        return CACHE.get().keySet().stream().sorted(Comparator.comparing(ResourceLocation::toString)).toList();
     }
 
     /** Test seam: replace the cache atomically. Visible-for-test only. */

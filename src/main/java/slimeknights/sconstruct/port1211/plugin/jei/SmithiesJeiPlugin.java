@@ -7,6 +7,7 @@ import slimeknights.sconstruct.port1211.plugin.jei.category.AlloyCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.CastingBasinCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.CastingTableCategory;
 import slimeknights.sconstruct.port1211.plugin.jei.category.MeltingCategory;
+import slimeknights.sconstruct.port1211.plugin.jei.category.ToolBuildingCategory;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -20,11 +21,10 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
  *
  * <p>{@link #registerCategories} registers the recipe categories. SMTCON-151 adds
  * {@link MeltingCategory}; SMTCON-152 adds {@link CastingTableCategory} and
- * {@link CastingBasinCategory}; SMTCON-153 adds {@link AlloyCategory}; the tool-building /
- * part-builder / modifier / drying-rack categories follow in SMTCON-154..156.
- * {@code registerRecipes} and
- * {@code registerRecipeCatalysts} keep their default no-op bodies until SMTCON-157 wires the
- * recipe lists and the catalyst blocks.
+ * {@link CastingBasinCategory}; SMTCON-153 adds {@link AlloyCategory}; SMTCON-154 adds
+ * {@link ToolBuildingCategory}; the part-builder / modifier / drying-rack categories follow in
+ * SMTCON-155..156. {@code registerRecipes} and {@code registerRecipeCatalysts} keep their
+ * default no-op bodies until SMTCON-157 wires the recipe lists and the catalyst blocks.
  */
 @JeiPlugin
 public class SmithiesJeiPlugin implements IModPlugin {
@@ -40,6 +40,7 @@ public class SmithiesJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
-        registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper), new AlloyCategory(guiHelper));
+        registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper), new AlloyCategory(guiHelper),
+                new ToolBuildingCategory(guiHelper));
     }
 }

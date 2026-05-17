@@ -121,6 +121,7 @@
   "gui.sconstruct.jei.casting_basin": "Casting Basin",
   "gui.sconstruct.jei.casting_table": "Casting Table",
   "gui.sconstruct.jei.melting": "Melting",
+  "gui.sconstruct.jei.tool_building": "Tool Building",
   "gui.sconstruct.smeltery.tank_empty": "Empty",
   "gui.sconstruct.smeltery.tank_fluid": "%1$s: %2$s mB",
   "gui.sconstruct.smeltery.temperature": "%1$s K",
