@@ -1,12 +1,17 @@
 package slimeknights.sconstruct.smeltery;
 
+import java.util.function.Consumer;
+
+import net.minecraft.world.level.ItemLike;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
 import slimeknights.sconstruct.common.SmithiesParticles;
 import slimeknights.sconstruct.common.pulse.Pulse;
+import slimeknights.sconstruct.shared.SharedTabs;
 import slimeknights.sconstruct.smeltery.client.SmelteryBlockEntityRenderers;
 import slimeknights.sconstruct.smeltery.client.SmelteryClientFluidTypes;
 import slimeknights.sconstruct.smeltery.client.SmelteryClientMenus;
@@ -73,6 +78,11 @@ public final class TinkerSmelteryPulse implements Pulse {
         // SMTCON-117: breaking a seared or component block re-validates any nearby controller.
         SmelteryEvents.register(NeoForge.EVENT_BUS);
 
+        // SMTCON-201: surface every smeltery block-item and molten bucket in the creative menu.
+        // Subscribed inside the pulse so disabling the smeltery flag skips the tab population
+        // along with the registrations themselves.
+        modBus.addListener(TinkerSmelteryPulse::populateCreativeTab);
+
         // Client-only handlers. Each subscribes a mod-bus event (RegisterClientExtensionsEvent,
         // RegisterMenuScreensEvent, EntityRenderersEvent) that fires after construction, so they
         // must subscribe here during register(). Guarded by FMLEnvironment.dist so the
@@ -83,5 +93,30 @@ public final class TinkerSmelteryPulse implements Pulse {
             SmelteryBlockEntityRenderers.register(modBus);
             SmelteryParticles.register(modBus);
         }
+    }
+
+    /**
+     * Append every smeltery block-item and molten-metal bucket to the {@link SharedTabs#GENERAL}
+     * creative tab. Without this the smeltery content registers but never surfaces in the
+     * creative menu — and, since JEI builds its ingredient list from the creative tabs, it is
+     * absent from JEI too. Covers the seared construction blocks, the six component blocks, the
+     * casting table and basin, and the molten-metal buckets.
+     */
+    private static void populateCreativeTab(BuildCreativeModeTabContentsEvent event) {
+        if (SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
+            acceptAll(event::accept);
+        }
+    }
+
+    /**
+     * Visit every smeltery block-item and molten-metal bucket with {@code accept}. The
+     * {@link #populateCreativeTab} listener delegates here, so a unit test can drive the same
+     * traversal with a collecting visitor instead of a live {@link BuildCreativeModeTabContentsEvent}.
+     */
+    static void acceptAll(Consumer<ItemLike> accept) {
+        SearedBlocks.ALL.forEach(block -> accept.accept(block.get()));
+        SmelteryComponents.ALL.forEach(block -> accept.accept(block.get()));
+        CastingBlocks.ALL.forEach(block -> accept.accept(block.get()));
+        SmelteryFluids.ALL.forEach(set -> accept.accept(set.bucket().get()));
     }
 }

@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
+import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -76,13 +80,39 @@ class TinkerSmelteryPulseTest {
      * mock {@link RegisterCapabilitiesEvent}; only the real {@code SmelteryCapabilities::register}
      * reference forwards that event into the mocked-static helper.
      */
+    @Test
+    void acceptAllVisitsEverySmelteryBlockItemAndMoltenBucket() {
+        // SMTCON-201: the BuildCreativeModeTabContentsEvent listener delegates to acceptAll, so
+        // verifying coverage here is the unit proxy for "appears in the creative menu / JEI".
+        // Without this wiring the smeltery blocks register but stay invisible to players.
+        List<ItemLike> visited = new ArrayList<>();
+        TinkerSmelteryPulse.acceptAll(visited::add);
+        int expected = SearedBlocks.ALL.size() + SmelteryComponents.ALL.size() + CastingBlocks.ALL.size() + SmelteryFluids.ALL.size();
+        assertEquals(expected, visited.size(), "every smeltery block-item and molten bucket must be offered to the creative tab");
+        SearedBlocks.ALL.forEach(block -> assertTrue(visited.contains(block.get()), block.getId() + " missing from the creative tab"));
+        SmelteryComponents.ALL.forEach(block -> assertTrue(visited.contains(block.get()), block.getId() + " missing from the creative tab"));
+        CastingBlocks.ALL.forEach(block -> assertTrue(visited.contains(block.get()), block.getId() + " missing from the creative tab"));
+        SmelteryFluids.ALL.forEach(set -> assertTrue(visited.contains(set.bucket().get()), set.bucket().getId() + " missing from the creative tab"));
+    }
+
     private static void assertRegisterWiresTheCapabilityListener(IEventBus bus) {
+        // register() adds two mod-bus listeners: the capability binding and the SMTCON-201
+        // creative-tab population. Capture both and drive each with a RegisterCapabilitiesEvent;
+        // only the capability listener consumes that type, so the creative-tab listener throws a
+        // ClassCastException (it expects BuildCreativeModeTabContentsEvent) and is skipped.
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<Consumer<RegisterCapabilitiesEvent>> listener = ArgumentCaptor.forClass(Consumer.class);
-        verify(bus).addListener(listener.capture());
+        ArgumentCaptor<Consumer<RegisterCapabilitiesEvent>> listeners = ArgumentCaptor.forClass(Consumer.class);
+        verify(bus, times(2)).addListener(listeners.capture());
         RegisterCapabilitiesEvent event = mock(RegisterCapabilitiesEvent.class);
         try (MockedStatic<SmelteryCapabilities> capabilities = mockStatic(SmelteryCapabilities.class)) {
-            listener.getValue().accept(event);
+            for (Consumer<RegisterCapabilitiesEvent> listener : listeners.getAllValues()) {
+                try {
+                    listener.accept(event);
+                }
+                catch (ClassCastException notTheCapabilityListener) {
+                    // the creative-tab listener expects a different event type — not under test here
+                }
+            }
             capabilities.verify(() -> SmelteryCapabilities.register(event));
         }
     }
