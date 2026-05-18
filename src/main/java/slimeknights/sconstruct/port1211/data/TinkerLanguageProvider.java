@@ -475,6 +475,16 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.jade.temperature", "Temperature: %1$s K");
         add("gui.sconstruct.jade.tank", "Tank: %1$s / %2$s mB %3$s");
         add("gui.sconstruct.jade.tank_empty", "Tank: empty");
+        // SMTCON-166: subtitles for the custom sound events, shown when sound subtitles are on.
+        add("subtitles.sconstruct.frypan_hit", "Frying pan clangs");
+        add("subtitles.sconstruct.toy_squeak", "Toy squeaks");
+        add("subtitles.sconstruct.little_saw", "Saw buzzes");
+        add("subtitles.sconstruct.slimesling", "Slimesling launches");
+        add("subtitles.sconstruct.wood_hit", "Wood thuds");
+        add("subtitles.sconstruct.stone_hit", "Stone cracks");
+        add("subtitles.sconstruct.crossbow_reload", "Crossbow loads");
+        add("subtitles.sconstruct.charged", "Crossbow charged");
+        add("subtitles.sconstruct.discharge", "Crossbow fires");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
