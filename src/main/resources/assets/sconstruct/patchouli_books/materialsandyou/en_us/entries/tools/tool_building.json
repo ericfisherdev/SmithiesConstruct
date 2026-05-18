@@ -17,6 +17,20 @@
       "text": "Heavier tools \u2014 the hammer, excavator, lumber axe, cleaver, and the bows \u2014 must be assembled at the Tool Forge instead of the Tool Station."
     },
     {
+      "type": "patchouli:crafting",
+      "recipe": "sconstruct:stencil_table",
+      "recipe2": "sconstruct:part_builder",
+      "title": "Pattern and Part Crafting",
+      "text": "Craft a Stencil Table to cut blank patterns into shapes, and a Part Builder to turn those patterns into tool parts."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "sconstruct:tool_station",
+      "recipe2": "sconstruct:tool_forge",
+      "title": "Assembly Stations",
+      "text": "Assemble parts into tools at the Tool Station. Heavier tools need the Tool Forge."
+    },
+    {
       "type": "sconstruct:modifier",
       "title": "Modifier Reference"
     }

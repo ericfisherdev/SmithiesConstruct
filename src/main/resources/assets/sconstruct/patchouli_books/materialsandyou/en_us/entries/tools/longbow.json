@@ -5,6 +5,13 @@
   "sortnum": 18,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:longbow"
+      },
+      "title": "Longbow"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Longbow is the perfect weapon for killing at a distance. It fires slowly but packs a punch."
     },

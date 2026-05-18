@@ -5,6 +5,13 @@
   "sortnum": 11,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:excavator"
+      },
+      "title": "Excavator"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Excavator is a broad digging tool. It harvests soil and snow in a wide range."
     },

@@ -5,6 +5,13 @@
   "sortnum": 9,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:scythe"
+      },
+      "title": "Scythe"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Scythe is a broad reaping tool. It is effective on plants and attacks enemies in a wide range. Right-clicking crops or sugarcane harvests and replants all fully grown plants in the area."
     },

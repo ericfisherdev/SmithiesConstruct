@@ -5,6 +5,13 @@
   "sortnum": 21,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:shuriken"
+      },
+      "title": "Shuriken"
+    },
+    {
       "type": "patchouli:text",
       "text": "Shuriken are short-ranged throwing weapons, thrown instantly. They can be used from the offhand and offer fine control thanks to their speed."
     },

@@ -5,6 +5,13 @@
   "sortnum": 14,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:longsword"
+      },
+      "title": "Longsword"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Longsword is an offensive weapon for charging into battle. It is slower than the Broadsword but scales better with damage. Holding right-click charges a lunge."
     },

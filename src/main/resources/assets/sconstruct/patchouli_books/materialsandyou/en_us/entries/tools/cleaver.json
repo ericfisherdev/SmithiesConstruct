@@ -5,6 +5,13 @@
   "sortnum": 16,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:cleaver"
+      },
+      "title": "Cleaver"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Cleaver is a heavy offensive weapon with powerful but slow strikes. Each killing blow has a chance to behead the foe."
     },

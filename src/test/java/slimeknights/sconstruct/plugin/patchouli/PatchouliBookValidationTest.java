@@ -89,8 +89,26 @@ class PatchouliBookValidationTest {
                 if (type.startsWith("sconstruct:")) {
                     assertTrue(CUSTOM_PAGE_TYPES.contains(type), path + " uses unknown custom page type '" + type + "'");
                 }
+                assertVisualPageWellFormed(path, type, pageObject);
             }
         }));
+    }
+
+    /**
+     * Verify the built-in visual page types (SMTCON-210) carry the field Patchouli needs to
+     * render them: a {@code multiblock} page its {@code multiblock} object, a {@code crafting}
+     * page its {@code recipe} id, a {@code spotlight} page its {@code item}. A page missing
+     * these would silently render blank in-game rather than fail the build.
+     */
+    private static void assertVisualPageWellFormed(Path path, String type, JsonObject page) {
+        switch (type) {
+        case "patchouli:multiblock" -> assertTrue(page.has("multiblock") && page.get("multiblock").isJsonObject(), path + " multiblock page must declare a multiblock object");
+        case "patchouli:crafting" -> assertTrue(isStringField(page, "recipe"), path + " crafting page must declare a string recipe");
+        case "patchouli:spotlight" -> assertTrue(page.has("item"), path + " spotlight page must declare an item");
+        default -> {
+            // not a visual page type — nothing extra to assert
+        }
+        }
     }
 
     @Test
