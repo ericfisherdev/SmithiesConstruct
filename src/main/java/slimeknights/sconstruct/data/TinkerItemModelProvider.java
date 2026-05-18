@@ -26,6 +26,7 @@ import slimeknights.sconstruct.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.tools.PatternChestRegistry;
 import slimeknights.sconstruct.tools.StencilTableRegistry;
 import slimeknights.sconstruct.tools.ToolStationRegistry;
+import slimeknights.sconstruct.tools.item.ToolParts;
 import slimeknights.sconstruct.world.SlimeFluidSet;
 import slimeknights.sconstruct.world.WorldBlocks;
 import slimeknights.sconstruct.world.WorldFluids;
@@ -143,6 +144,11 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         for (MoltenFluidSet set : SmelteryFluids.ALL) {
             registerMoltenBucket(set);
         }
+
+        // SMTCON-195: the 18 tool-part items. Each MaterialItem gets a flat item/generated
+        // sprite (layer0 → sconstruct:item/<part_id>); the per-material colour is applied at
+        // render time by the ToolColorHandlers ItemColor on layer 0.
+        ToolParts.PARTS.values().forEach(this::registerSpriteItem);
 
         // SMTCON-143: Phase-6 gadget items + block-items.
         //   - the 15 gadget items (slings, throwballs, piggyback, glow ball, wither head, armor)

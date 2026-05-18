@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import slimeknights.sconstruct.shared.SharedBlocks;
 import slimeknights.sconstruct.shared.SharedItems;
 import slimeknights.sconstruct.shared.SharedMetals;
+import slimeknights.sconstruct.tools.PartType;
 import slimeknights.sconstruct.world.SlimeFluidSet;
 import slimeknights.sconstruct.world.WorldFluids;
 import slimeknights.sconstruct.world.block.SlimeColor;
@@ -74,6 +75,14 @@ class SharedTextureAssetsTest {
         assertAll(() -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodstill.png"), BLOCK_TEXTURE_ROOT + "fluid/bloodstill.png missing"),
                 () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png"), BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png missing"),
                 () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png.mcmeta"), BLOCK_TEXTURE_ROOT + "fluid/bloodflow.png.mcmeta missing"));
+    }
+
+    @Test
+    void everyToolPartHasAnItemTexture() {
+        // SMTCON-195: one greyscale sprite per PartType, ported from the legacy tool texture
+        // tree. Drift here renders the part item as the missing-texture sprite in inventory.
+        assertAll(java.util.Arrays.stream(PartType.values())
+                .map(part -> () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + part.id() + ".png"), ITEM_TEXTURE_ROOT + part.id() + ".png missing")));
     }
 
     @Test

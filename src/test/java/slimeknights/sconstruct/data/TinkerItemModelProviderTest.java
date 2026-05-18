@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import slimeknights.sconstruct.shared.SharedBlocks;
 import slimeknights.sconstruct.shared.SharedMetals;
 import slimeknights.sconstruct.smeltery.SmelteryFluids;
+import slimeknights.sconstruct.tools.PartType;
 
 /**
  * Pinned-behaviour tests for the generated item-model JSONs. {@link TinkerItemModelProvider}
@@ -75,6 +76,14 @@ class TinkerItemModelProviderTest {
             assertEquals(true, model.get("apply_tint").getAsBoolean(), bucketPath + " apply_tint");
             assertEquals("minecraft:item/bucket", model.getAsJsonObject("textures").get("base").getAsString(), bucketPath + " base texture");
         }));
+    }
+
+    @Test
+    void toolPartItemsAreParentGeneratedWithMatchingLayer0() {
+        // SMTCON-195: every PartType part item is a flat item/generated sprite keyed on its own
+        // texture. The per-material colour is applied at render time by ToolColorHandlers, not
+        // via per-material PNGs — so a single sprite per part type is correct here.
+        assertAll(java.util.Arrays.stream(PartType.values()).map(part -> () -> assertSpriteShape(part.id() + ".json", "sconstruct:item/" + part.id())));
     }
 
     @Test
