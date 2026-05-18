@@ -12,6 +12,8 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
+import slimeknights.sconstruct.port1211.tools.PartType;
+import slimeknights.sconstruct.port1211.tools.item.ToolParts;
 
 /**
  * The mod's four user-facing creative tabs. {@link #GENERAL} is the catch-all — every content
@@ -53,8 +55,7 @@ public final class SharedTabs {
 
     /** Themed tab: the sixteen {@link slimeknights.sconstruct.port1211.tools.item.MaterialItem} tool parts. */
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> PARTS = TinkerRegistries.CREATIVE_TABS.register("parts",
-            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.sconstruct.parts"))
-                    .icon(() -> new ItemStack(slimeknights.sconstruct.port1211.tools.item.ToolParts.get(slimeknights.sconstruct.port1211.tools.PartType.PICKHEAD).get())).withTabsAfter(TOOLS.getKey())
+            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.sconstruct.parts")).icon(() -> new ItemStack(ToolParts.get(PartType.PICKHEAD).get())).withTabsAfter(TOOLS.getKey())
                     .displayItems((params, output) -> {
                         // Empty — populated by the themed listener in tools.item.ToolParts.
                     }).build());
