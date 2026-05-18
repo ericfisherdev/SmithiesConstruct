@@ -9,6 +9,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
+import slimeknights.sconstruct.common.client.FluidContainerColorHandler;
 import slimeknights.sconstruct.common.pulse.Pulse;
 import slimeknights.sconstruct.shared.SharedTabs;
 import slimeknights.sconstruct.world.block.SlimePlantSet;
@@ -64,6 +65,9 @@ public final class TinkerWorldPulse implements Pulse {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             WorldClientFluidTypes.register(modBus);
             WorldEntityRenderers.register(modBus);
+            // SMTCON-203: bind the NeoForge fluid-container ItemColor to the four slime-fluid
+            // buckets so their neoforge:fluid_container models resolve the fluid-layer tint.
+            FluidContainerColorHandler.register(modBus, WorldFluids.ALL.stream().map(SlimeFluidSet::bucket).toList());
         }
     }
 

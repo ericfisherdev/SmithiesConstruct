@@ -69,6 +69,10 @@ class TinkerItemModelProviderTest {
         assertEquals(expectedFluid, model.get("fluid").getAsString(), fileName + " fluid");
         assertEquals(true, model.get("apply_tint").getAsBoolean(), fileName + " apply_tint");
         assertEquals("minecraft:item/bucket", model.getAsJsonObject("textures").get("base").getAsString(), fileName + " base texture");
+        // SMTCON-203: the fluid mask layer is what makes the contained fluid visible —
+        // DynamicFluidContainerModel only composites the fluid layer when a fluid material is
+        // present. Without it the bucket renders empty.
+        assertEquals("neoforge:item/mask/bucket_fluid", model.getAsJsonObject("textures").get("fluid").getAsString(), fileName + " fluid mask texture");
     }
 
     @Test

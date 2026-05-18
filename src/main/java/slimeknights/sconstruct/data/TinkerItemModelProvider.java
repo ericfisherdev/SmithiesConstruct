@@ -62,6 +62,13 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
 
     /** Empty-bucket sprite used as the {@code base} layer of every molten-metal fluid container. */
     private static final ResourceLocation BUCKET_BASE_TEXTURE = ResourceLocation.withDefaultNamespace("item/bucket");
+    /**
+     * NeoForge's bucket-interior mask sprite, used as the {@code fluid} layer of every fluid
+     * container. {@code DynamicFluidContainerModel} only composites the fluid layer when a
+     * {@code fluid} material is present — it masks the fluid's still texture into the bucket
+     * cavity. Without it the buckets render as empty.
+     */
+    private static final ResourceLocation BUCKET_FLUID_MASK_TEXTURE = ResourceLocation.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid");
 
     public TinkerItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, SConstruct.MOD_ID, existingFileHelper);
@@ -244,12 +251,15 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
     /**
      * Emit a {@code neoforge:fluid_container} dynamic model for one filled fluid bucket. The
      * model composites the vanilla empty-bucket sprite ({@code minecraft:item/bucket}, the
-     * {@code base} layer) with the fluid's own still texture, tinted by the fluid-type
-     * extension — so every bucket renders from its fluid's sprite with no per-bucket PNG.
+     * {@code base} layer) with the fluid's own still texture masked into the bucket cavity by
+     * the {@code fluid} layer ({@link #BUCKET_FLUID_MASK_TEXTURE}) — so every bucket renders
+     * from its fluid's sprite with no per-bucket PNG. The fluid layer carries tint index 1,
+     * resolved per fluid by {@link slimeknights.sconstruct.common.client.FluidContainerColorHandler}.
      */
     private void registerFluidBucket(DeferredItem<? extends Item> bucket, Fluid sourceFluid) {
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(bucket.get());
-        getBuilder(itemId.getPath()).texture("base", BUCKET_BASE_TEXTURE).customLoader(DynamicFluidContainerModelBuilder::begin).fluid(sourceFluid).applyTint(true).flipGas(false).end();
+        getBuilder(itemId.getPath()).texture("base", BUCKET_BASE_TEXTURE).texture("fluid", BUCKET_FLUID_MASK_TEXTURE).customLoader(DynamicFluidContainerModelBuilder::begin).fluid(sourceFluid)
+                .applyTint(true).flipGas(false).end();
     }
 
     /**
