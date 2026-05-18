@@ -35,8 +35,8 @@ public final class SmithiesPatchouliPlugin {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    /** Legacy {@code tconstruct} namespace — book content addresses these page types by it. */
-    private static final String BOOK_NAMESPACE = "tconstruct";
+    /** The mod namespace — book content addresses these custom page types by it (SMTCON-209). */
+    private static final String BOOK_NAMESPACE = SConstruct.MOD_ID;
 
     private SmithiesPatchouliPlugin() {
     }

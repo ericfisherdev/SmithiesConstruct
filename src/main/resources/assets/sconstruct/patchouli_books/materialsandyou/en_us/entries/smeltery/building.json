@@ -1,0 +1,20 @@
+{
+  "name": "Building the Smeltery",
+  "icon": "sconstruct:seared_brick",
+  "category": "sconstruct:smeltery",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The smeltery can be any size from 3x3 to 11x11, and any height from a minimum of two. Larger structures increase both the number of items that can smelt at once and the liquid capacity."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The structure requires a floor, but does not require a ceiling or a frame. The floor must be made solely of seared blocks; the walls may use any combination of seared blocks, seared glass, tanks, and drains."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Place the smeltery controller in one of the walls. Once the structure is valid, right-click the controller to open the smeltery interface."
+    }
+  ]
+}

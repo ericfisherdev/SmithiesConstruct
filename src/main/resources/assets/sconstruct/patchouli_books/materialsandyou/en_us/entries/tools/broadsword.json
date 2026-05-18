@@ -1,0 +1,16 @@
+{
+  "name": "Broadsword",
+  "icon": "sconstruct:sword",
+  "category": "sconstruct:tools",
+  "sortnum": 13,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Broadsword is a versatile weapon with average damage. Its sweep attack knocks back nearby enemies while keeping your other hand free."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Medium damage$(br)- Sweep attack$(br)- Leaves the offhand free"
+    }
+  ]
+}

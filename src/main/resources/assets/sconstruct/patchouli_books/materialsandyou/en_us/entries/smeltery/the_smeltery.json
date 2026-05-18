@@ -1,0 +1,16 @@
+{
+  "name": "The Smeltery",
+  "icon": "sconstruct:smeltery_controller",
+  "category": "sconstruct:smeltery",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "There are many smelteries. But this is mine. And it melts things really well."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The smeltery is a multiblock furnace that melts metals, ores, and other materials into molten fluids. Those fluids can then be cast into tools and parts, or combined into alloys.$(br2)The following pages explain how to build one and how to use it."
+    }
+  ]
+}

@@ -32,7 +32,7 @@ import com.google.gson.JsonObject;
  * reference would not fail compilation — it would silently render as a broken or missing page
  * in-game. This test turns that into a build failure instead.
  *
- * <p>It also pins the SMTCON-162/163 contract that each custom {@code tconstruct:*} page type is
+ * <p>It also pins the SMTCON-162/163 contract that each custom {@code sconstruct:*} page type is
  * actually exercised: every one must appear at least {@link #MIN_CUSTOM_PAGE_INSTANCES} times
  * across the book.
  */
@@ -43,12 +43,12 @@ class PatchouliBookValidationTest {
      * Patchouli 1.20+ enforces resource-pack books: the content lives under {@code assets/}
      * (only {@code book.json} stays in {@code data/}), inside the {@code en_us} language folder.
      */
-    private static final String BOOK_RESOURCE = "assets/tconstruct/patchouli_books/materialsandyou/en_us";
+    private static final String BOOK_RESOURCE = "assets/sconstruct/patchouli_books/materialsandyou/en_us";
 
     private static final Gson GSON = new Gson();
 
     /** The five custom page types registered by {@code SmithiesPatchouliPlugin} (SMTCON-162/163). */
-    private static final Set<String> CUSTOM_PAGE_TYPES = Set.of("tconstruct:melting", "tconstruct:casting", "tconstruct:alloy", "tconstruct:modifier", "tconstruct:tool_stats");
+    private static final Set<String> CUSTOM_PAGE_TYPES = Set.of("sconstruct:melting", "sconstruct:casting", "sconstruct:alloy", "sconstruct:modifier", "sconstruct:tool_stats");
 
     /** Minimum number of instances each custom page type must have across the book. */
     private static final int MIN_CUSTOM_PAGE_INSTANCES = 3;
@@ -84,9 +84,9 @@ class PatchouliBookValidationTest {
                 assertTrue(isStringField(pageObject, "type"), path + " has a page with no string type");
                 String type = pageObject.get("type").getAsString();
                 assertFalse(type.isBlank(), path + " has a page with a blank type");
-                // A tconstruct: page type must be one of the registered custom types; a typo
+                // An sconstruct: page type must be one of the registered custom types; a typo
                 // there would render as a broken page rather than fail loudly.
-                if (type.startsWith("tconstruct:")) {
+                if (type.startsWith("sconstruct:")) {
                     assertTrue(CUSTOM_PAGE_TYPES.contains(type), path + " uses unknown custom page type '" + type + "'");
                 }
             }
@@ -117,9 +117,9 @@ class PatchouliBookValidationTest {
                 type + " must have at least " + MIN_CUSTOM_PAGE_INSTANCES + " instances across the book, found " + counts.getOrDefault(type, 0))));
     }
 
-    /** Category ids the book defines — {@code tconstruct:<file-name>} for each categories/ file. */
+    /** Category ids the book defines — {@code sconstruct:<file-name>} for each categories/ file. */
     private static Set<String> categoryIds() {
-        return jsonFilesIn(bookRoot().resolve("categories")).stream().map(path -> "tconstruct:" + stripJson(path)).collect(java.util.stream.Collectors.toSet());
+        return jsonFilesIn(bookRoot().resolve("categories")).stream().map(path -> "sconstruct:" + stripJson(path)).collect(java.util.stream.Collectors.toSet());
     }
 
     /**

@@ -1,0 +1,40 @@
+{
+  "name": "Casting",
+  "icon": "sconstruct:casting_table",
+  "category": "sconstruct:smeltery",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Pour a molten fluid onto a $(l)casting table$() to cast tool parts and small items. Place a cast on the table first to shape the result; without a cast, the fluid sets into an ingot."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A $(l)casting basin$() works the same way for blocks and larger items.$(br2)Each casting recipe has a $(l)cooling time$() \u2014 the fluid must finish cooling before the result can be removed."
+    },
+    {
+      "type": "sconstruct:casting",
+      "title": "Example: Casting an Ingot",
+      "fluid": "sconstruct:molten_iron",
+      "amount": 90,
+      "output": "minecraft:iron_ingot",
+      "cooling_time": 80
+    },
+    {
+      "type": "sconstruct:casting",
+      "title": "Example: Casting Gold",
+      "fluid": "sconstruct:molten_gold",
+      "amount": 90,
+      "output": "minecraft:gold_ingot",
+      "cooling_time": 80
+    },
+    {
+      "type": "sconstruct:casting",
+      "title": "Example: Casting Copper",
+      "fluid": "sconstruct:molten_copper",
+      "amount": 90,
+      "output": "minecraft:copper_ingot",
+      "cooling_time": 80
+    }
+  ]
+}

@@ -361,8 +361,8 @@ public final class TinkerLanguageProvider extends LanguageProvider {
 
         // SMTCON-158: Patchouli book strings. book.json sets i18n=true, so its name and
         // landing_text resolve through these keys rather than holding literal text.
-        add("book.tconstruct.materialsandyou.name", "Materials and You");
-        add("book.tconstruct.materialsandyou.landing", "Welcome to Smithies' Construct! This guidebook will teach you everything you need to know about tools, materials, and the smeltery.");
+        add("book.sconstruct.materialsandyou.name", "Materials and You");
+        add("book.sconstruct.materialsandyou.landing", "Welcome to Smithies' Construct! This guidebook will teach you everything you need to know about tools, materials, and the smeltery.");
 
         // Blood fluid description id. Set explicitly here because Fluid#getDescriptionId is
         // a separate key from the BucketItem above ({@code fluid.sconstruct.blood} vs

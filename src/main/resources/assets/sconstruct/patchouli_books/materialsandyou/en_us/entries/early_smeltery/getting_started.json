@@ -1,0 +1,16 @@
+{
+  "name": "Getting Started",
+  "icon": "sconstruct:seared_brick",
+  "category": "sconstruct:early_smeltery",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Before you can melt anything, you need seared bricks. First craft grout by combining clay, sand, and gravel. Then smelt that grout in a furnace, and it becomes a seared brick."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Seared blocks are the building material for every smeltery component: the walls, the tanks, the drains, and the controller all start as seared brick."
+    }
+  ]
+}
