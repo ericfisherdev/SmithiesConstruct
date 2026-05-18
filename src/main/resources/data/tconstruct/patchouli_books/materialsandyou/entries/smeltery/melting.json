@@ -11,6 +11,15 @@
     {
       "type": "patchouli:text",
       "text": "Each recipe has a $(l)temperature$() the smeltery must reach and a melt $(l)time$(). Hotter fuels and a larger structure melt more items at once.$(br2)Check JEI for the full list of melting recipes."
+    },
+    {
+      "type": "tconstruct:melting",
+      "title": "Example: Melting Iron",
+      "input": "minecraft:iron_ingot",
+      "output": "sconstruct:molten_iron",
+      "amount": 90,
+      "temperature": 800,
+      "time": 100
     }
   ]
 }

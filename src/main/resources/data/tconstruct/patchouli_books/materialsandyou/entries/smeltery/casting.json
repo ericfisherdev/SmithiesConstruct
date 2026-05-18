@@ -10,7 +10,15 @@
     },
     {
       "type": "patchouli:text",
-      "text": "A $(l)casting basin$() works the same way for blocks and larger items.$(br2)Each casting recipe has a $(l)cooling time$() — the fluid must finish cooling before the result can be removed."
+      "text": "A $(l)casting basin$() works the same way for blocks and larger items.$(br2)Each casting recipe has a $(l)cooling time$() \u2014 the fluid must finish cooling before the result can be removed."
+    },
+    {
+      "type": "tconstruct:casting",
+      "title": "Example: Casting an Ingot",
+      "fluid": "sconstruct:molten_iron",
+      "amount": 90,
+      "output": "minecraft:iron_ingot",
+      "cooling_time": 80
     }
   ]
 }
