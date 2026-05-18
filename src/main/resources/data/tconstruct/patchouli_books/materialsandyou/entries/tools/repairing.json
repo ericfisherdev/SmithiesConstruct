@@ -15,6 +15,10 @@
     {
       "type": "patchouli:text",
       "text": "You can also repair on the move: place a sharpening kit of the right material into a crafting grid together with the tool."
+    },
+    {
+      "type": "tconstruct:modifier",
+      "title": "Modifier Reference"
     }
   ]
 }
