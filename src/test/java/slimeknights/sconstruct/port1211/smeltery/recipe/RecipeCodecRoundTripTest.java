@@ -137,18 +137,34 @@ class RecipeCodecRoundTripTest {
 
     /**
      * Writes {@code value} to a registry-aware buffer, reads it back, writes the decoded value
-     * to a fresh buffer, and asserts the two byte streams match.
+     * to a fresh buffer, and asserts the two byte streams match. Also checks the decode buffer
+     * is fully drained — a codec that under-reads would leave trailing bytes unnoticed.
+     *
+     * <p>The {@link RegistryFriendlyByteBuf}s wrap reference-counted Netty buffers, so each is
+     * released in the {@code finally} block rather than left for the collector.
      */
     private static <T> void assertStreamRoundTrips(StreamCodec<RegistryFriendlyByteBuf, T> streamCodec, T value) {
-        RegistryFriendlyByteBuf first = newBuffer();
-        streamCodec.encode(first, value);
-        byte[] firstBytes = readAll(first);
+        RegistryFriendlyByteBuf first = null;
+        RegistryFriendlyByteBuf decodeBuffer = null;
+        RegistryFriendlyByteBuf second = null;
+        try {
+            first = newBuffer();
+            streamCodec.encode(first, value);
+            byte[] firstBytes = readAll(first);
 
-        T decoded = streamCodec.decode(newBuffer(firstBytes));
+            decodeBuffer = newBuffer(firstBytes);
+            T decoded = streamCodec.decode(decodeBuffer);
+            assertEquals(0, decodeBuffer.readableBytes(), "stream codec must consume the full payload");
 
-        RegistryFriendlyByteBuf second = newBuffer();
-        streamCodec.encode(second, decoded);
-        assertArrayEquals(firstBytes, readAll(second), "decoded recipe must re-encode to the same bytes");
+            second = newBuffer();
+            streamCodec.encode(second, decoded);
+            assertArrayEquals(firstBytes, readAll(second), "decoded recipe must re-encode to the same bytes");
+        }
+        finally {
+            release(first);
+            release(decodeBuffer);
+            release(second);
+        }
     }
 
     private static RegistryFriendlyByteBuf newBuffer() {
@@ -163,5 +179,12 @@ class RecipeCodecRoundTripTest {
         byte[] bytes = new byte[buffer.readableBytes()];
         buffer.getBytes(buffer.readerIndex(), bytes);
         return bytes;
+    }
+
+    /** Releases a reference-counted buffer when one was allocated; a no-op for {@code null}. */
+    private static void release(RegistryFriendlyByteBuf buffer) {
+        if (buffer != null) {
+            buffer.release();
+        }
     }
 }
