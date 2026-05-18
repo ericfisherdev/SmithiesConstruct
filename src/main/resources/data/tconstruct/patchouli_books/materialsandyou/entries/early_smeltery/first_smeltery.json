@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Lay a solid seared-brick floor, raise the walls, add one tank for fuel, place a drain, and set the controller in a wall. Right-click the controller to open it."
+      "text": "Lay a solid 3x3 seared-brick floor \u2014 the nine bottom blocks. Build the walls up around that floor but leave the inside hollow, so molten metal has room to pool. Add at least one tank for fuel, place a drain, and set the controller into a wall. Right-click the controller to open it."
     },
     {
       "type": "patchouli:text",
