@@ -256,6 +256,9 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.smeltery.temperature", "%1$s K");
         add("gui.sconstruct.smeltery.tank_empty", "Empty");
         add("gui.sconstruct.smeltery.tank_fluid", "%1$s: %2$s mB");
+        // SMTCON-162: melt time / cooling time labels for the custom Patchouli recipe pages.
+        add("gui.sconstruct.smeltery.time", "Time: %1$s");
+        add("gui.sconstruct.smeltery.cooling", "Cooling: %1$s");
 
         // SMTCON-129: smeltery block + molten-fluid display names. Each name is the title-cased
         // registry path — the registrar ids already read as words once underscores are spaces —

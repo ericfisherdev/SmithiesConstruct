@@ -236,7 +236,10 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-158 adds the Materials and You book item name plus the Patchouli book name and
         // landing-text keys = 3 more, for 303 total.
-        assertEquals(303, lang().entrySet().size());
+        //
+        // SMTCON-162 adds the smeltery melt-time and cooling-time labels for the custom
+        // Patchouli recipe pages = 2 more, for 305 total.
+        assertEquals(305, lang().entrySet().size());
     }
 
     @Test
