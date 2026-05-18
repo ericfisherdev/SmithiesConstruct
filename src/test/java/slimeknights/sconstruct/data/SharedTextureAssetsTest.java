@@ -52,6 +52,21 @@ class SharedTextureAssetsTest {
         assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "firewood.png.mcmeta"), BLOCK_TEXTURE_ROOT + "firewood.png.mcmeta missing");
     }
 
+    /**
+     * SMTCON-194: every cube-textured seared block. The four stair/slab blocks are omitted —
+     * their models reuse the matching base block's texture ({@code seared_brick} /
+     * {@code seared_paver}), already covered here.
+     */
+    private static final java.util.List<String> SEARED_CUBE_TEXTURES = java.util.List.of("seared_stone", "seared_cobble", "seared_paver", "seared_brick", "seared_brick_chiseled",
+            "seared_brick_squared", "seared_brick_creeper", "seared_brick_road", "seared_brick_fancy", "seared_brick_triangle", "seared_glass", "seared_window");
+
+    @Test
+    void everySearedBlockHasABlockTexture() {
+        // Ported from the legacy smeltery texture tree. Drift here renders the seared block as
+        // the missing-texture sprite in-world and in inventory.
+        assertAll(SEARED_CUBE_TEXTURES.stream().map(id -> () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + id + ".png"), BLOCK_TEXTURE_ROOT + id + ".png missing")));
+    }
+
     @Test
     void bloodFluidTexturesAndAnimationStillPresent() {
         // Shipped earlier by SMTCON-39; pin here so a future texture refactor doesn't
