@@ -38,8 +38,12 @@ import com.google.gson.JsonObject;
  */
 class PatchouliBookValidationTest {
 
-    /** Classpath location of the book content, resolved at runtime by {@link #bookRoot()}. */
-    private static final String BOOK_RESOURCE = "data/tconstruct/patchouli_books/materialsandyou";
+    /**
+     * Classpath location of the book content, resolved at runtime by {@link #bookRoot()}.
+     * Patchouli loads categories and entries from the {@code en_us} language folder, so the
+     * content this test walks lives under {@code materialsandyou/en_us}, not the book root.
+     */
+    private static final String BOOK_RESOURCE = "data/tconstruct/patchouli_books/materialsandyou/en_us";
 
     private static final Gson GSON = new Gson();
 
