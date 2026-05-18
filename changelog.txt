@@ -1,3 +1,15 @@
+1.21.1.0 — Major port from 1.12 to NeoForge 1.21.1
+Rebuilt every subsystem (tools, smeltery, world gen, gadgets) on NeoForge 1.21.1 registries, capabilities, and event buses
+Java 21 is now required to run the mod
+All tool data (materials, modifiers, stats) is now stored in vanilla DataComponents instead of NBT
+Materials are now defined as datapacks under data/<modid>/material/, so addons and packs can ship materials as JSON
+Replaced the in-house manual with a Patchouli book ("Materials and You")
+Dropped the Quark, Chisel, Chisel & Bits, and CraftingTweaks compatibility plugins
+Worlds and inventories from the 1.12 release are NOT compatible — start a fresh world on 1.21.1
+This port is based on Tinkers' Construct by the SlimeKnights team; all credit for the original mod belongs to them
+
+--- Legacy 1.12 changelog ---
+
 New Smeltery stuff
 Smelteries can have any rectangular size from 3x3 to 4x7 to 9x9 (from 5x5)
 Smeltery capacity depends directly on size
