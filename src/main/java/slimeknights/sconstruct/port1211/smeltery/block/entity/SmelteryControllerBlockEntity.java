@@ -38,6 +38,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import slimeknights.sconstruct.port1211.common.SmithiesParticles;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.port1211.smeltery.SmelteryFuelSource;
 import slimeknights.sconstruct.port1211.smeltery.block.SmelteryControllerBlock;
@@ -101,6 +102,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
 
     /** Number of integers in the {@link #TAG_RENDER_BOUNDS} array — the six box corners. */
     private static final int RENDER_BOUNDS_LENGTH = 6;
+
+    /** Internal temperature in kelvin above which the smeltery emits ambient smoke. */
+    private static final int SMOKE_TEMPERATURE_THRESHOLD = 1000;
+
+    /** Server-tick interval between ambient smoke emissions — keeps the effect subtle. */
+    private static final int SMOKE_EMIT_INTERVAL = 10;
 
     /** The smeltery's molten-metal tank; resized to the interior volume by SMTCON-115. */
     private final FluidTank fluidTank = new FluidTank(INITIAL_TANK_CAPACITY) {
@@ -330,6 +337,31 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         }
         controller.tickSmeltery();
         controller.syncToTrackers();
+        controller.emitSmoke(level);
+    }
+
+    /**
+     * Emits a couple of ambient {@code smeltery_smoke} particles just above the controller block
+     * while it is assembled and running hot. Throttled to once every {@link #SMOKE_EMIT_INTERVAL}
+     * ticks and kept to one or two particles per emission so the effect stays subtle.
+     *
+     * <p>Uses {@link ServerLevel#sendParticles} — server-safe and broadcast to tracking clients —
+     * rather than {@code Level#addParticle}, which is client-only and would crash a dedicated
+     * server when called from this server-tick path.
+     */
+    private void emitSmoke(Level level) {
+        if (!isAssembled() || currentTemperature <= SMOKE_TEMPERATURE_THRESHOLD || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        if (level.getGameTime() % SMOKE_EMIT_INTERVAL != 0) {
+            return;
+        }
+        BlockPos pos = getBlockPos();
+        double x = pos.getX() + 0.5D;
+        double y = pos.getY() + 1.0D;
+        double z = pos.getZ() + 0.5D;
+        // Small XZ spread, no inbound velocity — the particle supplies its own slow upward drift.
+        serverLevel.sendParticles(SmithiesParticles.SMELTERY_SMOKE.get(), x, y, z, 1, 0.15D, 0.0D, 0.15D, 0.0D);
     }
 
     /**

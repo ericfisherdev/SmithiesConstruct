@@ -9,6 +9,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
@@ -21,6 +22,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import slimeknights.sconstruct.port1211.common.SmithiesParticles;
 import slimeknights.sconstruct.port1211.smeltery.recipe.CastingRecipe;
 import slimeknights.sconstruct.port1211.smeltery.recipe.CastingRecipeInput;
 import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
@@ -58,6 +60,9 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
 
     /** NBT key for the cooling duration the running countdown belongs to. */
     private static final String TAG_COOLING_TARGET = "CoolingTarget";
+
+    /** Server-tick interval between molten-metal bubble emissions while a cast cools. */
+    private static final int BUBBLE_EMIT_INTERVAL = 8;
 
     /** Single-slot cast inventory — holds the cast item the table / basin pours metal into. */
     private final ItemStackHandler castHandler = new ItemStackHandler(1) {
@@ -167,7 +172,36 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
         }
         else {
             setChanged();
+            emitBubbles();
         }
+    }
+
+    /**
+     * Emits one or two {@code melting_bubble} particles at the top surface of the tank's molten
+     * metal while a cast is actively cooling. Throttled to once every {@link #BUBBLE_EMIT_INTERVAL}
+     * ticks so a cooling cast bubbles gently rather than continuously.
+     *
+     * <p>Uses {@link ServerLevel#sendParticles} — server-safe and broadcast to tracking clients —
+     * rather than the client-only {@code Level#addParticle}, so it is safe to call from this
+     * server-tick path. Only reached when {@link #tickCasting()} has confirmed a matching recipe,
+     * a non-empty tank, and a running countdown.
+     */
+    // ServerLevel is AutoCloseable in the type system, but the world is owned by the server
+    // lifecycle, not by this block entity — PMD's CloseResource heuristic does not model that.
+    @SuppressWarnings("PMD.CloseResource")
+    private void emitBubbles() {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        if (level.getGameTime() % BUBBLE_EMIT_INTERVAL != 0) {
+            return;
+        }
+        BlockPos pos = getBlockPos();
+        double x = pos.getX() + 0.5D;
+        // Bubbles rise off the metal pooled at the top of the cast block.
+        double y = pos.getY() + 0.9D;
+        double z = pos.getZ() + 0.5D;
+        serverLevel.sendParticles(SmithiesParticles.MELTING_BUBBLE.get(), x, y, z, 1, 0.2D, 0.0D, 0.2D, 0.0D);
     }
 
     /**

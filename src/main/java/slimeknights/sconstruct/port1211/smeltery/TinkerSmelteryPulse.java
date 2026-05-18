@@ -5,10 +5,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 
+import slimeknights.sconstruct.port1211.common.SmithiesParticles;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryBlockEntityRenderers;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientFluidTypes;
 import slimeknights.sconstruct.port1211.smeltery.client.SmelteryClientMenus;
+import slimeknights.sconstruct.port1211.smeltery.client.SmelteryParticles;
 import slimeknights.sconstruct.port1211.smeltery.recipe.SmelteryRecipes;
 
 /**
@@ -60,6 +62,7 @@ public final class TinkerSmelteryPulse implements Pulse {
         SmelteryComponents.init();
         CastingBlocks.init();
         SmelteryRecipes.init();
+        SmithiesParticles.init();
 
         // The capability bindings query the casting / controller / tank block-entity types, which
         // only exist once the hubs above have registered them — so the listener is subscribed
@@ -78,6 +81,7 @@ public final class TinkerSmelteryPulse implements Pulse {
             SmelteryClientFluidTypes.register(modBus);
             SmelteryClientMenus.register(modBus);
             SmelteryBlockEntityRenderers.register(modBus);
+            SmelteryParticles.register(modBus);
         }
     }
 }
