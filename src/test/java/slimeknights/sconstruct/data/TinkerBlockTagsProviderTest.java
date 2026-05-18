@@ -40,8 +40,8 @@ class TinkerBlockTagsProviderTest {
         // The pickaxe tag also collects the SMTCON-129 smeltery blocks, so assert the metal
         // blocks are a subset rather than the whole tag.
         Set<String> expected = Set.of("sconstruct:block_cobalt", "sconstruct:block_ardite", "sconstruct:block_manyullyn", "sconstruct:block_knightslime", "sconstruct:block_pigiron",
-                "sconstruct:block_silver", "sconstruct:block_copper", "sconstruct:block_tin", "sconstruct:block_zinc", "sconstruct:block_brass", "sconstruct:block_alubrass",
-                "sconstruct:block_electrum", "sconstruct:block_steel");
+                "sconstruct:block_silver", "sconstruct:block_tin", "sconstruct:block_zinc", "sconstruct:block_brass", "sconstruct:block_alubrass", "sconstruct:block_electrum",
+                "sconstruct:block_steel");
         assertTrue(loadValues("data/minecraft/tags/block/mineable/pickaxe.json").containsAll(expected), "every metal block must be pickaxe-mineable");
     }
 
@@ -80,12 +80,12 @@ class TinkerBlockTagsProviderTest {
 
     @Test
     void needsIronToolListsEverythingExceptTheNetherTrio() {
-        // Exact set: 13 total metal blocks - 3 diamond-tier = 10 iron-tier. Pinning the full
+        // Exact set: 12 total metal blocks - 3 diamond-tier = 9 iron-tier. Pinning the full
         // set also pins mutual exclusion with the diamond-tier set — a future refactor that
         // double-tagged would let cobalt also satisfy NEEDS_IRON_TOOL, fail this assertion,
         // and surface the wasted JSON entry before it shipped.
-        Set<String> expected = Set.of("sconstruct:block_knightslime", "sconstruct:block_pigiron", "sconstruct:block_silver", "sconstruct:block_copper", "sconstruct:block_tin", "sconstruct:block_zinc",
-                "sconstruct:block_brass", "sconstruct:block_alubrass", "sconstruct:block_electrum", "sconstruct:block_steel");
+        Set<String> expected = Set.of("sconstruct:block_knightslime", "sconstruct:block_pigiron", "sconstruct:block_silver", "sconstruct:block_tin", "sconstruct:block_zinc", "sconstruct:block_brass",
+                "sconstruct:block_alubrass", "sconstruct:block_electrum", "sconstruct:block_steel");
         assertEquals(expected, loadValues("data/minecraft/tags/block/needs_iron_tool.json"));
     }
 

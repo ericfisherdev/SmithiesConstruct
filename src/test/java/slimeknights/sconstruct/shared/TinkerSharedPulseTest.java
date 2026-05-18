@@ -47,8 +47,8 @@ class TinkerSharedPulseTest {
         IEventBus bus = mock(IEventBus.class);
         new TinkerSharedPulse().register(bus);
         assertNotNull(SharedBlocks.METAL_BLOCKS, "SharedBlocks.METAL_BLOCKS must be initialised");
-        assertTrue(SharedBlocks.METAL_BLOCKS.size() >= 13, "at least 13 metal storage blocks expected after register");
-        assertTrue(SharedItems.INGOTS.size() >= 15, "at least 15 ingots expected after register");
+        assertTrue(SharedBlocks.METAL_BLOCKS.size() >= 12, "at least 12 metal storage blocks expected after register");
+        assertTrue(SharedItems.INGOTS.size() >= 14, "at least 14 ingots expected after register");
         assertNotNull(SharedFluids.BLOOD.getId(), "SharedFluids.BLOOD must be initialised");
         assertNotNull(SharedTabs.GENERAL.getId(), "SharedTabs.GENERAL must be initialised");
     }

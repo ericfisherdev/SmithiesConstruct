@@ -157,16 +157,16 @@ class SharedItemsTest {
     private static Map<String, DeferredItem<Item>> ingotFields() {
         return Map.ofEntries(Map.entry("cobalt", SharedItems.INGOT_COBALT), Map.entry("ardite", SharedItems.INGOT_ARDITE), Map.entry("manyullyn", SharedItems.INGOT_MANYULLYN),
                 Map.entry("knightslime", SharedItems.INGOT_KNIGHTSLIME), Map.entry("pigiron", SharedItems.INGOT_PIGIRON), Map.entry("silver", SharedItems.INGOT_SILVER),
-                Map.entry("copper", SharedItems.INGOT_COPPER), Map.entry("tin", SharedItems.INGOT_TIN), Map.entry("zinc", SharedItems.INGOT_ZINC), Map.entry("brass", SharedItems.INGOT_BRASS),
-                Map.entry("alubrass", SharedItems.INGOT_ALUBRASS), Map.entry("electrum", SharedItems.INGOT_ELECTRUM), Map.entry("steel", SharedItems.INGOT_STEEL),
-                Map.entry("lead", SharedItems.INGOT_LEAD), Map.entry("nickel", SharedItems.INGOT_NICKEL));
+                Map.entry("tin", SharedItems.INGOT_TIN), Map.entry("zinc", SharedItems.INGOT_ZINC), Map.entry("brass", SharedItems.INGOT_BRASS), Map.entry("alubrass", SharedItems.INGOT_ALUBRASS),
+                Map.entry("electrum", SharedItems.INGOT_ELECTRUM), Map.entry("steel", SharedItems.INGOT_STEEL), Map.entry("lead", SharedItems.INGOT_LEAD),
+                Map.entry("nickel", SharedItems.INGOT_NICKEL));
     }
 
     private static Map<String, DeferredItem<Item>> nuggetFields() {
         return Map.ofEntries(Map.entry("cobalt", SharedItems.NUGGET_COBALT), Map.entry("ardite", SharedItems.NUGGET_ARDITE), Map.entry("manyullyn", SharedItems.NUGGET_MANYULLYN),
                 Map.entry("knightslime", SharedItems.NUGGET_KNIGHTSLIME), Map.entry("pigiron", SharedItems.NUGGET_PIGIRON), Map.entry("silver", SharedItems.NUGGET_SILVER),
-                Map.entry("copper", SharedItems.NUGGET_COPPER), Map.entry("tin", SharedItems.NUGGET_TIN), Map.entry("zinc", SharedItems.NUGGET_ZINC), Map.entry("brass", SharedItems.NUGGET_BRASS),
-                Map.entry("alubrass", SharedItems.NUGGET_ALUBRASS), Map.entry("electrum", SharedItems.NUGGET_ELECTRUM), Map.entry("steel", SharedItems.NUGGET_STEEL),
-                Map.entry("lead", SharedItems.NUGGET_LEAD), Map.entry("nickel", SharedItems.NUGGET_NICKEL));
+                Map.entry("tin", SharedItems.NUGGET_TIN), Map.entry("zinc", SharedItems.NUGGET_ZINC), Map.entry("brass", SharedItems.NUGGET_BRASS), Map.entry("alubrass", SharedItems.NUGGET_ALUBRASS),
+                Map.entry("electrum", SharedItems.NUGGET_ELECTRUM), Map.entry("steel", SharedItems.NUGGET_STEEL), Map.entry("lead", SharedItems.NUGGET_LEAD),
+                Map.entry("nickel", SharedItems.NUGGET_NICKEL));
     }
 }

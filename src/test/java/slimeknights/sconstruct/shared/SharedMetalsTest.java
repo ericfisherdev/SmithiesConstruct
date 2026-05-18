@@ -24,15 +24,15 @@ import org.junit.jupiter.api.Test;
  */
 class SharedMetalsTest {
 
-    private static final List<String> EXPECTED_IDS = List.of("cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "silver", "copper", "tin", "zinc", "brass", "alubrass", "electrum", "steel",
-            "lead", "nickel");
+    private static final List<String> EXPECTED_IDS = List.of("cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "silver", "tin", "zinc", "brass", "alubrass", "electrum", "steel", "lead",
+            "nickel");
 
     private static final Set<String> DIAMOND_TIER_IDS = Set.of("cobalt", "ardite", "manyullyn");
 
     private static final Set<String> FICTIONAL_IDS = Set.of("cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "alubrass");
 
     @Test
-    void containsTheExpectedFifteenMetalsInDeclaredOrder() {
+    void containsTheExpectedFourteenMetalsInDeclaredOrder() {
         // Order matters: providers stream ALL into deterministic outputs (lang files, recipe
         // ids). A reorder would shuffle generated artifacts and create review noise without
         // changing semantics — pin order so reorders are deliberate.

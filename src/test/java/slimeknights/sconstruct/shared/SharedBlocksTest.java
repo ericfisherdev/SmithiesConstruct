@@ -26,8 +26,7 @@ import slimeknights.sconstruct.SConstruct;
  */
 class SharedBlocksTest {
 
-    private static final List<String> EXPECTED_BLOCK_IDS = List.of("cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "silver", "copper", "tin", "zinc", "brass", "alubrass", "electrum",
-            "steel");
+    private static final List<String> EXPECTED_BLOCK_IDS = List.of("cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "silver", "tin", "zinc", "brass", "alubrass", "electrum", "steel");
 
     @Test
     void registersOneStorageBlockPerMetalExceptTheSkippedTwo() {
@@ -72,9 +71,9 @@ class SharedBlocksTest {
         // technically still expose every metal, but downstream code reaching for
         // SharedBlocks.COBALT would NPE. Pin both shapes.
         Map<String, DeferredBlock<Block>> fields = Map.ofEntries(Map.entry("cobalt", SharedBlocks.COBALT), Map.entry("ardite", SharedBlocks.ARDITE), Map.entry("manyullyn", SharedBlocks.MANYULLYN),
-                Map.entry("knightslime", SharedBlocks.KNIGHTSLIME), Map.entry("pigiron", SharedBlocks.PIGIRON), Map.entry("silver", SharedBlocks.SILVER), Map.entry("copper", SharedBlocks.COPPER),
-                Map.entry("tin", SharedBlocks.TIN), Map.entry("zinc", SharedBlocks.ZINC), Map.entry("brass", SharedBlocks.BRASS), Map.entry("alubrass", SharedBlocks.ALUBRASS),
-                Map.entry("electrum", SharedBlocks.ELECTRUM), Map.entry("steel", SharedBlocks.STEEL));
+                Map.entry("knightslime", SharedBlocks.KNIGHTSLIME), Map.entry("pigiron", SharedBlocks.PIGIRON), Map.entry("silver", SharedBlocks.SILVER), Map.entry("tin", SharedBlocks.TIN),
+                Map.entry("zinc", SharedBlocks.ZINC), Map.entry("brass", SharedBlocks.BRASS), Map.entry("alubrass", SharedBlocks.ALUBRASS), Map.entry("electrum", SharedBlocks.ELECTRUM),
+                Map.entry("steel", SharedBlocks.STEEL));
         assertAll(fields.entrySet().stream().map(entry -> () -> {
             assertNotNull(entry.getValue(), entry.getKey() + " field");
             assertEquals(SharedBlocks.METAL_BLOCKS.get(entry.getKey()), entry.getValue(), entry.getKey() + " map ↔ field consistency");

@@ -264,6 +264,12 @@ public final class TinkerRecipeProvider extends RecipeProvider {
                 CastingRecipeBuilder.basin(fluidIngredient(fluid, BLOCK_MB), new ItemStack(block.get()), BASIN_COOLING_TICKS).save(recipeOutput, smelteryId("casting_" + metal.id() + "_block"));
             }
         }
+        // Copper is a vanilla material, so it is absent from SharedMetals — but the smeltery
+        // still melts and casts it. Cast molten copper to the vanilla copper ingot / block;
+        // vanilla has no copper nugget, so no nugget cast is emitted.
+        Fluid moltenCopper = moltenFluid("copper");
+        CastingRecipeBuilder.table(fluidIngredient(moltenCopper, INGOT_MB), new ItemStack(Items.COPPER_INGOT), TABLE_COOLING_TICKS).save(recipeOutput, smelteryId("casting_copper_ingot"));
+        CastingRecipeBuilder.basin(fluidIngredient(moltenCopper, BLOCK_MB), new ItemStack(Items.COPPER_BLOCK), BASIN_COOLING_TICKS).save(recipeOutput, smelteryId("casting_copper_block"));
     }
 
     /**
@@ -343,7 +349,11 @@ public final class TinkerRecipeProvider extends RecipeProvider {
             int temperature = metal.temperature();
             meltingRecipe(recipeOutput, metal, "ingot", "ingots", molten, INGOT_MB, temperature);
             meltingRecipe(recipeOutput, metal, "block", "storage_blocks", molten, BLOCK_MB, temperature);
-            meltingRecipe(recipeOutput, metal, "nugget", "nuggets", molten, NUGGET_MB, temperature);
+            // Copper has no nugget — it is a vanilla material and vanilla ships no copper
+            // nugget, so c:nuggets/copper would be an empty tag with nothing to melt.
+            if (!"copper".equals(metal.id())) {
+                meltingRecipe(recipeOutput, metal, "nugget", "nuggets", molten, NUGGET_MB, temperature);
+            }
             meltingRecipe(recipeOutput, metal, "ore", "ores", molten, ORE_MB, temperature);
         }
     }

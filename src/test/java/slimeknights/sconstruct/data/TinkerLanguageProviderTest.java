@@ -263,7 +263,10 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-192 adds the two Jade plugin config-screen toggle labels (smeltery, seared
         // tank) = 2 more, for 328 total.
-        assertEquals(328, lang().entrySet().size());
+        //
+        // SMTCON-199 drops copper as a mod metal (vanilla material since MC 1.17), removing its
+        // ingot, nugget, and storage-block lang entries = 3 fewer, for 325 total.
+        assertEquals(325, lang().entrySet().size());
     }
 
     @Test

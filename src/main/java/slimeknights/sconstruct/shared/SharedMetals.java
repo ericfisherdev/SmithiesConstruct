@@ -9,7 +9,11 @@ import net.minecraft.world.level.material.MapColor;
  * {@link #ALL} to derive their per-metal output (blocks, items, tags, recipes, lang) — adding
  * a new metal means adding one entry here, not editing 6+ providers.
  *
- * <p>The list contains 15 entries. Per-row comments mark each as <strong>real-world</strong>
+ * <p>The list contains 14 entries. Copper is intentionally absent — it is a vanilla material
+ * since Minecraft 1.17, so the mod defers to {@code minecraft:copper_ingot} /
+ * {@code copper_block} rather than registering a duplicate. The molten-copper smeltery fluid
+ * and the copper tool material are kept; both consume vanilla copper via the
+ * {@code c:ingots/copper} common tag. Per-row comments mark each as <strong>real-world</strong>
  * (an element or alloy that exists outside Minecraft) or <strong>fictional</strong> (a
  * Tinkers' Construct invention). This distinction matters for the {@code c:} common-tag
  * decision in plan/03-shared-pulse: real-world metals are tagged in the shared {@code c:}
@@ -39,8 +43,6 @@ public final class SharedMetals {
             new Metal("pigiron", MapColor.TERRACOTTA_PINK, false, 0xef9e9b, false),
             // Real-world — Ag, atomic number 47.
             new Metal("silver", MapColor.SNOW, false, 0xd1ecf6, true),
-            // Real-world — Cu, atomic number 29.
-            new Metal("copper", MapColor.TERRACOTTA_ORANGE, false, 0xed9f07, true),
             // Real-world — Sn, atomic number 50.
             new Metal("tin", MapColor.COLOR_LIGHT_GRAY, false, 0xc1cddc, true),
             // Real-world — Zn, atomic number 30.
