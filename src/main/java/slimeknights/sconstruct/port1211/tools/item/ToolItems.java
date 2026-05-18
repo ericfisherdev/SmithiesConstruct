@@ -129,10 +129,9 @@ public final class ToolItems {
 
     @SubscribeEvent
     private static void populateCreativeTab(BuildCreativeModeTabContentsEvent event) {
-        if (!SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
-            return;
+        if (SharedTabs.GENERAL.getKey().equals(event.getTabKey()) || SharedTabs.TOOLS.getKey().equals(event.getTabKey())) {
+            acceptAll(event::accept);
         }
-        acceptAll(event::accept);
     }
 
     /** Test seam: count of registered tool items. */

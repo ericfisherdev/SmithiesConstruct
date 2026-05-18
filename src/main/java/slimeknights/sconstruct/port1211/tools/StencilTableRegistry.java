@@ -101,10 +101,9 @@ public final class StencilTableRegistry {
 
     @SubscribeEvent
     private static void populateCreativeTab(BuildCreativeModeTabContentsEvent event) {
-        if (!SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
-            return;
+        if (SharedTabs.GENERAL.getKey().equals(event.getTabKey()) || SharedTabs.TOOLS.getKey().equals(event.getTabKey())) {
+            acceptItems(event::accept);
         }
-        acceptItems(event::accept);
     }
 
     /** Returns the registered {@link Item} count this registry owns. Test seam. */

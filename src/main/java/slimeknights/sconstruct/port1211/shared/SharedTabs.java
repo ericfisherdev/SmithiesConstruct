@@ -14,30 +14,56 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import slimeknights.sconstruct.port1211.common.TinkerRegistries;
 
 /**
- * The mod's single user-facing creative tab. Every Phase-2 content surface
- * ({@link SharedBlocks} metal storage + decoratives, {@link SharedItems} ingots/nuggets/
- * slimeballs/misc/buckets) shows up here; Phase-3+ pulses will subscribe their own
- * {@link BuildCreativeModeTabContentsEvent} listeners against {@link #GENERAL} to add their
- * content to the same tab.
+ * The mod's four user-facing creative tabs. {@link #GENERAL} is the catch-all — every content
+ * surface in the mod shows up there. {@link #TOOLS}, {@link #PARTS}, and {@link #MATERIALS} are
+ * themed subsets that let players browse a slice of the content without scrolling the whole
+ * {@code GENERAL} tab.
  *
- * <p>The tab is registered with an empty {@code displayItems} lambda — population happens
- * exclusively through {@link BuildCreativeModeTabContentsEvent} listeners. That keeps the
- * tab decoupled from any single content class: a new pulse plugs in by subscribing a listener
- * rather than editing this file's builder call.
+ * <p>Every tab is registered with an empty {@code displayItems} lambda — population happens
+ * exclusively through {@link BuildCreativeModeTabContentsEvent} listeners. That keeps each tab
+ * decoupled from any single content class: a content class plugs into a tab by subscribing a
+ * listener that gates on the tab's key, rather than editing this file's builder calls.
  *
- * <p>Title comes from the lang key {@code itemGroup.sconstruct} (provided by the lang
- * provider in a later task) and the icon is a cobalt ingot — the most recognisable Tinkers
- * material in the legacy mod, picked over generic stone/wood so the tab is immediately
- * identifiable in the creative inventory's tab strip.
+ * <p>Routing: each content class adds its items to {@code GENERAL} (so nothing is ever missing
+ * from the catch-all) and, when relevant, also to the themed tab whose theme it belongs to.
+ * {@code SharedTabs} itself routes its materials-type items (ingots, nuggets, metal storage
+ * blocks, slimeballs) into {@link #MATERIALS}; decoratives and misc items stay {@code GENERAL}-only.
+ *
+ * <p>Titles come from lang keys {@code itemGroup.sconstruct[.tools|.parts|.materials]}. Icons
+ * are picked to be immediately identifiable in the creative tab strip: cobalt ingot for
+ * {@code GENERAL}, a pickaxe for {@code TOOLS}, a pick-head part for {@code PARTS}, a steel
+ * ingot for {@code MATERIALS}.
  */
 public final class SharedTabs {
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GENERAL = TinkerRegistries.CREATIVE_TABS.register("general",
             () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.sconstruct")).icon(() -> new ItemStack(SharedItems.INGOT_COBALT.get())).displayItems((params, output) -> {
                 // Empty — content is appended by the BuildCreativeModeTabContentsEvent
-                // listener at SharedTabs#populateContent. Phase-3+ pulses subscribe their own
-                // listeners against this tab's key, so a new pulse adds itself by registering
-                // an event handler rather than editing this builder call.
+                // listener at SharedTabs#populateContent and by every content class that
+                // gates a listener on this tab's key.
+            }).build());
+
+    /** Themed tab: every built tool plus the four workstation block-items. */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TOOLS = TinkerRegistries.CREATIVE_TABS.register("tools",
+            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.sconstruct.tools")).icon(() -> new ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE))
+                    .withTabsAfter(GENERAL.getKey()).displayItems((params, output) -> {
+                        // Empty — populated by the themed listener in tools.item.ToolItems and
+                        // the workstation registries.
+                    }).build());
+
+    /** Themed tab: the sixteen {@link slimeknights.sconstruct.port1211.tools.item.MaterialItem} tool parts. */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> PARTS = TinkerRegistries.CREATIVE_TABS.register("parts",
+            () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.sconstruct.parts"))
+                    .icon(() -> new ItemStack(slimeknights.sconstruct.port1211.tools.item.ToolParts.get(slimeknights.sconstruct.port1211.tools.PartType.PICKHEAD).get())).withTabsAfter(TOOLS.getKey())
+                    .displayItems((params, output) -> {
+                        // Empty — populated by the themed listener in tools.item.ToolParts.
+                    }).build());
+
+    /** Themed tab: ingots, nuggets, metal storage blocks, slimeballs, and slime-fluid buckets. */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MATERIALS = TinkerRegistries.CREATIVE_TABS.register("materials", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.sconstruct.materials")).icon(() -> new ItemStack(SharedItems.INGOT_STEEL.get())).withTabsAfter(PARTS.getKey()).displayItems((params, output) -> {
+                // Empty — populated by SharedTabs#populateContent (materials subset)
+                // and the world pulse's fluid-bucket listener.
             }).build());
 
     private SharedTabs() {
@@ -60,10 +86,26 @@ public final class SharedTabs {
 
     @SubscribeEvent
     private static void populateContent(BuildCreativeModeTabContentsEvent event) {
-        if (!GENERAL.getKey().equals(event.getTabKey())) {
-            return;
+        if (GENERAL.getKey().equals(event.getTabKey())) {
+            acceptAll(event::accept);
         }
-        acceptAll(event::accept);
+        else if (MATERIALS.getKey().equals(event.getTabKey())) {
+            acceptMaterials(event::accept);
+        }
+    }
+
+    /**
+     * Visits the materials-type subset of the shared-pulse content — metal storage blocks,
+     * ingots, nuggets, and slimeballs. Routed into {@link #MATERIALS}. Decoratives and misc
+     * items are intentionally excluded; they stay {@code GENERAL}-only. The slime-fluid buckets
+     * that round out the {@code MATERIALS} theme are added separately by the world pulse's own
+     * listener so {@code SharedTabs} need not reference the {@code world} package.
+     */
+    static void acceptMaterials(Consumer<ItemLike> accept) {
+        SharedBlocks.METAL_BLOCKS.values().forEach(block -> accept.accept(block.get()));
+        SharedItems.INGOTS.forEach(ingot -> accept.accept(ingot.get()));
+        SharedItems.NUGGETS.forEach(nugget -> accept.accept(nugget.get()));
+        SharedItems.SLIMEBALLS.forEach(slimeball -> accept.accept(slimeball.get()));
     }
 
     /**
