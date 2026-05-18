@@ -88,6 +88,14 @@ class TinkerItemModelProviderTest {
     }
 
     @Test
+    void shurikenIsAFlatSpriteModel() {
+        // SMTCON-198: the shuriken is a plain Item, not a ToolCore, so it rides the flat
+        // item/generated path rather than the layered ToolCore model. Pin that shape so it
+        // cannot silently drift onto the handheld tool model.
+        assertSpriteShape(ToolItems.SHURIKEN.getId().getPath() + ".json", "sconstruct:item/" + ToolItems.SHURIKEN.getId().getPath());
+    }
+
+    @Test
     void assembledToolsHaveOneLayerPerPartSlot() {
         // SMTCON-198: every ToolCore base model is a handheld model with exactly one item layer
         // per ToolDefinition part slot, each pointing at item/tool/<tool>/<N>. ToolBakedModel
