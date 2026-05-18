@@ -239,7 +239,11 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-162 adds the smeltery melt-time and cooling-time labels for the custom
         // Patchouli recipe pages = 2 more, for 305 total.
-        assertEquals(305, lang().entrySet().size());
+        //
+        // SMTCON-163 adds six labels for the custom modifier and tool-stats Patchouli pages
+        // (modifier row, unknown tool, materials, parts, modifier slots, not-a-tool) = 6 more,
+        // for 311 total.
+        assertEquals(311, lang().entrySet().size());
     }
 
     @Test
@@ -274,6 +278,18 @@ class TinkerLanguageProviderTest {
         JsonObject lang = lang();
         assertAll(() -> assertEquals("Time: %1$s", lang.get("gui.sconstruct.smeltery.time").getAsString()),
                 () -> assertEquals("Cooling: %1$s", lang.get("gui.sconstruct.smeltery.cooling").getAsString()));
+    }
+
+    @Test
+    void smtcon163BookLabelKeysArePinned() {
+        // Pin the six modifier / tool-stats page labels and their argument placeholders so a
+        // mistyped key or dropped format arg fails here rather than on the in-game book page.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("%1$s (Lv %2$s, cost %3$s)", lang.get("gui.sconstruct.book.modifier_row").getAsString()),
+                () -> assertEquals("Unknown tool: %1$s", lang.get("gui.sconstruct.book.unknown_tool").getAsString()),
+                () -> assertEquals("Materials:", lang.get("gui.sconstruct.book.materials").getAsString()), () -> assertEquals("Parts: %1$s", lang.get("gui.sconstruct.book.parts").getAsString()),
+                () -> assertEquals("Modifier slots: %1$s", lang.get("gui.sconstruct.book.modifier_slots").getAsString()),
+                () -> assertEquals("This item is not a buildable tool.", lang.get("gui.sconstruct.book.not_a_tool").getAsString()));
     }
 
     @Test
