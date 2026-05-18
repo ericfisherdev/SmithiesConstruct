@@ -1,6 +1,9 @@
 {
-  "parent": "minecraft:item/generated",
+  "apply_tint": true,
+  "flip_gas": false,
+  "fluid": "sconstruct:slime_magma",
+  "loader": "neoforge:fluid_container",
   "textures": {
-    "layer0": "sconstruct:item/slime_magma_bucket"
+    "base": "minecraft:item/bucket"
   }
 }
