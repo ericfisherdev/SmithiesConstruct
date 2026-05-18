@@ -50,18 +50,25 @@ class TinkerItemModelProviderTest {
     void slimeballsAndMiscItemsHaveParentGenerated() {
         assertAll(() -> assertSpriteShape("slimeball_blue.json", "sconstruct:item/slimeball_blue"), () -> assertSpriteShape("slimeball_purple.json", "sconstruct:item/slimeball_purple"),
                 () -> assertSpriteShape("slimeball_blood.json", "sconstruct:item/slimeball_blood"), () -> assertSpriteShape("slimeball_magma.json", "sconstruct:item/slimeball_magma"),
-                () -> assertSpriteShape("bacon.json", "sconstruct:item/bacon"), () -> assertSpriteShape("mudbrick.json", "sconstruct:item/mudbrick"),
-                () -> assertSpriteShape("blood_bucket.json", "sconstruct:item/blood_bucket"));
+                () -> assertSpriteShape("bacon.json", "sconstruct:item/bacon"), () -> assertSpriteShape("mudbrick.json", "sconstruct:item/mudbrick"));
     }
 
     @Test
-    void slimeFluidBucketsHaveParentGeneratedWithMatchingLayer0() {
-        // Each of the four coloured slime buckets should follow the flat-icon convention so
-        // the inventory render shows a tinted bucket sprite. Tinting itself is wired through
-        // the FluidType client extensions, not via per-colour PNGs — the model just points at
-        // the shared bucket sprite path under sconstruct:item/<bucket_id>.
-        assertAll(() -> assertSpriteShape("slime_blue_bucket.json", "sconstruct:item/slime_blue_bucket"), () -> assertSpriteShape("slime_purple_bucket.json", "sconstruct:item/slime_purple_bucket"),
-                () -> assertSpriteShape("slime_magma_bucket.json", "sconstruct:item/slime_magma_bucket"), () -> assertSpriteShape("slime_blood_bucket.json", "sconstruct:item/slime_blood_bucket"));
+    void bloodAndSlimeFluidBucketsUseFluidContainerLoader() {
+        // SMTCON-202: the blood bucket and the four slime buckets render through NeoForge's
+        // neoforge:fluid_container dynamic model — vanilla item/bucket base plus the fluid's own
+        // still sprite — replacing the flat single-colour placeholder sprites they shipped with.
+        assertAll(() -> assertFluidContainer("blood_bucket.json", "sconstruct:blood"), () -> assertFluidContainer("slime_blue_bucket.json", "sconstruct:slime_blue"),
+                () -> assertFluidContainer("slime_purple_bucket.json", "sconstruct:slime_purple"), () -> assertFluidContainer("slime_magma_bucket.json", "sconstruct:slime_magma"),
+                () -> assertFluidContainer("slime_blood_bucket.json", "sconstruct:slime_blood"));
+    }
+
+    private static void assertFluidContainer(String fileName, String expectedFluid) {
+        JsonObject model = load(fileName);
+        assertEquals("neoforge:fluid_container", model.get("loader").getAsString(), fileName + " loader");
+        assertEquals(expectedFluid, model.get("fluid").getAsString(), fileName + " fluid");
+        assertEquals(true, model.get("apply_tint").getAsBoolean(), fileName + " apply_tint");
+        assertEquals("minecraft:item/bucket", model.getAsJsonObject("textures").get("base").getAsString(), fileName + " base texture");
     }
 
     @Test
@@ -69,14 +76,7 @@ class TinkerItemModelProviderTest {
         // SMTCON-193: every molten-metal bucket renders through NeoForge's neoforge:fluid_container
         // dynamic model — vanilla item/bucket base layer plus the fluid's own still sprite, tinted
         // per metal. A regression that reverted to a flat sprite would demand 20 per-bucket PNGs.
-        assertAll(SmelteryFluids.ALL.stream().map(set -> () -> {
-            String bucketPath = set.bucket().getId().getPath();
-            JsonObject model = load(bucketPath + ".json");
-            assertEquals("neoforge:fluid_container", model.get("loader").getAsString(), bucketPath + " loader");
-            assertEquals(set.source().getId().toString(), model.get("fluid").getAsString(), bucketPath + " fluid");
-            assertEquals(true, model.get("apply_tint").getAsBoolean(), bucketPath + " apply_tint");
-            assertEquals("minecraft:item/bucket", model.getAsJsonObject("textures").get("base").getAsString(), bucketPath + " base texture");
-        }));
+        assertAll(SmelteryFluids.ALL.stream().map(set -> () -> assertFluidContainer(set.bucket().getId().getPath() + ".json", set.source().getId().toString())));
     }
 
     @Test

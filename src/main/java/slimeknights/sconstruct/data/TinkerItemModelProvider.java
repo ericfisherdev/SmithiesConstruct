@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -16,6 +17,7 @@ import slimeknights.sconstruct.SConstruct;
 import slimeknights.sconstruct.gadgets.GadgetBlocks;
 import slimeknights.sconstruct.gadgets.GadgetItems;
 import slimeknights.sconstruct.shared.SharedBlocks;
+import slimeknights.sconstruct.shared.SharedFluids;
 import slimeknights.sconstruct.shared.SharedItems;
 import slimeknights.sconstruct.smeltery.CastingBlocks;
 import slimeknights.sconstruct.smeltery.MoltenFluidSet;
@@ -74,14 +76,15 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         SharedItems.SLIMEBALLS.forEach(this::registerSpriteItem);
         registerSpriteItem(SharedItems.BACON);
         registerSpriteItem(SharedItems.MUDBRICK);
-        registerSpriteItem(SharedItems.BUCKET_BLOOD);
         registerSpriteItem(SharedItems.MATERIALS_BOOK);
 
-        // Phase-3 slime fluid buckets: one filled bucket per SlimeFluidSet. Each gets the
-        // same flat sprite treatment as BUCKET_BLOOD — runtime tinting lives in the fluid
-        // type / IClientFluidTypeExtensions wiring, not in the item model.
+        // SMTCON-202: the blood bucket and the four slime-fluid buckets render through NeoForge's
+        // neoforge:fluid_container dynamic model — an empty bucket base composited with the
+        // fluid's own still sprite — mirroring the molten-metal buckets. This replaces the flat
+        // single-colour placeholder sprites the buckets shipped with.
+        registerFluidBucket(SharedItems.BUCKET_BLOOD, SharedFluids.BLOOD.get());
         for (SlimeFluidSet set : WorldFluids.ALL) {
-            registerSpriteItem(set.bucket());
+            registerFluidBucket(set.bucket(), set.source().get());
         }
 
         // BlockItems. Each item model references the matching block model as its parent so
@@ -144,7 +147,7 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // by the fluid-type extension. No per-bucket PNG, mirroring the shared-texture-plus-tint
         // approach the molten fluids themselves use.
         for (MoltenFluidSet set : SmelteryFluids.ALL) {
-            registerMoltenBucket(set);
+            registerFluidBucket(set.bucket(), set.source().get());
         }
 
         // SMTCON-195: the 18 tool-part items. Each MaterialItem gets a flat item/generated
@@ -239,14 +242,14 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
     }
 
     /**
-     * Emit a {@code neoforge:fluid_container} dynamic model for one molten-metal bucket. The
+     * Emit a {@code neoforge:fluid_container} dynamic model for one filled fluid bucket. The
      * model composites the vanilla empty-bucket sprite ({@code minecraft:item/bucket}, the
      * {@code base} layer) with the fluid's own still texture, tinted by the fluid-type
-     * extension — so a single shared fluid sprite covers all 20 buckets with no per-bucket PNG.
+     * extension — so every bucket renders from its fluid's sprite with no per-bucket PNG.
      */
-    private void registerMoltenBucket(MoltenFluidSet set) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(set.bucket().get());
-        getBuilder(itemId.getPath()).texture("base", BUCKET_BASE_TEXTURE).customLoader(DynamicFluidContainerModelBuilder::begin).fluid(set.source().get()).applyTint(true).flipGas(false).end();
+    private void registerFluidBucket(DeferredItem<? extends Item> bucket, Fluid sourceFluid) {
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(bucket.get());
+        getBuilder(itemId.getPath()).texture("base", BUCKET_BASE_TEXTURE).customLoader(DynamicFluidContainerModelBuilder::begin).fluid(sourceFluid).applyTint(true).flipGas(false).end();
     }
 
     /**

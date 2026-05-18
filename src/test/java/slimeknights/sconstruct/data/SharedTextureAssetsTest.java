@@ -19,7 +19,6 @@ import slimeknights.sconstruct.shared.SharedItems;
 import slimeknights.sconstruct.shared.SharedMetals;
 import slimeknights.sconstruct.tools.PartType;
 import slimeknights.sconstruct.tools.item.ToolItems;
-import slimeknights.sconstruct.world.SlimeFluidSet;
 import slimeknights.sconstruct.world.WorldFluids;
 import slimeknights.sconstruct.world.block.SlimeColor;
 
@@ -184,7 +183,9 @@ class SharedTextureAssetsTest {
     }
 
     @Test
-    void slimeballsBaconMudbrickBloodBucketHaveItemTextures() {
+    void slimeballsBaconAndMudbrickHaveItemTextures() {
+        // SMTCON-202: the blood bucket is no longer a flat sprite — it renders through the
+        // neoforge:fluid_container model, so it has no item/blood_bucket.png to assert.
         assertAll(
                 () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png"),
                         ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_BLUE.getId().getPath() + ".png missing"),
@@ -196,9 +197,7 @@ class SharedTextureAssetsTest {
                         ITEM_TEXTURE_ROOT + SharedItems.SLIMEBALL_MAGMA.getId().getPath() + ".png missing"),
                 () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png"), ITEM_TEXTURE_ROOT + SharedItems.BACON.getId().getPath() + ".png missing"),
                 () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png"),
-                        ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png missing"),
-                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png"),
-                        ITEM_TEXTURE_ROOT + SharedItems.BUCKET_BLOOD.getId().getPath() + ".png missing"));
+                        ITEM_TEXTURE_ROOT + SharedItems.MUDBRICK.getId().getPath() + ".png missing"));
     }
 
     @Test
@@ -243,16 +242,6 @@ class SharedTextureAssetsTest {
         // every molten metal as the missing-texture sprite in-world and in its bucket.
         assertAll(java.util.stream.Stream.of("fluid/molten_metal_still.png", "fluid/molten_metal_flow.png", "fluid/molten_metal_still.png.mcmeta", "fluid/molten_metal_flow.png.mcmeta")
                 .map(path -> () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + path), BLOCK_TEXTURE_ROOT + path + " missing")));
-    }
-
-    @Test
-    void slimeFluidBucketItemTexturesArePresent() {
-        // Generated from blood_bucket.png via BT.601 desaturate + per-fluid tint multiply.
-        // Without these PNGs, the four slime bucket items render the missing-texture sprite.
-        assertAll(WorldFluids.ALL.stream().map((SlimeFluidSet set) -> () -> {
-            String path = set.bucket().getId().getPath();
-            assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + path + ".png"), ITEM_TEXTURE_ROOT + path + ".png missing");
-        }));
     }
 
     @Test
