@@ -62,7 +62,6 @@ public final class SharedBlocks {
     public static final DeferredBlock<Block> KNIGHTSLIME = metalBlock("knightslime");
     public static final DeferredBlock<Block> PIGIRON = metalBlock("pigiron");
     public static final DeferredBlock<Block> SILVER = metalBlock("silver");
-    public static final DeferredBlock<Block> COPPER = metalBlock("copper");
     public static final DeferredBlock<Block> TIN = metalBlock("tin");
     public static final DeferredBlock<Block> ZINC = metalBlock("zinc");
     public static final DeferredBlock<Block> BRASS = metalBlock("brass");

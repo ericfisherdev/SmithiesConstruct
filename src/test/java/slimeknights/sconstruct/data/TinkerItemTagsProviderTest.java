@@ -39,9 +39,9 @@ class TinkerItemTagsProviderTest {
     void realWorldMetalsLiveUnderTheCommonNamespace() {
         // Per plan/12: real-world metals get c:ingots/... so other mods can interop. A future
         // refactor that demotes one of these to sconstruct: would silently break recipe
-        // ingredients pointing at c:ingots/copper.
-        assertAll(() -> assertEquals(Set.of("sconstruct:ingot_copper"), loadValues("data/c/tags/item/ingots/copper.json")),
-                () -> assertEquals(Set.of("sconstruct:ingot_silver"), loadValues("data/c/tags/item/ingots/silver.json")),
+        // ingredients pointing at the common namespace. Copper is excluded — it is a vanilla
+        // material, so the mod no longer registers a copper ingot or its c:ingots/copper tag.
+        assertAll(() -> assertEquals(Set.of("sconstruct:ingot_silver"), loadValues("data/c/tags/item/ingots/silver.json")),
                 () -> assertEquals(Set.of("sconstruct:ingot_steel"), loadValues("data/c/tags/item/ingots/steel.json")),
                 () -> assertEquals(Set.of("sconstruct:nugget_lead"), loadValues("data/c/tags/item/nuggets/lead.json")));
     }

@@ -8,6 +8,6 @@
   "is_basin": true,
   "output": {
     "count": 1,
-    "id": "sconstruct:block_copper"
+    "id": "minecraft:copper_block"
   }
 }

@@ -8,6 +8,6 @@
   "is_basin": false,
   "output": {
     "count": 1,
-    "id": "sconstruct:ingot_copper"
+    "id": "minecraft:copper_ingot"
   }
 }

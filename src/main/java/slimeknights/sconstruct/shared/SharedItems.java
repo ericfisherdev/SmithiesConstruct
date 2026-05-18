@@ -65,7 +65,6 @@ public final class SharedItems {
     public static final DeferredItem<Item> INGOT_KNIGHTSLIME = ingot("knightslime");
     public static final DeferredItem<Item> INGOT_PIGIRON = ingot("pigiron");
     public static final DeferredItem<Item> INGOT_SILVER = ingot("silver");
-    public static final DeferredItem<Item> INGOT_COPPER = ingot("copper");
     public static final DeferredItem<Item> INGOT_TIN = ingot("tin");
     public static final DeferredItem<Item> INGOT_ZINC = ingot("zinc");
     public static final DeferredItem<Item> INGOT_BRASS = ingot("brass");
@@ -81,7 +80,6 @@ public final class SharedItems {
     public static final DeferredItem<Item> NUGGET_KNIGHTSLIME = nugget("knightslime");
     public static final DeferredItem<Item> NUGGET_PIGIRON = nugget("pigiron");
     public static final DeferredItem<Item> NUGGET_SILVER = nugget("silver");
-    public static final DeferredItem<Item> NUGGET_COPPER = nugget("copper");
     public static final DeferredItem<Item> NUGGET_TIN = nugget("tin");
     public static final DeferredItem<Item> NUGGET_ZINC = nugget("zinc");
     public static final DeferredItem<Item> NUGGET_BRASS = nugget("brass");

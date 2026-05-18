@@ -133,7 +133,7 @@ class TinkerRecipeProviderTest {
         // ingot↔nugget recipes regardless of block presence. This is a tighter guard than
         // counting alone — a future renamed metal id would fail the resource lookup directly.
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        String[] metalIds = { "cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "silver", "copper", "tin", "zinc", "brass", "alubrass", "electrum", "steel", "lead", "nickel" };
+        String[] metalIds = { "cobalt", "ardite", "manyullyn", "knightslime", "pigiron", "silver", "tin", "zinc", "brass", "alubrass", "electrum", "steel", "lead", "nickel" };
         for (String id : metalIds) {
             assertNotNull(cl.getResource(RECIPE_ROOT + "ingot_" + id + "_from_nuggets.json"), "ingot_" + id + "_from_nuggets.json missing");
             assertNotNull(cl.getResource(RECIPE_ROOT + "nugget_" + id + ".json"), "nugget_" + id + ".json missing");
@@ -154,13 +154,22 @@ class TinkerRecipeProviderTest {
     }
 
     @Test
-    void everyMoltenMetalHasItsFourMeltingForms() {
+    void everyMoltenMetalHasItsMeltingForms() {
         // Iterate the canonical metal list directly so this stays correct as metals are
-        // added or removed — each emits an ingot / block / nugget / ore melting recipe.
+        // added or removed — each emits ingot / block / nugget / ore melting recipes. Copper
+        // is the exception: it is a vanilla material with no copper nugget, so it ships only
+        // the ingot / block / ore forms.
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         for (MoltenMetal metal : MoltenMetals.ALL) {
+            boolean isCopper = "copper".equals(metal.id());
             for (String form : new String[] { "ingot", "block", "nugget", "ore" }) {
-                assertNotNull(cl.getResource(RECIPE_ROOT + "melting_" + metal.id() + "_" + form + ".json"), "melting_" + metal.id() + "_" + form + ".json missing");
+                String recipe = RECIPE_ROOT + "melting_" + metal.id() + "_" + form + ".json";
+                if (isCopper && "nugget".equals(form)) {
+                    assertNull(cl.getResource(recipe), "copper has no nugget — melting_copper_nugget must not be generated");
+                }
+                else {
+                    assertNotNull(cl.getResource(recipe), "melting_" + metal.id() + "_" + form + ".json missing");
+                }
             }
         }
     }
