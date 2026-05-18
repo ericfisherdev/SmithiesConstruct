@@ -193,10 +193,10 @@ public abstract class AbstractCastingBlockEntity extends BlockEntity {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (level.getGameTime() % BUBBLE_EMIT_INTERVAL != 0) {
+        BlockPos pos = getBlockPos();
+        if (!ParticleEmission.shouldEmitThisTick(pos, level.getGameTime(), BUBBLE_EMIT_INTERVAL)) {
             return;
         }
-        BlockPos pos = getBlockPos();
         double x = pos.getX() + 0.5D;
         // Bubbles rise off the metal pooled at the top of the cast block.
         double y = pos.getY() + 0.9D;

@@ -353,10 +353,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         if (!isAssembled() || currentTemperature <= SMOKE_TEMPERATURE_THRESHOLD || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (level.getGameTime() % SMOKE_EMIT_INTERVAL != 0) {
+        BlockPos pos = getBlockPos();
+        if (!ParticleEmission.shouldEmitThisTick(pos, level.getGameTime(), SMOKE_EMIT_INTERVAL)) {
             return;
         }
-        BlockPos pos = getBlockPos();
         double x = pos.getX() + 0.5D;
         double y = pos.getY() + 1.0D;
         double z = pos.getZ() + 0.5D;
