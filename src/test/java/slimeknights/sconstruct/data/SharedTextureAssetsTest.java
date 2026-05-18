@@ -69,6 +69,15 @@ class SharedTextureAssetsTest {
     }
 
     @Test
+    void castingBlockAndPatternTexturesArePresent() {
+        // SMTCON-196: the two cube_all casting blocks plus the blank pattern sprite (shared by
+        // the typed pattern item). Drift here renders them as the missing-texture sprite.
+        assertAll(() -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "casting_table.png"), BLOCK_TEXTURE_ROOT + "casting_table.png missing"),
+                () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + "casting_basin.png"), BLOCK_TEXTURE_ROOT + "casting_basin.png missing"),
+                () -> assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + "blank_pattern.png"), ITEM_TEXTURE_ROOT + "blank_pattern.png missing"));
+    }
+
+    @Test
     void bloodFluidTexturesAndAnimationStillPresent() {
         // Shipped earlier by SMTCON-39; pin here so a future texture refactor doesn't
         // accidentally rebase the fluid into the wrong subdirectory.
