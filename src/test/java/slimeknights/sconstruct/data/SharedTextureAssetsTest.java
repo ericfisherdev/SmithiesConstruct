@@ -69,6 +69,14 @@ class SharedTextureAssetsTest {
     }
 
     @Test
+    void everySmelteryComponentHasABlockTexture() {
+        // SMTCON-197: the six SmelteryComponents blocks, each modelled as a horizontal cube_all
+        // with one texture per id. Drift here renders the component as the missing-texture sprite.
+        assertAll(java.util.stream.Stream.of("smeltery_controller", "seared_tank_io", "seared_tank_in", "seared_tank_gauge", "seared_drain", "seared_chute")
+                .map(id -> () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + id + ".png"), BLOCK_TEXTURE_ROOT + id + ".png missing")));
+    }
+
+    @Test
     void castingBlockAndPatternTexturesArePresent() {
         // SMTCON-196: the two cube_all casting blocks plus the blank pattern sprite (shared by
         // the typed pattern item). Drift here renders them as the missing-texture sprite.
