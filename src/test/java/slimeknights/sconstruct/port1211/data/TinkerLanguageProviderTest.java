@@ -267,6 +267,16 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void smtcon162SmelteryLabelKeysArePinned() {
+        // The count check can't catch a mistyped melt-time / cooling-time key — pin both keys
+        // and their format strings so a typo fails here rather than rendering raw key-text on
+        // the custom Patchouli recipe pages.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Time: %1$s", lang.get("gui.sconstruct.smeltery.time").getAsString()),
+                () -> assertEquals("Cooling: %1$s", lang.get("gui.sconstruct.smeltery.cooling").getAsString()));
+    }
+
+    @Test
     void smelteryDisplayNamesArePinned() {
         // SMTCON-129: a raw count check can't catch a wrong key/value pair. Pin one representative
         // entry per smeltery surface — a seared block, a component, a molten-fluid block, and a
