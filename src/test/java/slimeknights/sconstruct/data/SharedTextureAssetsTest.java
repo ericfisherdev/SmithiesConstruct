@@ -2,6 +2,15 @@ package slimeknights.sconstruct.data;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 
@@ -136,6 +145,42 @@ class SharedTextureAssetsTest {
             assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + ingot + ".png"), ingot + ".png missing");
             assertNotNull(loader().getResource(ITEM_TEXTURE_ROOT + nugget + ".png"), nugget + ".png missing");
         }));
+    }
+
+    @Test
+    void metalIngotNuggetAndBlockTexturesAreShapedSpritesNotFlatSwatches() {
+        // SMTCON-200: every metal ingot, nugget, and storage-block texture must be a shaped
+        // sprite. A single-colour image is a leftover placeholder swatch — it renders as a
+        // plain coloured square in the creative menu instead of a real ingot/nugget/block icon.
+        assertAll(SharedMetals.ALL.stream().flatMap(metal -> {
+            java.util.List<String> paths = new java.util.ArrayList<>();
+            paths.add(ITEM_TEXTURE_ROOT + "ingot_" + metal.id() + ".png");
+            paths.add(ITEM_TEXTURE_ROOT + "nugget_" + metal.id() + ".png");
+            if (SharedBlocks.METAL_BLOCKS.containsKey(metal.id())) {
+                paths.add(BLOCK_TEXTURE_ROOT + "block_" + metal.id() + ".png");
+            }
+            return paths.stream().map(path -> () -> assertTrue(distinctColours(path) > 1, path + " is a flat single-colour placeholder swatch, not a shaped sprite"));
+        }));
+    }
+
+    /** Count of distinct ARGB pixel values in a classpath texture — 1 means a flat colour swatch. */
+    private static int distinctColours(String resource) {
+        URL url = loader().getResource(resource);
+        assertNotNull(url, resource + " missing");
+        try {
+            BufferedImage img = ImageIO.read(url);
+            assertNotNull(img, resource + " is not a readable image");
+            Set<Integer> colours = new HashSet<>();
+            for (int y = 0; y < img.getHeight(); y++) {
+                for (int x = 0; x < img.getWidth(); x++) {
+                    colours.add(img.getRGB(x, y));
+                }
+            }
+            return colours.size();
+        }
+        catch (IOException e) {
+            throw new AssertionError("failed reading " + resource, e);
+        }
     }
 
     @Test
