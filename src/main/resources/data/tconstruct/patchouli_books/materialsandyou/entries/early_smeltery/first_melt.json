@@ -1,0 +1,16 @@
+{
+  "name": "Your First Melt",
+  "icon": "minecraft:iron_ingot",
+  "category": "tconstruct:early_smeltery",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Fill a tank with a fuel such as lava, then drop ore or ingots into the smeltery's melting slots. Once the structure is hot enough they melt into molten metal."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Attach a faucet to a drain and place a casting table beneath it. Right-click the faucet to pour the molten metal onto the table and cast it into a part or an ingot."
+    }
+  ]
+}

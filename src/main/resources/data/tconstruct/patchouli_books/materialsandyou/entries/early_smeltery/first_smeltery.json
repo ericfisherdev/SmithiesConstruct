@@ -1,0 +1,20 @@
+{
+  "name": "Your First Smeltery",
+  "icon": "sconstruct:smeltery_controller",
+  "category": "tconstruct:early_smeltery",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Start small. A 3x3 floor with walls two blocks high is a perfectly valid smeltery and is cheap enough to build with your first batch of seared bricks."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Lay a solid seared-brick floor, raise the walls, add one tank for fuel, place a drain, and set the controller in a wall. Right-click the controller to open it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A small smeltery melts only a few items at a time, but it is enough to cast your first metal tool parts. Expand it later as you gather more seared brick."
+    }
+  ]
+}

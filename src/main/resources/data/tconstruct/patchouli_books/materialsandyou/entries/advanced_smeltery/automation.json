@@ -1,0 +1,20 @@
+{
+  "name": "Faucets and Drains",
+  "icon": "sconstruct:seared_drain",
+  "category": "tconstruct:advanced_smeltery",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Drains let fluid leave the smeltery; a faucet attached to a drain pours that fluid into a casting table or basin below it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A redstone signal on a faucet makes it pour automatically, so a smeltery wired to a casting table can cast a steady stream of parts without you clicking each time."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Drains also accept fluid pipes from other mods, letting you pump molten metal in and out of the structure for larger automated setups."
+    }
+  ]
+}
