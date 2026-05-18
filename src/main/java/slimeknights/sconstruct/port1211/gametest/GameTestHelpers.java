@@ -92,6 +92,10 @@ public final class GameTestHelpers {
      * {@link FluidStack#getAmount()}. Summing rather than reading tank 0 keeps the assertion
      * correct for multi-tank handlers (a smeltery controller exposes one tank per molten
      * metal).
+     *
+     * <p>Any non-empty tank holding a fluid other than {@code expected} fails the test
+     * immediately — an "exactly expected" assertion that silently tolerated a stray fluid
+     * would mask the very contamination regression these tests exist to catch.
      */
     public static void assertTank(GameTestHelper helper, BlockPos pos, FluidStack expected) {
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), null);
@@ -99,8 +103,14 @@ public final class GameTestHelpers {
         int total = 0;
         for (int tank = 0; tank < handler.getTanks(); tank++) {
             FluidStack contents = handler.getFluidInTank(tank);
+            if (contents.isEmpty()) {
+                continue;
+            }
             if (FluidStack.isSameFluid(contents, expected)) {
                 total += contents.getAmount();
+            }
+            else {
+                helper.fail("tank at " + pos + " holds unexpected fluid " + contents.getFluid() + " in tank " + tank);
             }
         }
         helper.assertValueEqual(total, expected.getAmount(), "tank at " + pos + " holds the expected amount of " + expected.getFluid());
