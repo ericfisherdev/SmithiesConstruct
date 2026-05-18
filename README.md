@@ -1,6 +1,6 @@
 # Smithies' Construct
 
-A NeoForge **1.21.1** port of [Tinkers' Construct](https://www.curseforge.com/minecraft/mc-mods/tinkers-construct) (originally by SlimeKnights), rebuilt from the mod's 1.12.2 release. Active port code lives under `src/main/java/slimeknights/sconstruct/port1211/` (mod id `sconstruct`); the legacy 1.12 codebase is preserved in-repo as frozen reference.
+A NeoForge **1.21.1** port of [Tinkers' Construct](https://www.curseforge.com/minecraft/mc-mods/tinkers-construct) (originally by SlimeKnights), rebuilt from the mod's 1.12.2 release. Active port code lives under `src/main/java/slimeknights/sconstruct/` (mod id `sconstruct`); the legacy 1.12 codebase is preserved in-repo as frozen reference.
 
 > ⚠️ **Worlds and inventories from the 1.12 release of this mod cannot be migrated.**
 > The port moved tool data from raw NBT to vanilla `DataComponents` and materials to datapack

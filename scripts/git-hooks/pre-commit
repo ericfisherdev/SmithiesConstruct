@@ -2,7 +2,7 @@
 #
 # Pre-commit hook for SmithiesConstruct port-1.21.1.
 # Mirrors the CI gates defined in .github/workflows/ci.yml:
-#   1. PMD on src/main/java/.../port1211/** and src/test/java/**, filtered to
+#   1. PMD on src/main/java/.../sconstruct/** and src/test/java/**, filtered to
 #      staged-diff lines via reviewdog (matches CI's filter-mode=added).
 #   2. JUnit suite via ./gradlew test.
 #
@@ -26,8 +26,8 @@ fail()  { printf '%spre-commit:%s %s\n' "$RED"    "$RESET" "$*" >&2; }
 
 mapfile -t STAGED_JAVA < <(
     git diff --cached --name-only --diff-filter=ACMR -- \
-        'src/main/java/slimeknights/sconstruct/port1211/*.java' \
-        'src/main/java/slimeknights/sconstruct/port1211/**/*.java' \
+        'src/main/java/slimeknights/sconstruct/*.java' \
+        'src/main/java/slimeknights/sconstruct/**/*.java' \
         'src/test/java/**/*.java' || true
 )
 
@@ -52,7 +52,7 @@ if [[ ${#STAGED_JAVA[@]} -gt 0 ]]; then
         exit 1
     fi
 else
-    info "No staged Java files under port1211/** or src/test/** — skipping Spotless + PMD."
+    info "No staged Java files under sconstruct/** or src/test/** — skipping Spotless + PMD."
 fi
 
 info "Running JUnit suite (./gradlew test)…"

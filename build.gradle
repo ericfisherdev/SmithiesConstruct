@@ -69,9 +69,9 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 // Legacy 1.12 sources under src/main/java/slimeknights/tconstruct/** are kept on disk
 // for reference but excluded from the 1.21.1 build. The active port lives under
-// slimeknights/sconstruct/ — widen this include as packages get ported.
+// slimeknights/sconstruct/.
 sourceSets.main.java {
-    include 'slimeknights/sconstruct/port1211/**'
+    include 'slimeknights/sconstruct/**'
 }
 
 repositories {
@@ -188,7 +188,7 @@ pmd {
 }
 
 tasks.named('pmdMain', Pmd) {
-    source = fileTree(dir: 'src/main/java/slimeknights/sconstruct/port1211', include: '**/*.java')
+    source = fileTree(dir: 'src/main/java/slimeknights/sconstruct', include: '**/*.java')
     reports {
         xml.required = true
         html.required = false
@@ -205,7 +205,7 @@ tasks.named('pmdTest', Pmd) {
 
 spotless {
     java {
-        target 'src/main/java/slimeknights/sconstruct/port1211/**/*.java',
+        target 'src/main/java/slimeknights/sconstruct/**/*.java',
                'src/test/java/**/*.java'
         eclipse().configFile('eclipse_formatter.xml')
         importOrder 'java', 'javax', 'net', 'org', 'com', 'slimeknights'

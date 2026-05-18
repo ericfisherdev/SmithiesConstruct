@@ -38,7 +38,7 @@ test:
   - changed-files:
       - any-glob-to-any-file:
           - 'src/test/**'
-          - 'src/main/java/slimeknights/sconstruct/port1211/gametest/**'
+          - 'src/main/java/slimeknights/sconstruct/gametest/**'
           - 'src/main/resources/data/sconstruct/structure/**'
 
 # Every PR against 1.21.1 is a port PR by definition.
@@ -56,9 +56,9 @@ phase-0:
           - '.github/**'
           - 'src/main/resources/pack.mcmeta'
           - 'src/main/resources/META-INF/**'
-          - 'src/main/java/slimeknights/sconstruct/port1211/SConstruct.java'
-          - 'src/main/java/slimeknights/sconstruct/port1211/data/**'
-          - 'src/main/java/slimeknights/sconstruct/port1211/gametest/**'
+          - 'src/main/java/slimeknights/sconstruct/SConstruct.java'
+          - 'src/main/java/slimeknights/sconstruct/data/**'
+          - 'src/main/java/slimeknights/sconstruct/gametest/**'
           - 'src/test/**'
 
 documentation:
