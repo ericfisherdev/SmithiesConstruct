@@ -19,6 +19,22 @@
       "amount": 90,
       "output": "minecraft:iron_ingot",
       "cooling_time": 80
+    },
+    {
+      "type": "tconstruct:casting",
+      "title": "Example: Casting Gold",
+      "fluid": "sconstruct:molten_gold",
+      "amount": 90,
+      "output": "minecraft:gold_ingot",
+      "cooling_time": 80
+    },
+    {
+      "type": "tconstruct:casting",
+      "title": "Example: Casting Copper",
+      "fluid": "sconstruct:molten_copper",
+      "amount": 90,
+      "output": "minecraft:copper_ingot",
+      "cooling_time": 80
     }
   ]
 }

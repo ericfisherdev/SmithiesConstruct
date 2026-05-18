@@ -20,6 +20,24 @@
       "amount": 90,
       "temperature": 800,
       "time": 100
+    },
+    {
+      "type": "tconstruct:melting",
+      "title": "Example: Melting Gold",
+      "input": "minecraft:gold_ingot",
+      "output": "sconstruct:molten_gold",
+      "amount": 90,
+      "temperature": 800,
+      "time": 100
+    },
+    {
+      "type": "tconstruct:melting",
+      "title": "Example: Melting Copper",
+      "input": "minecraft:copper_ingot",
+      "output": "sconstruct:molten_copper",
+      "amount": 90,
+      "temperature": 750,
+      "time": 100
     }
   ]
 }

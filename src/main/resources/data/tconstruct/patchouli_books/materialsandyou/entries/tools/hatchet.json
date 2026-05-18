@@ -11,6 +11,16 @@
     {
       "type": "patchouli:text",
       "text": "$(l)Properties$()$(br2)- Basic chopping tool$(br)- Effective on wood and leaves$(br)- Breaks leaves without using durability$(br)- Disables an opponent's shield in combat"
+    },
+    {
+      "type": "tconstruct:tool_stats",
+      "title": "Example: Iron Hatchet",
+      "tool": "sconstruct:axe",
+      "materials": [
+        "tconstruct:iron",
+        "tconstruct:iron",
+        "tconstruct:wood"
+      ]
     }
   ]
 }
