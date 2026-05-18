@@ -42,6 +42,7 @@ import slimeknights.sconstruct.port1211.tools.inventory.client.ToolStationScreen
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -76,8 +77,12 @@ public class SmithiesJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
-        registration.addRecipeCategories(new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper), new AlloyCategory(guiHelper),
-                new ToolBuildingCategory(guiHelper), new PartBuilderCategory(guiHelper), new ModifierCategory(guiHelper), new DryingRackCategory(guiHelper));
+        IRecipeCategory<?>[] categories = { new MeltingCategory(guiHelper), new CastingTableCategory(guiHelper), new CastingBasinCategory(guiHelper), new AlloyCategory(guiHelper),
+                new ToolBuildingCategory(guiHelper), new PartBuilderCategory(guiHelper), new ModifierCategory(guiHelper), new DryingRackCategory(guiHelper) };
+        registration.addRecipeCategories(categories);
+        // SMTCON-171 smoke check: surface the registered count in the client log so a dropped
+        // category shows up as a number lower than the expected eight rather than silently.
+        LOGGER.info("Smithies' Construct JEI plugin: registered {} recipe categories", categories.length);
     }
 
     @Override
@@ -96,6 +101,7 @@ public class SmithiesJeiPlugin implements IModPlugin {
         registration.addRecipes(ToolBuildingCategory.TYPE, ToolBuildingCatalog.entries());
         registration.addRecipes(PartBuilderCategory.TYPE, PartBuilderCatalog.entries());
         registration.addRecipes(ModifierCategory.TYPE, ModifierCatalog.entries());
+        LOGGER.info("Smithies' Construct JEI plugin: registered recipe lists for all categories");
     }
 
     @Override
@@ -108,6 +114,7 @@ public class SmithiesJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(ToolStationRegistry.TOOL_FORGE.get(), ToolBuildingCategory.TYPE, ModifierCategory.TYPE);
         registration.addRecipeCatalyst(PartBuilderRegistry.PART_BUILDER.get(), PartBuilderCategory.TYPE);
         registration.addRecipeCatalyst(GadgetBlocks.DRYING_RACK.get(), DryingRackCategory.TYPE);
+        LOGGER.info("Smithies' Construct JEI plugin: registered workstation recipe catalysts");
     }
 
     @Override
