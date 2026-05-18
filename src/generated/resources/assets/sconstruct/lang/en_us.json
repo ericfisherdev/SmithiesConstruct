@@ -105,6 +105,8 @@
   "book.tconstruct.materialsandyou.name": "Materials and You",
   "button.sconstruct.tool_station.build": "Build",
   "button.sconstruct.tool_station.modify": "Modify",
+  "config.jade.plugin_sconstruct.seared_tank": "Seared Tank",
+  "config.jade.plugin_sconstruct.smeltery": "Smeltery",
   "container.sconstruct.part_builder": "Part Builder",
   "container.sconstruct.pattern_chest": "Pattern Chest",
   "container.sconstruct.smeltery": "Smeltery",
