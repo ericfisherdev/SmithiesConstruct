@@ -55,7 +55,7 @@ class PatchouliBookValidationTest {
         assertFalse(categories.isEmpty(), "the book must ship at least one category");
         assertAll(categories.stream().map(path -> () -> {
             JsonObject category = parse(path);
-            assertTrue(category.has("name") && category.get("name").isJsonPrimitive(), path + " must declare a string name");
+            assertTrue(isStringField(category, "name"), path + " must declare a string name");
         }));
     }
 
@@ -66,9 +66,9 @@ class PatchouliBookValidationTest {
         assertFalse(entries.isEmpty(), "the book must ship at least one entry");
         assertAll(entries.stream().map(path -> () -> {
             JsonObject entry = parse(path);
-            assertTrue(entry.has("name") && entry.get("name").isJsonPrimitive(), path + " must declare a string name");
+            assertTrue(isStringField(entry, "name"), path + " must declare a string name");
 
-            assertTrue(entry.has("category") && entry.get("category").isJsonPrimitive(), path + " must declare a category");
+            assertTrue(isStringField(entry, "category"), path + " must declare a string category");
             String category = entry.get("category").getAsString();
             assertTrue(categoryIds.contains(category), path + " references unknown category '" + category + "'");
 
@@ -77,7 +77,7 @@ class PatchouliBookValidationTest {
             for (JsonElement page : entry.getAsJsonArray("pages")) {
                 assertTrue(page.isJsonObject(), path + " has a non-object page");
                 JsonObject pageObject = page.getAsJsonObject();
-                assertTrue(pageObject.has("type") && pageObject.get("type").isJsonPrimitive(), path + " has a page with no type");
+                assertTrue(isStringField(pageObject, "type"), path + " has a page with no string type");
                 String type = pageObject.get("type").getAsString();
                 assertFalse(type.isBlank(), path + " has a page with a blank type");
                 // A tconstruct: page type must be one of the registered custom types; a typo
@@ -93,7 +93,16 @@ class PatchouliBookValidationTest {
     void eachCustomPageTypeHasAtLeastThreeInstances() {
         Map<String, Integer> counts = new HashMap<>();
         for (Path path : jsonFilesIn(bookRoot().resolve("entries"))) {
-            for (JsonElement page : parse(path).getAsJsonArray("pages")) {
+            JsonElement pages = parse(path).get("pages");
+            // Skip a malformed entry rather than crashing here — everyEntryIsWellFormed() is the
+            // test that reports the structural problem, so this count stays a clean signal.
+            if (pages == null || !pages.isJsonArray()) {
+                continue;
+            }
+            for (JsonElement page : pages.getAsJsonArray()) {
+                if (!page.isJsonObject() || !isStringField(page.getAsJsonObject(), "type")) {
+                    continue;
+                }
                 String type = page.getAsJsonObject().get("type").getAsString();
                 if (CUSTOM_PAGE_TYPES.contains(type)) {
                     counts.merge(type, 1, Integer::sum);
@@ -140,11 +149,19 @@ class PatchouliBookValidationTest {
     }
 
     private static JsonObject parse(Path path) {
+        JsonElement parsed;
         try {
-            return GSON.fromJson(Files.readString(path), JsonObject.class);
+            parsed = GSON.fromJson(Files.readString(path), JsonElement.class);
         }
         catch (IOException e) {
             throw new UncheckedIOException("failed to read book file " + path, e);
         }
+        assertTrue(parsed != null && parsed.isJsonObject(), path + " is not a JSON object");
+        return parsed.getAsJsonObject();
+    }
+
+    /** Whether {@code object} has {@code key} set to a JSON string (not a number or boolean). */
+    private static boolean isStringField(JsonObject object, String key) {
+        return object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isString();
     }
 }
