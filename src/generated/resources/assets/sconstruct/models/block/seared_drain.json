@@ -1,6 +1,9 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/orientable",
   "textures": {
-    "all": "sconstruct:block/seared_drain"
+    "front": "sconstruct:block/seared_drain",
+    "particle": "sconstruct:block/seared_drain",
+    "side": "sconstruct:block/seared_brick",
+    "top": "sconstruct:block/seared_brick"
   }
 }

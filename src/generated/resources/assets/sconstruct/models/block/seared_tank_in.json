@@ -1,6 +1,10 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/orientable",
+  "render_type": "minecraft:cutout",
   "textures": {
-    "all": "sconstruct:block/seared_tank_in"
+    "front": "sconstruct:block/seared_tank_in",
+    "particle": "sconstruct:block/seared_tank_in",
+    "side": "sconstruct:block/seared_brick",
+    "top": "sconstruct:block/seared_brick"
   }
 }

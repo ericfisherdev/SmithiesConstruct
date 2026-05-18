@@ -1,6 +1,9 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/orientable",
   "textures": {
-    "all": "sconstruct:block/seared_tank_io"
+    "front": "sconstruct:block/seared_tank_io",
+    "particle": "sconstruct:block/seared_tank_io",
+    "side": "sconstruct:block/seared_brick",
+    "top": "sconstruct:block/seared_brick"
   }
 }

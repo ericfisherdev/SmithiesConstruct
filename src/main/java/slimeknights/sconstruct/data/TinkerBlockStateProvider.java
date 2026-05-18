@@ -111,8 +111,7 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
 
         // SMTCON-129: the smeltery blocks. Plain seared blocks are cube_all; the seared brick /
         // paver stair and slab variants get the matching shape pointing at their base brick
-        // texture. The six component blocks are horizontally directional, so each gets the four
-        // facing variants of a cube_all model. The casting table and basin are cube_all for now.
+        // texture. The casting table and basin are cube_all for now.
         for (DeferredBlock<? extends Block> holder : SearedBlocks.ALL) {
             Block block = holder.get();
             if (block instanceof StairBlock stairs) {
@@ -121,13 +120,30 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
             else if (block instanceof SlabBlock slab) {
                 registerSearedSlab(slab);
             }
+            // SMTCON-205: the seared window's texture carries fully-transparent pixels for the
+            // glass pane. A cube_all model defaults to the "solid" render type, which ignores the
+            // alpha channel and paints those holes as opaque black — the window must render on
+            // the "cutout" layer so the transparent pixels actually show through.
+            else if (block.equals(SearedBlocks.SEARED_WINDOW.get())) {
+                registerCubeAll(block, "cutout");
+            }
             else {
                 registerCubeAll(block);
             }
         }
-        for (DeferredBlock<? extends Block> holder : SmelteryComponents.ALL) {
-            registerHorizontalCube(holder.get());
-        }
+        // SMTCON-205: the smeltery component blocks are horizontally directional. The tanks and
+        // drain each carry a feature on a single face — a fluid window, an io grate, a drain
+        // spout — so they render as "orientable" models with that feature texture on the front
+        // face and plain seared brick on the other five; a cube_all model would smear the
+        // feature across every face. The seared_tank_in window has transparent pixels, so it
+        // renders on the cutout layer. The controller, chute, and gauge carry no per-face
+        // feature, so they stay plain four-facing cubes.
+        registerHorizontalCube(SmelteryComponents.SMELTERY_CONTROLLER.get());
+        registerHorizontalCube(SmelteryComponents.SEARED_CHUTE.get());
+        registerHorizontalCube(SmelteryComponents.SEARED_TANK_GAUGE.get());
+        registerOrientableComponent(SmelteryComponents.SEARED_TANK_IN.get(), "block/seared_tank_in", true);
+        registerOrientableComponent(SmelteryComponents.SEARED_TANK_IO.get(), "block/seared_tank_io", false);
+        registerOrientableComponent(SmelteryComponents.SEARED_DRAIN.get(), "block/seared_drain", false);
         for (DeferredBlock<? extends Block> holder : CastingBlocks.ALL) {
             registerCubeAll(holder.get());
         }
@@ -364,5 +380,46 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
         models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
         simpleBlock(block);
+    }
+
+    /**
+     * Emit a {@code cube_all} blockstate + model for {@code block} pinned to a specific
+     * {@code renderType} (e.g. {@code "cutout"} or {@code "translucent"}). A plain
+     * {@code cube_all} model defaults to the {@code solid} layer, which ignores the texture
+     * alpha channel; blocks whose texture carries transparency must declare a non-solid layer
+     * for the transparent pixels to show through.
+     */
+    private void registerCubeAll(Block block, String renderType) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath());
+        models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        simpleBlock(block, models().cubeAll(blockId.getPath(), texture).renderType(renderType));
+    }
+
+    /**
+     * Emit a horizontally-directional blockstate + model for a smeltery component block that
+     * carries a feature on one face — a fluid window, an io grate, a drain spout. The model
+     * parents the vanilla {@code minecraft:block/orientable} template: the {@code frontPath}
+     * texture fills the {@code front} slot (rendered on the facing side) and plain
+     * {@code block/seared_brick} fills the {@code side} and {@code top} slots, so the feature
+     * appears on a single oriented face instead of being smeared across all six by a
+     * {@code cube_all} model. {@code horizontalBlock} supplies the four {@code FACING} variants.
+     *
+     * <p>When {@code cutout} is set the model renders on the cutout layer — required when the
+     * feature texture has transparent pixels (the tank-in fluid window) so they show through
+     * rather than painting opaque black.
+     */
+    private void registerOrientableComponent(Block block, String frontPath, boolean cutout) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation front = textureRef(blockId.getNamespace(), frontPath);
+        ResourceLocation body = textureRef(blockId.getNamespace(), "block/seared_brick");
+        trackIfModTexture(front);
+        trackIfModTexture(body);
+        BlockModelBuilder model = models().withExistingParent(blockId.getPath(), ResourceLocation.parse("block/orientable")).texture("front", front).texture("side", body).texture("top", body)
+                .texture("particle", front);
+        if (cutout) {
+            model.renderType("cutout");
+        }
+        horizontalBlock(block, model);
     }
 }
