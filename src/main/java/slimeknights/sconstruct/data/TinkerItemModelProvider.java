@@ -26,6 +26,8 @@ import slimeknights.sconstruct.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.tools.PatternChestRegistry;
 import slimeknights.sconstruct.tools.StencilTableRegistry;
 import slimeknights.sconstruct.tools.ToolStationRegistry;
+import slimeknights.sconstruct.tools.item.ToolCore;
+import slimeknights.sconstruct.tools.item.ToolItems;
 import slimeknights.sconstruct.tools.item.ToolParts;
 import slimeknights.sconstruct.world.SlimeFluidSet;
 import slimeknights.sconstruct.world.WorldBlocks;
@@ -150,6 +152,13 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         // render time by the ToolColorHandlers ItemColor on layer 0.
         ToolParts.PARTS.values().forEach(this::registerSpriteItem);
 
+        // SMTCON-198: the assembled ToolCore tools. Each base model carries one item layer per
+        // ToolDefinition part slot; ToolBakedModel recolours layer N with part slot N's material
+        // at render time (the layer index is the quad tint index for item models). The shuriken
+        // is a plain Item (not a ToolCore) so it gets the flat sprite treatment instead.
+        ToolItems.ALL_TOOLS.forEach(this::registerTool);
+        registerSpriteItem(ToolItems.SHURIKEN);
+
         // SMTCON-143: Phase-6 gadget items + block-items.
         //   - the 15 gadget items (slings, throwballs, piggyback, glow ball, wither head, armor)
         //     get the flat item/generated sprite treatment, layer0 → sconstruct:item/<id>.
@@ -238,6 +247,24 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
     private void registerMoltenBucket(MoltenFluidSet set) {
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(set.bucket().get());
         getBuilder(itemId.getPath()).texture("base", BUCKET_BASE_TEXTURE).customLoader(DynamicFluidContainerModelBuilder::begin).fluid(set.source().get()).applyTint(true).flipGas(false).end();
+    }
+
+    /**
+     * Emit the layered base item model for one assembled {@link ToolCore}. The model carries
+     * one {@code layerN} per {@link slimeknights.sconstruct.tools.ToolDefinition} part slot,
+     * each pointing at {@code sconstruct:item/tool/<tool>/<N>} — a greyscale silhouette of that
+     * part. {@code ToolBakedModel} reads each quad's tint index (the layer index for item
+     * models) and recolours it with the matching part slot's material at render time.
+     */
+    private void registerTool(DeferredItem<? extends ToolCore> holder) {
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(holder.get());
+        int partCount = holder.get().definition.getPartCount();
+        var builder = withExistingParent(itemId.getPath(), ResourceLocation.parse("item/handheld"));
+        for (int layer = 0; layer < partCount; layer++) {
+            ResourceLocation layerTexture = ResourceLocation.fromNamespaceAndPath(itemId.getNamespace(), "item/tool/" + itemId.getPath() + "/" + layer);
+            existingFileHelper.trackGenerated(layerTexture, PackType.CLIENT_RESOURCES, ".png", "textures");
+            builder.texture("layer" + layer, layerTexture);
+        }
     }
 
     private void registerBlockItemFromBlockModel(DeferredBlock<? extends Block> blockHolder) {
