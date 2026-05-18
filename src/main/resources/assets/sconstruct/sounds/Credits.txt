@@ -22,3 +22,8 @@ https://www.freesound.org/people/FreqMan/sounds/24726/
 discharge:
 ELECTRIC_ZAP_001.wav by JoelAudio
 https://www.freesound.org/people/JoelAudio/sounds/136542/
+
+frypan_hit, toy_squeak, little_saw, crossbow_reload:
+These sounds were carried over from the legacy Tinkers' Construct sound
+resources, which shipped them with no separate credit entry. They are covered
+by the project's overall Creative Commons / CC0 license statement above.
