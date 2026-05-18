@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "$(l)Properties$()$(br2)- Basic chopping tool$(br)- Effective on wood$(br)- Breaks leaves without using durability"
+      "text": "$(l)Properties$()$(br2)- Basic chopping tool$(br)- Effective on wood and leaves$(br)- Breaks leaves without using durability$(br)- Disables an opponent's shield in combat"
     }
   ]
 }
