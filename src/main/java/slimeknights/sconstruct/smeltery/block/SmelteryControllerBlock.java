@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -58,9 +59,17 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
      */
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
+    /**
+     * Whether the controller currently drives a validated multiblock smeltery. Reuses vanilla's
+     * {@code lit} property — the furnace blockstate the front-face model swaps on — so the
+     * controller renders its glowing face while assembled. {@link SmelteryControllerBlockEntity}
+     * flips it on assemble / disassemble.
+     */
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+
     public SmelteryControllerBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, Boolean.FALSE));
     }
 
     @Override
@@ -70,7 +79,7 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 
     @Nullable

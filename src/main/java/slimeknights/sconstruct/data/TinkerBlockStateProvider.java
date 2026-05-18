@@ -23,6 +23,7 @@ import slimeknights.sconstruct.shared.SharedBlocks;
 import slimeknights.sconstruct.smeltery.CastingBlocks;
 import slimeknights.sconstruct.smeltery.SearedBlocks;
 import slimeknights.sconstruct.smeltery.SmelteryComponents;
+import slimeknights.sconstruct.smeltery.block.SmelteryControllerBlock;
 import slimeknights.sconstruct.tools.PartBuilderRegistry;
 import slimeknights.sconstruct.tools.PatternChestRegistry;
 import slimeknights.sconstruct.tools.StencilTableRegistry;
@@ -131,14 +132,15 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
                 registerCubeAll(block);
             }
         }
-        // SMTCON-205: the smeltery component blocks are horizontally directional. The tanks and
-        // drain each carry a feature on a single face — a fluid window, an io grate, a drain
+        // SMTCON-205/211: the smeltery component blocks are horizontally directional. The tanks
+        // and drain each carry a feature on a single face — a fluid window, an io grate, a drain
         // spout — so they render as "orientable" models with that feature texture on the front
         // face and plain seared brick on the other five; a cube_all model would smear the
         // feature across every face. The seared_tank_in window has transparent pixels, so it
-        // renders on the cutout layer. The controller, chute, and gauge carry no per-face
-        // feature, so they stay plain four-facing cubes.
-        registerHorizontalCube(SmelteryComponents.SMELTERY_CONTROLLER.get());
+        // renders on the cutout layer. The controller is also orientable, with a lit/unlit front
+        // face driven by its LIT blockstate. The chute and gauge carry no per-face feature, so
+        // they stay plain four-facing cubes.
+        registerSmelteryController(SmelteryComponents.SMELTERY_CONTROLLER.get());
         registerHorizontalCube(SmelteryComponents.SEARED_CHUTE.get());
         registerHorizontalCube(SmelteryComponents.SEARED_TANK_GAUGE.get());
         registerOrientableComponent(SmelteryComponents.SEARED_TANK_IN.get(), "block/seared_tank_in", true);
@@ -421,5 +423,32 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
             model.renderType("cutout");
         }
         horizontalBlock(block, model);
+    }
+
+    /**
+     * Emit the smeltery controller's blockstate + models (SMTCON-211). The controller is an
+     * {@code orientable} block — the controller face on the front, plain seared brick on the top
+     * and sides — with a separate unlit and lit model. The blockstate crosses the four
+     * {@code FACING} variants with the {@code LIT} state, so an assembled smeltery shows the
+     * glowing front face. The {@code rotationY} formula matches {@code horizontalBlock} (north
+     * 0°, east 90°, south 180°, west 270°) so the front faces the placed direction.
+     */
+    private void registerSmelteryController(Block block) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation body = textureRef(blockId.getNamespace(), "block/seared_brick");
+        ResourceLocation frontOff = textureRef(blockId.getNamespace(), "block/smeltery_controller");
+        ResourceLocation frontOn = textureRef(blockId.getNamespace(), "block/smeltery_controller_active");
+        trackIfModTexture(body);
+        trackIfModTexture(frontOff);
+        trackIfModTexture(frontOn);
+        BlockModelBuilder unlit = orientableController(blockId.getPath(), body, frontOff);
+        BlockModelBuilder lit = orientableController(blockId.getPath() + "_active", body, frontOn);
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(state.getValue(SmelteryControllerBlock.LIT) ? lit : unlit)
+                .rotationY(((int) state.getValue(SmelteryControllerBlock.FACING).toYRot() + 180) % 360).build());
+    }
+
+    /** Build one {@code orientable} controller model — {@code front} on the front face, {@code body} on top and sides. */
+    private BlockModelBuilder orientableController(String name, ResourceLocation body, ResourceLocation front) {
+        return models().withExistingParent(name, ResourceLocation.parse("block/orientable")).texture("front", front).texture("side", body).texture("top", body).texture("particle", front);
     }
 }
