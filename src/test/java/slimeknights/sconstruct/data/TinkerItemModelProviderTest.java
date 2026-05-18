@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 
 import slimeknights.sconstruct.shared.SharedBlocks;
 import slimeknights.sconstruct.shared.SharedMetals;
+import slimeknights.sconstruct.smeltery.SmelteryFluids;
 
 /**
  * Pinned-behaviour tests for the generated item-model JSONs. {@link TinkerItemModelProvider}
@@ -59,6 +60,21 @@ class TinkerItemModelProviderTest {
         // the shared bucket sprite path under sconstruct:item/<bucket_id>.
         assertAll(() -> assertSpriteShape("slime_blue_bucket.json", "sconstruct:item/slime_blue_bucket"), () -> assertSpriteShape("slime_purple_bucket.json", "sconstruct:item/slime_purple_bucket"),
                 () -> assertSpriteShape("slime_magma_bucket.json", "sconstruct:item/slime_magma_bucket"), () -> assertSpriteShape("slime_blood_bucket.json", "sconstruct:item/slime_blood_bucket"));
+    }
+
+    @Test
+    void moltenMetalBucketsUseFluidContainerLoader() {
+        // SMTCON-193: every molten-metal bucket renders through NeoForge's neoforge:fluid_container
+        // dynamic model — vanilla item/bucket base layer plus the fluid's own still sprite, tinted
+        // per metal. A regression that reverted to a flat sprite would demand 20 per-bucket PNGs.
+        assertAll(SmelteryFluids.ALL.stream().map(set -> () -> {
+            String bucketPath = set.bucket().getId().getPath();
+            JsonObject model = load(bucketPath + ".json");
+            assertEquals("neoforge:fluid_container", model.get("loader").getAsString(), bucketPath + " loader");
+            assertEquals(set.source().getId().toString(), model.get("fluid").getAsString(), bucketPath + " fluid");
+            assertEquals(true, model.get("apply_tint").getAsBoolean(), bucketPath + " apply_tint");
+            assertEquals("minecraft:item/bucket", model.getAsJsonObject("textures").get("base").getAsString(), bucketPath + " base texture");
+        }));
     }
 
     @Test
