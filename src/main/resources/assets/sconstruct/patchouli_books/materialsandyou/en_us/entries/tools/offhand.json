@@ -1,0 +1,16 @@
+{
+  "name": "Offhand Harvesting",
+  "icon": "minecraft:iron_shovel",
+  "category": "sconstruct:tools",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Smithies' Construct tools let you harvest blocks with both your main hand and your offhand. Put a harvest-capable tool in your offhand while holding another tool in your main hand."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "When you break a block the effective tool is chosen automatically, so you can walk up to any block and break it as usual."
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "Melting",
+  "icon": "sconstruct:smeltery_controller",
+  "category": "sconstruct:smeltery",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Drop an item into one of the smeltery's melting slots and, once the structure is hot enough, it slowly melts into a molten fluid. Ingots, ores, blocks, and many tool materials all have melting recipes."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Each recipe has a $(l)temperature$() the smeltery must reach and a melt $(l)time$(). Hotter fuels and a larger structure melt more items at once.$(br2)Check JEI for the full list of melting recipes."
+    },
+    {
+      "type": "sconstruct:melting",
+      "title": "Example: Melting Iron",
+      "input": "minecraft:iron_ingot",
+      "output": "sconstruct:molten_iron",
+      "amount": 90,
+      "temperature": 800,
+      "time": 100
+    },
+    {
+      "type": "sconstruct:melting",
+      "title": "Example: Melting Gold",
+      "input": "minecraft:gold_ingot",
+      "output": "sconstruct:molten_gold",
+      "amount": 90,
+      "temperature": 800,
+      "time": 100
+    },
+    {
+      "type": "sconstruct:melting",
+      "title": "Example: Melting Copper",
+      "input": "minecraft:copper_ingot",
+      "output": "sconstruct:molten_copper",
+      "amount": 90,
+      "temperature": 750,
+      "time": 100
+    }
+  ]
+}

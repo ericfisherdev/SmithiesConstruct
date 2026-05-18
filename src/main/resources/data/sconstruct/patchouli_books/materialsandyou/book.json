@@ -1,0 +1,9 @@
+{
+  "name": "book.sconstruct.materialsandyou.name",
+  "landing_text": "book.sconstruct.materialsandyou.landing",
+  "model": "sconstruct:book_materials",
+  "i18n": true,
+  "version": "1",
+  "creative_tab": "none",
+  "use_resource_pack": true
+}

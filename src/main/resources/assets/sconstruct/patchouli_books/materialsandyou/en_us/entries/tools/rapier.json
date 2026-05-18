@@ -1,0 +1,16 @@
+{
+  "name": "Rapier",
+  "icon": "sconstruct:rapier",
+  "category": "sconstruct:tools",
+  "sortnum": 15,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Rapier relies on quick strikes to defeat armored foes \u2014 each hit partially bypasses the target's armor. Right-click performs a short backpedal to dodge incoming damage."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Fast but low damage$(br)- 50% armor piercing$(br)- Right-click: backpedal$(br)- Cannot use the offhand"
+    }
+  ]
+}

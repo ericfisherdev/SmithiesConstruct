@@ -1,0 +1,16 @@
+{
+  "name": "Longbow",
+  "icon": "sconstruct:longbow",
+  "category": "sconstruct:tools",
+  "sortnum": 18,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Longbow is the perfect weapon for killing at a distance. It fires slowly but packs a punch."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Requires a Tool Forge$(br)- Slow but hits hard$(br)- Uses Smithies' arrows$(br)- Can also fire vanilla arrows, less effectively"
+    }
+  ]
+}

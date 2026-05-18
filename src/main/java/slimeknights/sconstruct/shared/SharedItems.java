@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+import slimeknights.sconstruct.SConstruct;
 import slimeknights.sconstruct.common.TinkerRegistries;
 
 /**
@@ -118,11 +119,13 @@ public final class SharedItems {
 
     /**
      * The "Materials and You" guidebook (SMTCON-158) — right-clicking it opens the Patchouli
-     * book {@code tconstruct:materialsandyou}. The book id keeps the legacy {@code tconstruct}
-     * namespace so a book-content datapack written against the 1.12 mod resolves unchanged.
+     * book {@code sconstruct:materialsandyou}. The book id must use the {@code sconstruct}
+     * namespace: Patchouli's {@code BookRegistry} scans {@code data/<modid>/patchouli_books/}
+     * per mod container, so a book under any namespace other than this mod's id is never
+     * registered (SMTCON-209).
      */
     public static final DeferredItem<GuidebookItem> MATERIALS_BOOK = TinkerRegistries.ITEMS.registerItem("book_materials",
-            props -> new GuidebookItem(props, ResourceLocation.fromNamespaceAndPath("tconstruct", "materialsandyou")));
+            props -> new GuidebookItem(props, ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "materialsandyou")));
 
     /**
      * Immutable insertion-ordered view over every registered ingot. Downstream providers

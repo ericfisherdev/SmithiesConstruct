@@ -1,0 +1,24 @@
+{
+  "name": "Repairing",
+  "icon": "minecraft:anvil",
+  "category": "sconstruct:tools",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "As you use your tools they take damage. Once all of their durability is gone they break. You do not need to wait until a tool breaks \u2014 you can repair it at any time."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Put the tool into a Tool Station or Tool Forge and add items matching the material of its head. If the head is made of multiple parts you can use any of those materials. Repairing with several materials at once grants bonus durability."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "You can also repair on the move: place a sharpening kit of the right material into a crafting grid together with the tool."
+    },
+    {
+      "type": "sconstruct:modifier",
+      "title": "Modifier Reference"
+    }
+  ]
+}

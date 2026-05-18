@@ -1,0 +1,67 @@
+{
+  "name": "Alloying",
+  "icon": "sconstruct:smeltery_controller",
+  "category": "sconstruct:smeltery",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "When the smeltery holds the right molten fluids and is hot enough, it combines them into an $(l)alloy$(). Three parts molten copper plus one part molten zinc become four parts molten brass."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Alloying runs automatically every tick the inputs and temperature are satisfied \u2014 no interaction needed. Pour the inputs in, keep the smeltery hot, and drain the alloy back out.$(br2)Check JEI for the full list of alloy recipes."
+    },
+    {
+      "type": "sconstruct:alloy",
+      "title": "Example: Brass",
+      "inputs": [
+        {
+          "fluid": "sconstruct:molten_copper",
+          "amount": 270
+        },
+        {
+          "fluid": "sconstruct:molten_zinc",
+          "amount": 90
+        }
+      ],
+      "output": "sconstruct:molten_brass",
+      "amount": 360,
+      "temperature": 800
+    },
+    {
+      "type": "sconstruct:alloy",
+      "title": "Example: Bronze",
+      "inputs": [
+        {
+          "fluid": "sconstruct:molten_copper",
+          "amount": 270
+        },
+        {
+          "fluid": "sconstruct:molten_tin",
+          "amount": 90
+        }
+      ],
+      "output": "sconstruct:molten_bronze",
+      "amount": 360,
+      "temperature": 800
+    },
+    {
+      "type": "sconstruct:alloy",
+      "title": "Example: Electrum",
+      "inputs": [
+        {
+          "fluid": "sconstruct:molten_gold",
+          "amount": 180
+        },
+        {
+          "fluid": "sconstruct:molten_silver",
+          "amount": 180
+        }
+      ],
+      "output": "sconstruct:molten_electrum",
+      "amount": 360,
+      "temperature": 800
+    }
+  ]
+}

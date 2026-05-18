@@ -1,0 +1,16 @@
+{
+  "name": "Shuriken",
+  "icon": "sconstruct:shuriken",
+  "category": "sconstruct:tools",
+  "sortnum": 21,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Shuriken are short-ranged throwing weapons, thrown instantly. They can be used from the offhand and offer fine control thanks to their speed."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Properties$()$(br2)- Requires a Tool Forge$(br)- Fast ranged weapon$(br)- Can be thrown from the offhand"
+    }
+  ]
+}
