@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "sconstruct:item/tool/sword/0",
+    "layer1": "sconstruct:item/tool/sword/1",
+    "layer2": "sconstruct:item/tool/sword/2"
+  }
+}

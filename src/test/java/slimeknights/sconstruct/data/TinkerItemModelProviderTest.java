@@ -17,6 +17,7 @@ import slimeknights.sconstruct.shared.SharedBlocks;
 import slimeknights.sconstruct.shared.SharedMetals;
 import slimeknights.sconstruct.smeltery.SmelteryFluids;
 import slimeknights.sconstruct.tools.PartType;
+import slimeknights.sconstruct.tools.item.ToolItems;
 
 /**
  * Pinned-behaviour tests for the generated item-model JSONs. {@link TinkerItemModelProvider}
@@ -84,6 +85,25 @@ class TinkerItemModelProviderTest {
         // texture. The per-material colour is applied at render time by ToolColorHandlers, not
         // via per-material PNGs — so a single sprite per part type is correct here.
         assertAll(java.util.Arrays.stream(PartType.values()).map(part -> () -> assertSpriteShape(part.id() + ".json", "sconstruct:item/" + part.id())));
+    }
+
+    @Test
+    void assembledToolsHaveOneLayerPerPartSlot() {
+        // SMTCON-198: every ToolCore base model is a handheld model with exactly one item layer
+        // per ToolDefinition part slot, each pointing at item/tool/<tool>/<N>. ToolBakedModel
+        // recolours layer N by part slot N's material — a layer-count mismatch would silently
+        // drop a part's tint or index past the part list.
+        assertAll(ToolItems.ALL_TOOLS.stream().map(holder -> () -> {
+            String tool = holder.getId().getPath();
+            int parts = holder.get().definition.getPartCount();
+            JsonObject model = load(tool + ".json");
+            assertEquals("minecraft:item/handheld", model.get("parent").getAsString(), tool + " parent");
+            JsonObject textures = model.getAsJsonObject("textures");
+            assertEquals(parts, textures.size(), tool + " layer count should equal part count");
+            for (int layer = 0; layer < parts; layer++) {
+                assertEquals("sconstruct:item/tool/" + tool + "/" + layer, textures.get("layer" + layer).getAsString(), tool + " layer" + layer);
+            }
+        }));
     }
 
     @Test

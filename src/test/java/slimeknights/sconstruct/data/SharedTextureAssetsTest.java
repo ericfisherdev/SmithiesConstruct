@@ -9,6 +9,7 @@ import slimeknights.sconstruct.shared.SharedBlocks;
 import slimeknights.sconstruct.shared.SharedItems;
 import slimeknights.sconstruct.shared.SharedMetals;
 import slimeknights.sconstruct.tools.PartType;
+import slimeknights.sconstruct.tools.item.ToolItems;
 import slimeknights.sconstruct.world.SlimeFluidSet;
 import slimeknights.sconstruct.world.WorldFluids;
 import slimeknights.sconstruct.world.block.SlimeColor;
@@ -74,6 +75,21 @@ class SharedTextureAssetsTest {
         // with one texture per id. Drift here renders the component as the missing-texture sprite.
         assertAll(java.util.stream.Stream.of("smeltery_controller", "seared_tank_io", "seared_tank_in", "seared_tank_gauge", "seared_drain", "seared_chute")
                 .map(id -> () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + id + ".png"), BLOCK_TEXTURE_ROOT + id + ".png missing")));
+    }
+
+    @Test
+    void everyAssembledToolHasOneLayerTexturePerPartSlot() {
+        // SMTCON-198: each ToolCore ships one greyscale layer sprite per part slot under
+        // item/tool/<tool>/<N>.png. A missing layer renders that part as the missing-texture
+        // sprite while the rest of the tool draws fine.
+        assertAll(ToolItems.ALL_TOOLS.stream().flatMap(holder -> {
+            String tool = holder.getId().getPath();
+            int parts = holder.get().definition.getPartCount();
+            return java.util.stream.IntStream.range(0, parts).mapToObj(layer -> () -> {
+                String path = ITEM_TEXTURE_ROOT + "tool/" + tool + "/" + layer + ".png";
+                assertNotNull(loader().getResource(path), path + " missing");
+            });
+        }));
     }
 
     @Test
