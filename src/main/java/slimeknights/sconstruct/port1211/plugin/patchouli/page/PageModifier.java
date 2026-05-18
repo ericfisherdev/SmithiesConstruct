@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
+import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.plugin.jei.category.ModifierCatalog;
 import slimeknights.sconstruct.port1211.plugin.jei.category.ModifierEntry;
 import slimeknights.sconstruct.port1211.tools.modifier.Modifier;
@@ -50,6 +51,6 @@ public class PageModifier extends RecipePage {
     /** {@code "<name> (Lv N, cost N)"} — the modifier's description plus its caps. */
     private static Component rowLabel(Modifier modifier) {
         int maxLevel = modifier.maxLevel();
-        return modifier.description(maxLevel).copy().append(Component.literal(" (Lv " + maxLevel + ", cost " + modifier.slotCost() + ")"));
+        return Component.translatable("gui." + SConstruct.MOD_ID + ".book.modifier_row", modifier.description(maxLevel), maxLevel, modifier.slotCost());
     }
 }

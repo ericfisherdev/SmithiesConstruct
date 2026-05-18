@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 
 import com.google.gson.annotations.SerializedName;
 
+import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.tools.ToolDefinition;
 import slimeknights.sconstruct.port1211.tools.item.ToolCore;
 
@@ -51,26 +52,29 @@ public class PageToolStats extends RecipePage {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         drawTitle(graphics);
         if (toolStack.isEmpty()) {
-            drawText(graphics, Component.literal("Unknown tool: " + tool), 8, 16);
+            drawText(graphics, Component.translatable("gui." + SConstruct.MOD_ID + ".book.unknown_tool", tool), 8, 16);
             return;
         }
         drawItem(graphics, toolStack, 8, 16);
         drawText(graphics, toolStack.getHoverName(), 30, 20);
 
         int y = 40;
-        drawText(graphics, Component.literal("Materials:"), 8, y);
+        drawText(graphics, Component.translatable("gui." + SConstruct.MOD_ID + ".book.materials"), 8, y);
         y += 11;
         for (String materialId : materials) {
             drawText(graphics, Component.literal("- ").append(materialName(materialId)), 12, y);
             y += 10;
         }
 
+        y += 4;
         if (toolStack.getItem() instanceof ToolCore toolCore) {
             ToolDefinition definition = toolCore.definition;
-            y += 4;
-            drawText(graphics, Component.literal("Parts: " + definition.getPartCount()), 8, y);
+            drawText(graphics, Component.translatable("gui." + SConstruct.MOD_ID + ".book.parts", definition.getPartCount()), 8, y);
             y += 11;
-            drawText(graphics, Component.literal("Modifier slots: " + definition.baseModifierSlots()), 8, y);
+            drawText(graphics, Component.translatable("gui." + SConstruct.MOD_ID + ".book.modifier_slots", definition.baseModifierSlots()), 8, y);
+        }
+        else {
+            drawText(graphics, Component.translatable("gui." + SConstruct.MOD_ID + ".book.not_a_tool"), 8, y);
         }
     }
 

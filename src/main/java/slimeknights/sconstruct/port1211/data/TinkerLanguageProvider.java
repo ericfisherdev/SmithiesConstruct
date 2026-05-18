@@ -464,6 +464,13 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.jei.modifier.slot_cost", "Slot Cost: %s");
         // SMTCON-156: drying-rack JEI category title, resolved by DryingRackCategory#getTitle.
         add("gui.sconstruct.jei.drying", "Drying");
+        // SMTCON-163: labels rendered by the custom Patchouli modifier and tool-stats pages.
+        add("gui.sconstruct.book.modifier_row", "%1$s (Lv %2$s, cost %3$s)");
+        add("gui.sconstruct.book.unknown_tool", "Unknown tool: %1$s");
+        add("gui.sconstruct.book.materials", "Materials:");
+        add("gui.sconstruct.book.parts", "Parts: %1$s");
+        add("gui.sconstruct.book.modifier_slots", "Modifier slots: %1$s");
+        add("gui.sconstruct.book.not_a_tool", "This item is not a buildable tool.");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
