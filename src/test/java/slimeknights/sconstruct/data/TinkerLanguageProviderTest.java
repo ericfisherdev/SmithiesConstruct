@@ -260,7 +260,10 @@ class TinkerLanguageProviderTest {
         // SMTCON-166 adds nine custom sound-event subtitles = 9 more, for 323 total.
         // SMTCON-168 adds three themed creative-tab titles (tools, parts, materials) = 3 more,
         // for 326 total.
-        assertEquals(326, lang().entrySet().size());
+        //
+        // SMTCON-192 adds the two Jade plugin config-screen toggle labels (smeltery, seared
+        // tank) = 2 more, for 328 total.
+        assertEquals(328, lang().entrySet().size());
     }
 
     @Test
@@ -317,6 +320,16 @@ class TinkerLanguageProviderTest {
         assertAll(() -> assertEquals("Temperature: %1$s K", lang.get("gui.sconstruct.jade.temperature").getAsString()),
                 () -> assertEquals("Tank: %1$s / %2$s mB %3$s", lang.get("gui.sconstruct.jade.tank").getAsString()),
                 () -> assertEquals("Tank: empty", lang.get("gui.sconstruct.jade.tank_empty").getAsString()));
+    }
+
+    @Test
+    void smtcon192JadeConfigKeysArePinned() {
+        // Pin the Jade plugin config-screen toggle keys. Jade asserts a matching lang key exists
+        // for every provider's config.jade.plugin_<namespace>.<path> id; a mistyped or dropped
+        // key crashes the dev client on startup rather than failing here.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Smeltery", lang.get("config.jade.plugin_sconstruct.smeltery").getAsString()),
+                () -> assertEquals("Seared Tank", lang.get("config.jade.plugin_sconstruct.seared_tank").getAsString()));
     }
 
     @Test

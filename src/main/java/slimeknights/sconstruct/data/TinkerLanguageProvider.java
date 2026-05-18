@@ -478,6 +478,10 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.jade.temperature", "Temperature: %1$s K");
         add("gui.sconstruct.jade.tank", "Tank: %1$s / %2$s mB %3$s");
         add("gui.sconstruct.jade.tank_empty", "Tank: empty");
+        // Jade derives one config-screen toggle per provider, keyed config.jade.plugin_<namespace>.<path>
+        // from each provider's UID. Jade asserts a matching lang key exists, so datagen must supply them.
+        add("config.jade.plugin_sconstruct.smeltery", "Smeltery");
+        add("config.jade.plugin_sconstruct.seared_tank", "Seared Tank");
         // SMTCON-166: subtitles for the custom sound events, shown when sound subtitles are on.
         add("subtitles.sconstruct.frypan_hit", "Frying pan clangs");
         add("subtitles.sconstruct.toy_squeak", "Toy squeaks");
