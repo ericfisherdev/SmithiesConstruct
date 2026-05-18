@@ -546,12 +546,29 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 component.setControllerPos(getBlockPos());
             }
         }
+        setLit(true);
     }
 
     /** Drops the live structure and detaches every component it had claimed. */
     private void unbindStructure() {
         clearComponentStamps();
         structure = Optional.empty();
+        setLit(false);
+    }
+
+    /**
+     * Reflects the assembled state in the controller's {@code lit} blockstate so the block model
+     * swaps to (or away from) its glowing front face. Skips the {@code setBlock} when the state
+     * already matches, so an idle smeltery emits no block updates.
+     */
+    private void setLit(boolean lit) {
+        if (level == null) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (state.hasProperty(SmelteryControllerBlock.LIT) && state.getValue(SmelteryControllerBlock.LIT) != lit) {
+            level.setBlock(getBlockPos(), state.setValue(SmelteryControllerBlock.LIT, lit), Block.UPDATE_ALL);
+        }
     }
 
     /** Clears this controller's position from every component of the current structure, if any. */
