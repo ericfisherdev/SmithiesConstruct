@@ -70,8 +70,10 @@ class SharedTabsTest {
     void allFourThemedTabsAreRegistered() {
         // SMTCON-168 splits the single tab into GENERAL + three themed tabs. Pin every id so a
         // future refactor that drops or renames a tab trips here.
-        assertAll(() -> assertEquals("general", SharedTabs.GENERAL.getId().getPath()), () -> assertEquals("tools", SharedTabs.TOOLS.getId().getPath()),
-                () -> assertEquals("parts", SharedTabs.PARTS.getId().getPath()), () -> assertEquals("materials", SharedTabs.MATERIALS.getId().getPath()),
+        // Pin the full tab id (namespace + path) so a wrong namespace cannot slip past a
+        // path-only check.
+        assertAll(() -> assertEquals("sconstruct:general", SharedTabs.GENERAL.getId().toString()), () -> assertEquals("sconstruct:tools", SharedTabs.TOOLS.getId().toString()),
+                () -> assertEquals("sconstruct:parts", SharedTabs.PARTS.getId().toString()), () -> assertEquals("sconstruct:materials", SharedTabs.MATERIALS.getId().toString()),
                 () -> assertNotNull(SharedTabs.TOOLS.get(), "TOOLS tab must resolve"), () -> assertNotNull(SharedTabs.PARTS.get(), "PARTS tab must resolve"),
                 () -> assertNotNull(SharedTabs.MATERIALS.get(), "MATERIALS tab must resolve"));
     }
@@ -93,8 +95,12 @@ class SharedTabsTest {
         int expectedSize = SharedBlocks.METAL_BLOCKS.size() + SharedItems.INGOTS.size() + SharedItems.NUGGETS.size() + SharedItems.SLIMEBALLS.size();
         assertEquals(expectedSize, visited.size(), "wrong number of items accepted into MATERIALS");
 
+        // No duplicates — a repeated family would inflate the count and could mask a missing
+        // one, so collecting into an identity set must match the visited list size.
         Set<net.minecraft.world.item.Item> items = new HashSet<>();
-        visited.forEach(like -> items.add(like.asItem()));
+        for (ItemLike like : visited) {
+            assertTrue(items.add(like.asItem()), "duplicate item accepted into MATERIALS: " + like.asItem());
+        }
         assertAll(() -> assertTrue(items.contains(SharedItems.INGOT_COBALT.get()), "ingots family missing"),
                 () -> assertTrue(items.contains(SharedItems.NUGGET_COBALT.get()), "nuggets family missing"),
                 () -> assertTrue(items.contains(SharedItems.SLIMEBALL_BLUE.get()), "slimeballs family missing"),
