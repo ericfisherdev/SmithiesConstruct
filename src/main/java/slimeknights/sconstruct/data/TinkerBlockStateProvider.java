@@ -93,16 +93,21 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         // y-faces, matching the legacy look when placed on a transparent floor.
         registerCubeBottomTop(PatternChestRegistry.PATTERN_CHEST.get(), "block/pattern_chest_side", "block/pattern_chest_top", "block/pattern_chest_top");
 
-        // SMTCON-95: the four wood-clad workstations (stencil table, part builder, tool
-        // station, tool forge) share the same shape — a dedicated top sprite paired with a
-        // shared "table_side" plank sprite on the four sides and the bottom. The legacy mod
-        // ships a single table_side.png used by all four tables; copying it once and referring
-        // to it from every table model is consistent with the legacy asset layout.
+        // SMTCON-204: the four wood-clad workstations (stencil table, part builder, tool
+        // station, tool forge) render as legged tables — a 4px tabletop plate on four legs with
+        // an open space between them — parented to the ported sconstruct:block/table model. Each
+        // table keeps its dedicated top sprite and the shared "table_side" plank sprite on the
+        // tabletop apron; the leg / legBottom / bottom slots reproduce the legacy 1.12 textures:
+        // stencil table on oak planks, part builder on oak logs, tool station on oak planks with
+        // table_side legs, and the tool forge clad entirely in iron blocks.
         String tableSide = "block/table_side";
-        registerCubeBottomTop(StencilTableRegistry.STENCIL_TABLE.get(), tableSide, "block/stencil_table_top", tableSide);
-        registerCubeBottomTop(PartBuilderRegistry.PART_BUILDER.get(), tableSide, "block/part_builder_top", tableSide);
-        registerCubeBottomTop(ToolStationRegistry.TOOL_STATION.get(), tableSide, "block/tool_station_top", tableSide);
-        registerCubeBottomTop(ToolStationRegistry.TOOL_FORGE.get(), tableSide, "block/tool_forge_top", tableSide);
+        String oakPlanks = "minecraft:block/oak_planks";
+        String oakLog = "minecraft:block/oak_log";
+        String ironBlock = "minecraft:block/iron_block";
+        registerLeggedTable(StencilTableRegistry.STENCIL_TABLE.get(), "block/stencil_table_top", tableSide, oakPlanks, oakPlanks, oakPlanks);
+        registerLeggedTable(PartBuilderRegistry.PART_BUILDER.get(), "block/part_builder_top", tableSide, oakLog, oakLog, oakLog);
+        registerLeggedTable(ToolStationRegistry.TOOL_STATION.get(), "block/tool_station_top", tableSide, tableSide, oakPlanks, oakPlanks);
+        registerLeggedTable(ToolStationRegistry.TOOL_FORGE.get(), "block/tool_forge_top", ironBlock, ironBlock, ironBlock, ironBlock);
 
         // SMTCON-129: the smeltery blocks. Plain seared blocks are cube_all; the seared brick /
         // paver stair and slab variants get the matching shape pointing at their base brick
@@ -296,16 +301,10 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
         ResourceLocation bottom = textureRef(blockId.getNamespace(), bottomPath);
         // Vanilla textures live in the minecraft namespace; mod-tree textures live in our own.
         // Either way the path string carries the namespace already (e.g. "minecraft:block/oak_planks"
-        // or just "block/<name>" for sconstruct), so trackGenerated only fires for our namespace.
-        if (SConstruct.MOD_ID.equals(side.getNamespace())) {
-            models().existingFileHelper.trackGenerated(side, PackType.CLIENT_RESOURCES, ".png", "textures");
-        }
-        if (SConstruct.MOD_ID.equals(top.getNamespace())) {
-            models().existingFileHelper.trackGenerated(top, PackType.CLIENT_RESOURCES, ".png", "textures");
-        }
-        if (SConstruct.MOD_ID.equals(bottom.getNamespace())) {
-            models().existingFileHelper.trackGenerated(bottom, PackType.CLIENT_RESOURCES, ".png", "textures");
-        }
+        // or just "block/<name>" for sconstruct), so tracking only fires for our namespace.
+        trackIfModTexture(side);
+        trackIfModTexture(top);
+        trackIfModTexture(bottom);
         simpleBlock(block, models().cubeBottomTop(blockId.getPath(), side, bottom, top));
     }
 
@@ -321,6 +320,43 @@ public final class TinkerBlockStateProvider extends BlockStateProvider {
             return ResourceLocation.fromNamespaceAndPath(path.substring(0, colon), path.substring(colon + 1));
         }
         return ResourceLocation.fromNamespaceAndPath(defaultNamespace, path);
+    }
+
+    /**
+     * Emit a legged-table blockstate + model for {@code block}, parented to the ported
+     * {@code sconstruct:block/table} template (a 4px tabletop plate on four legs). The five
+     * texture paths fill the parent's {@code top / side / leg / legBottom / bottom} slots; the
+     * {@code particle} slot defaults to the top sprite. Each path may carry an explicit
+     * namespace ({@code "minecraft:block/oak_planks"}) or default to the mod namespace
+     * ({@code "block/table_side"}); mod-namespace textures are pre-registered with the
+     * {@link ExistingFileHelper} so model validation passes before the PNGs land.
+     */
+    private void registerLeggedTable(Block block, String topPath, String sidePath, String legPath, String legBottomPath, String bottomPath) {
+        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
+        ResourceLocation top = textureRef(blockId.getNamespace(), topPath);
+        ResourceLocation side = textureRef(blockId.getNamespace(), sidePath);
+        ResourceLocation leg = textureRef(blockId.getNamespace(), legPath);
+        ResourceLocation legBottom = textureRef(blockId.getNamespace(), legBottomPath);
+        ResourceLocation bottom = textureRef(blockId.getNamespace(), bottomPath);
+        trackIfModTexture(top);
+        trackIfModTexture(side);
+        trackIfModTexture(leg);
+        trackIfModTexture(legBottom);
+        trackIfModTexture(bottom);
+        BlockModelBuilder model = models().withExistingParent(blockId.getPath(), ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "block/table")).texture("particle", top).texture("top", top)
+                .texture("side", side).texture("leg", leg).texture("legBottom", legBottom).texture("bottom", bottom);
+        simpleBlock(block, model);
+    }
+
+    /**
+     * Pre-register {@code texture} with the {@link ExistingFileHelper} as a texture PNG that
+     * will exist, but only when it lives in the mod's own namespace — vanilla textures are
+     * already on the classpath and need no tracking.
+     */
+    private void trackIfModTexture(ResourceLocation texture) {
+        if (SConstruct.MOD_ID.equals(texture.getNamespace())) {
+            models().existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
+        }
     }
 
     private void registerCubeAll(Block block) {

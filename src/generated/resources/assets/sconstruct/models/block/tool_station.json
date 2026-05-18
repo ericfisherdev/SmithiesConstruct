@@ -1,7 +1,10 @@
 {
-  "parent": "minecraft:block/cube_bottom_top",
+  "parent": "sconstruct:block/table",
   "textures": {
-    "bottom": "sconstruct:block/table_side",
+    "bottom": "minecraft:block/oak_planks",
+    "leg": "sconstruct:block/table_side",
+    "legBottom": "minecraft:block/oak_planks",
+    "particle": "sconstruct:block/tool_station_top",
     "side": "sconstruct:block/table_side",
     "top": "sconstruct:block/tool_station_top"
   }

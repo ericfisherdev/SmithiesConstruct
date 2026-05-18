@@ -1,8 +1,11 @@
 {
-  "parent": "minecraft:block/cube_bottom_top",
+  "parent": "sconstruct:block/table",
   "textures": {
-    "bottom": "sconstruct:block/table_side",
-    "side": "sconstruct:block/table_side",
+    "bottom": "minecraft:block/iron_block",
+    "leg": "minecraft:block/iron_block",
+    "legBottom": "minecraft:block/iron_block",
+    "particle": "sconstruct:block/tool_forge_top",
+    "side": "minecraft:block/iron_block",
     "top": "sconstruct:block/tool_forge_top"
   }
 }
