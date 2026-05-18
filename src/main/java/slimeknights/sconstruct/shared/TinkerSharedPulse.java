@@ -1,5 +1,7 @@
 package slimeknights.sconstruct.shared;
 
+import java.util.List;
+
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
@@ -8,6 +10,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import slimeknights.sconstruct.common.SmithiesSounds;
+import slimeknights.sconstruct.common.client.FluidContainerColorHandler;
 import slimeknights.sconstruct.common.pulse.Pulse;
 import slimeknights.sconstruct.shared.client.SharedClientFluidTypes;
 
@@ -61,6 +64,9 @@ public final class TinkerSharedPulse implements Pulse {
         // server — the JVM doesn't resolve types inside an unreached branch.
         if (FMLEnvironment.dist == Dist.CLIENT) {
             SharedClientFluidTypes.register(modBus);
+            // SMTCON-203: bind the NeoForge fluid-container ItemColor to the blood bucket so its
+            // neoforge:fluid_container model resolves the fluid-layer tint.
+            FluidContainerColorHandler.register(modBus, List.of(SharedItems.BUCKET_BLOOD));
         }
     }
 

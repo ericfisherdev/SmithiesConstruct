@@ -10,6 +10,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
 import slimeknights.sconstruct.common.SmithiesParticles;
+import slimeknights.sconstruct.common.client.FluidContainerColorHandler;
 import slimeknights.sconstruct.common.pulse.Pulse;
 import slimeknights.sconstruct.shared.SharedTabs;
 import slimeknights.sconstruct.smeltery.client.SmelteryBlockEntityRenderers;
@@ -92,6 +93,9 @@ public final class TinkerSmelteryPulse implements Pulse {
             SmelteryClientMenus.register(modBus);
             SmelteryBlockEntityRenderers.register(modBus);
             SmelteryParticles.register(modBus);
+            // SMTCON-203: bind the NeoForge fluid-container ItemColor to the 20 molten-metal
+            // buckets so their neoforge:fluid_container models resolve the per-metal tint.
+            FluidContainerColorHandler.register(modBus, SmelteryFluids.ALL.stream().map(MoltenFluidSet::bucket).toList());
         }
     }
 
