@@ -14,14 +14,17 @@ import slimeknights.sconstruct.port1211.SConstruct;
 import slimeknights.sconstruct.port1211.plugin.patchouli.page.PageAlloy;
 import slimeknights.sconstruct.port1211.plugin.patchouli.page.PageCasting;
 import slimeknights.sconstruct.port1211.plugin.patchouli.page.PageMelting;
+import slimeknights.sconstruct.port1211.plugin.patchouli.page.PageModifier;
+import slimeknights.sconstruct.port1211.plugin.patchouli.page.PageToolStats;
 
 import vazkii.patchouli.client.book.ClientBookRegistry;
 
 /**
- * Client-side registration hub for the mod's custom Patchouli page types (SMTCON-162).
- * Patchouli has no formal plugin API for page types — a page type is a {@code resource-location
- * -> BookPage subclass} entry in the public {@link ClientBookRegistry#pageTypes} map — so this
- * class adds the three smeltery page types to that map during client setup.
+ * Client-side registration hub for the mod's custom Patchouli page types (SMTCON-162,
+ * SMTCON-163). Patchouli has no formal plugin API for page types — a page type is a
+ * {@code resource-location -> BookPage subclass} entry in the public
+ * {@link ClientBookRegistry#pageTypes} map — so this class adds the smeltery recipe page types
+ * and the tool-ecosystem page types to that map during client setup.
  *
  * <p>Patchouli's own {@code addPageTypes} only ever {@code put}s into the map (it never clears
  * it), so registering here is order-independent of Patchouli's startup; the entries survive
@@ -54,6 +57,8 @@ public final class SmithiesPatchouliPlugin {
         pageTypes.put(ResourceLocation.fromNamespaceAndPath(BOOK_NAMESPACE, "melting"), PageMelting.class);
         pageTypes.put(ResourceLocation.fromNamespaceAndPath(BOOK_NAMESPACE, "casting"), PageCasting.class);
         pageTypes.put(ResourceLocation.fromNamespaceAndPath(BOOK_NAMESPACE, "alloy"), PageAlloy.class);
-        LOGGER.info("Registered 3 Smithies' Construct Patchouli page types (melting, casting, alloy)");
+        pageTypes.put(ResourceLocation.fromNamespaceAndPath(BOOK_NAMESPACE, "modifier"), PageModifier.class);
+        pageTypes.put(ResourceLocation.fromNamespaceAndPath(BOOK_NAMESPACE, "tool_stats"), PageToolStats.class);
+        LOGGER.info("Registered 5 Smithies' Construct Patchouli page types (melting, casting, alloy, modifier, tool_stats)");
     }
 }

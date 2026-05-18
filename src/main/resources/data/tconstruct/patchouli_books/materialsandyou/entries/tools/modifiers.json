@@ -10,7 +10,11 @@
     },
     {
       "type": "patchouli:text",
-      "text": "A full list of every modifier, its level cap, and its slot cost will be added to this page in a later update. For now, you can browse every modifier in JEI."
+      "text": "Every built-in modifier is listed on the next page, with its level cap and the number of modifier slots each application costs. You can also browse every modifier in JEI."
+    },
+    {
+      "type": "tconstruct:modifier",
+      "title": "Built-in Modifiers"
     }
   ]
 }
