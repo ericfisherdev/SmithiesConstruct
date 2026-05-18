@@ -93,9 +93,8 @@ public final class PatternChestRegistry {
 
     @SubscribeEvent
     private static void populateCreativeTab(BuildCreativeModeTabContentsEvent event) {
-        if (!SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
-            return;
+        if (SharedTabs.GENERAL.getKey().equals(event.getTabKey()) || SharedTabs.TOOLS.getKey().equals(event.getTabKey())) {
+            acceptItem(event::accept);
         }
-        acceptItem(event::accept);
     }
 }

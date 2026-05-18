@@ -89,10 +89,9 @@ public final class ToolParts {
 
     @SubscribeEvent
     private static void populateCreativeTab(BuildCreativeModeTabContentsEvent event) {
-        if (!SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
-            return;
+        if (SharedTabs.GENERAL.getKey().equals(event.getTabKey()) || SharedTabs.PARTS.getKey().equals(event.getTabKey())) {
+            acceptAll(event::accept);
         }
-        acceptAll(event::accept);
     }
 
     /** Test seam: number of registered part items. */

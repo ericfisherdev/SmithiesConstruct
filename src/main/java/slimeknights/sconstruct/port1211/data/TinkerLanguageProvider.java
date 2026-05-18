@@ -171,9 +171,12 @@ public final class TinkerLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        // Creative tab. LanguageProvider has no CreativeModeTab overload, so use the raw key.
-        // Must match the lang key SharedTabs#GENERAL builder set via Component.translatable.
+        // Creative tabs. LanguageProvider has no CreativeModeTab overload, so use the raw keys.
+        // Must match the lang keys the SharedTabs builders set via Component.translatable.
         add("itemGroup.sconstruct", "Smithies' Construct");
+        add("itemGroup.sconstruct.tools", "Smithies' Construct: Tools");
+        add("itemGroup.sconstruct.parts", "Smithies' Construct: Parts");
+        add("itemGroup.sconstruct.materials", "Smithies' Construct: Materials");
 
         // Modifier tooltip labels (SMTCON-84+). The key shape is
         // {@code modifier.<namespace>.<path>} — the substitution argument is the modifier's

@@ -38,6 +38,16 @@ class TinkerLanguageProviderTest {
     }
 
     @Test
+    void themedCreativeTabTitlesArePinned() {
+        // SMTCON-168: each key must match the Component.translatable(...) call wired by the
+        // matching SharedTabs builder — a drifted key renders the tab as a raw key string.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Smithies' Construct: Tools", lang.get("itemGroup.sconstruct.tools").getAsString()),
+                () -> assertEquals("Smithies' Construct: Parts", lang.get("itemGroup.sconstruct.parts").getAsString()),
+                () -> assertEquals("Smithies' Construct: Materials", lang.get("itemGroup.sconstruct.materials").getAsString()));
+    }
+
+    @Test
     void everyMetalHasIngotAndNuggetEntries() {
         JsonObject lang = lang();
         assertAll(SharedMetals.ALL.stream().map(metal -> () -> {
@@ -248,7 +258,9 @@ class TinkerLanguageProviderTest {
         // more, for 314 total.
         //
         // SMTCON-166 adds nine custom sound-event subtitles = 9 more, for 323 total.
-        assertEquals(323, lang().entrySet().size());
+        // SMTCON-168 adds three themed creative-tab titles (tools, parts, materials) = 3 more,
+        // for 326 total.
+        assertEquals(326, lang().entrySet().size());
     }
 
     @Test

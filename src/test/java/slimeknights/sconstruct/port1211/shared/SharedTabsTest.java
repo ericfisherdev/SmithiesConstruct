@@ -67,6 +67,43 @@ class SharedTabsTest {
     }
 
     @Test
+    void allFourThemedTabsAreRegistered() {
+        // SMTCON-168 splits the single tab into GENERAL + three themed tabs. Pin every id so a
+        // future refactor that drops or renames a tab trips here.
+        assertAll(() -> assertEquals("general", SharedTabs.GENERAL.getId().getPath()), () -> assertEquals("tools", SharedTabs.TOOLS.getId().getPath()),
+                () -> assertEquals("parts", SharedTabs.PARTS.getId().getPath()), () -> assertEquals("materials", SharedTabs.MATERIALS.getId().getPath()),
+                () -> assertNotNull(SharedTabs.TOOLS.get(), "TOOLS tab must resolve"), () -> assertNotNull(SharedTabs.PARTS.get(), "PARTS tab must resolve"),
+                () -> assertNotNull(SharedTabs.MATERIALS.get(), "MATERIALS tab must resolve"));
+    }
+
+    @Test
+    void themedTabsUseTheirItemGroupLangKeys() {
+        assertAll(() -> assertEquals(Component.translatable("itemGroup.sconstruct.tools"), SharedTabs.TOOLS.get().getDisplayName()),
+                () -> assertEquals(Component.translatable("itemGroup.sconstruct.parts"), SharedTabs.PARTS.get().getDisplayName()),
+                () -> assertEquals(Component.translatable("itemGroup.sconstruct.materials"), SharedTabs.MATERIALS.get().getDisplayName()));
+    }
+
+    @Test
+    void acceptMaterialsVisitsOnlyTheMaterialsSubset() {
+        List<ItemLike> visited = new ArrayList<>();
+        SharedTabs.acceptMaterials(visited::add);
+
+        // Materials subset: metal storage blocks (13) + ingots (15) + nuggets (15)
+        // + slimeballs (4). Decoratives and misc items stay GENERAL-only.
+        int expectedSize = SharedBlocks.METAL_BLOCKS.size() + SharedItems.INGOTS.size() + SharedItems.NUGGETS.size() + SharedItems.SLIMEBALLS.size();
+        assertEquals(expectedSize, visited.size(), "wrong number of items accepted into MATERIALS");
+
+        Set<net.minecraft.world.item.Item> items = new HashSet<>();
+        visited.forEach(like -> items.add(like.asItem()));
+        assertAll(() -> assertTrue(items.contains(SharedItems.INGOT_COBALT.get()), "ingots family missing"),
+                () -> assertTrue(items.contains(SharedItems.NUGGET_COBALT.get()), "nuggets family missing"),
+                () -> assertTrue(items.contains(SharedItems.SLIMEBALL_BLUE.get()), "slimeballs family missing"),
+                () -> assertTrue(items.contains(SharedBlocks.COBALT.get().asItem()), "metal storage block items missing"),
+                () -> assertTrue(!items.contains(SharedBlocks.GLOW.get().asItem()), "decoratives must not be in MATERIALS"),
+                () -> assertTrue(!items.contains(SharedItems.BACON.get()), "misc items must not be in MATERIALS"));
+    }
+
+    @Test
     void acceptAllSurfacesTheKnownAnchorItems() {
         // Pin a handful of representative items so a future refactor that drops a family
         // (e.g. forgets to include slimeballs) trips the assertion.

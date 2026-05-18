@@ -69,15 +69,17 @@ public final class TinkerWorldPulse implements Pulse {
 
     @SubscribeEvent
     private static void populateCreativeTab(BuildCreativeModeTabContentsEvent event) {
-        // World pulse content goes into the same GENERAL tab as the shared pulse — Phase-3+
-        // pulses subscribe their own listeners against this tab's key per the contract noted in
-        // SharedTabs's javadoc.
-        if (!SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
-            return;
+        // GENERAL is the catch-all and receives every world-pulse surface. The slime-fluid
+        // buckets are also a materials-type surface, so they additionally route into the themed
+        // MATERIALS tab; world blocks and plants stay GENERAL-only.
+        if (SharedTabs.GENERAL.getKey().equals(event.getTabKey())) {
+            WorldFluids.acceptBuckets(event::accept);
+            WorldBlocks.acceptBlockItems(event::accept);
+            WorldBlocks.acceptPlantItems(event::accept);
         }
-        WorldFluids.acceptBuckets(event::accept);
-        WorldBlocks.acceptBlockItems(event::accept);
-        WorldBlocks.acceptPlantItems(event::accept);
+        else if (SharedTabs.MATERIALS.getKey().equals(event.getTabKey())) {
+            WorldFluids.acceptBuckets(event::accept);
+        }
     }
 
     @Override
