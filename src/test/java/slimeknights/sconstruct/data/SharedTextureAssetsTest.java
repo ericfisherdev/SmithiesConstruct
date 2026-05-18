@@ -93,6 +93,14 @@ class SharedTextureAssetsTest {
     }
 
     @Test
+    void shurikenHasAnItemTexture() {
+        // SMTCON-198: the shuriken is a flat sprite (plain Item, not a ToolCore). Pin its
+        // texture so it cannot go missing alongside the layered tool textures.
+        String path = ITEM_TEXTURE_ROOT + ToolItems.SHURIKEN.getId().getPath() + ".png";
+        assertNotNull(loader().getResource(path), path + " missing");
+    }
+
+    @Test
     void castingBlockAndPatternTexturesArePresent() {
         // SMTCON-196: the two cube_all casting blocks plus the blank pattern sprite (shared by
         // the typed pattern item). Drift here renders them as the missing-texture sprite.
