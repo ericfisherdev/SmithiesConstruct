@@ -60,10 +60,12 @@ class TinkerItemTagsProviderTest {
     @Test
     void storageBlocksAreOnlyEmittedForMetalsWithABlock() {
         // Lead and nickel are real-world but have no storage block, so storage_blocks/<id> must
-        // NOT exist for them. Real-world metals with a block (e.g. copper, steel) DO get one.
+        // NOT exist for them. Real-world metals with a block (e.g. steel) DO get one. Copper is
+        // deliberately not checked: it is a vanilla material (SMTCON-199), and NeoForge itself
+        // ships c:storage_blocks/copper for vanilla copper_block — so the classpath carries that
+        // tag regardless of the mod, and getResource cannot tell mod- from NeoForge-emitted.
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        assertAll(() -> assertNotNull(cl.getResource("data/c/tags/item/storage_blocks/copper.json"), "copper storage_blocks tag missing"),
-                () -> assertNotNull(cl.getResource("data/c/tags/item/storage_blocks/steel.json"), "steel storage_blocks tag missing"),
+        assertAll(() -> assertNotNull(cl.getResource("data/c/tags/item/storage_blocks/steel.json"), "steel storage_blocks tag missing"),
                 () -> assertTrue(cl.getResource("data/c/tags/item/storage_blocks/lead.json") == null, "lead has no block — must not emit storage_blocks tag"),
                 () -> assertTrue(cl.getResource("data/c/tags/item/storage_blocks/nickel.json") == null, "nickel has no block — must not emit storage_blocks tag"));
     }
