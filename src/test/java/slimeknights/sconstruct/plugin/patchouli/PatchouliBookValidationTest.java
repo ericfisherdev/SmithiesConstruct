@@ -40,10 +40,10 @@ class PatchouliBookValidationTest {
 
     /**
      * Classpath location of the book content, resolved at runtime by {@link #bookRoot()}.
-     * Patchouli loads categories and entries from the {@code en_us} language folder, so the
-     * content this test walks lives under {@code materialsandyou/en_us}, not the book root.
+     * Patchouli 1.20+ enforces resource-pack books: the content lives under {@code assets/}
+     * (only {@code book.json} stays in {@code data/}), inside the {@code en_us} language folder.
      */
-    private static final String BOOK_RESOURCE = "data/tconstruct/patchouli_books/materialsandyou/en_us";
+    private static final String BOOK_RESOURCE = "assets/tconstruct/patchouli_books/materialsandyou/en_us";
 
     private static final Gson GSON = new Gson();
 
