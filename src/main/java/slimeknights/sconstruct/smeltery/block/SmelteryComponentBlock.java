@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -92,5 +93,12 @@ public abstract class SmelteryComponentBlock extends BaseEntityBlock {
         // One BE class backs all five component types — pass this subclass's registered type in
         // so the constructed BE is bound to the matching BlockEntityType.
         return new SmelteryComponentBlockEntity(beType(), pos, state);
+    }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        // BaseEntityBlock defaults to INVISIBLE on the assumption a BlockEntityRenderer draws the
+        // block; these components are drawn by their blockstate JSON, so render the MODEL.
+        return RenderShape.MODEL;
     }
 }
