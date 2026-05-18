@@ -127,6 +127,15 @@ class SharedTextureAssetsTest {
     }
 
     @Test
+    void moltenMetalSharedFluidTexturesArePresent() {
+        // SMTCON-193: unlike slime fluids, all 20 molten metals share one greyscale still/flow
+        // texture pair and differ only by the per-metal runtime tint. Drift here would render
+        // every molten metal as the missing-texture sprite in-world and in its bucket.
+        assertAll(java.util.stream.Stream.of("fluid/molten_metal_still.png", "fluid/molten_metal_flow.png", "fluid/molten_metal_still.png.mcmeta", "fluid/molten_metal_flow.png.mcmeta")
+                .map(path -> () -> assertNotNull(loader().getResource(BLOCK_TEXTURE_ROOT + path), BLOCK_TEXTURE_ROOT + path + " missing")));
+    }
+
+    @Test
     void slimeFluidBucketItemTexturesArePresent() {
         // Generated from blood_bucket.png via BT.601 desaturate + per-fluid tint multiply.
         // Without these PNGs, the four slime bucket items render the missing-texture sprite.

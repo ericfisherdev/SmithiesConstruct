@@ -7,6 +7,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -53,6 +54,9 @@ import slimeknights.sconstruct.world.block.SlimePlantSet;
  * + block model, but item models live in a different file tree.
  */
 public final class TinkerItemModelProvider extends ItemModelProvider {
+
+    /** Empty-bucket sprite used as the {@code base} layer of every molten-metal fluid container. */
+    private static final ResourceLocation BUCKET_BASE_TEXTURE = ResourceLocation.withDefaultNamespace("item/bucket");
 
     public TinkerItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, SConstruct.MOD_ID, existingFileHelper);
@@ -128,13 +132,16 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         registerBlockItemFromBlockModel(ToolStationRegistry.TOOL_FORGE);
 
         // SMTCON-129: the smeltery block items (seared blocks, the six components, the two
-        // casting blocks) parent their block models; the 20 molten-metal buckets get the flat
-        // sprite treatment, with runtime tinting handled by their fluid-type extensions.
+        // casting blocks) parent their block models.
         SearedBlocks.ALL.forEach(this::registerBlockItemFromBlockModel);
         SmelteryComponents.ALL.forEach(this::registerBlockItemFromBlockModel);
         CastingBlocks.ALL.forEach(this::registerBlockItemFromBlockModel);
+        // SMTCON-193: the 20 molten-metal buckets render through NeoForge's neoforge:fluid_container
+        // dynamic model — an empty bucket base plus the fluid's own still sprite, tinted per metal
+        // by the fluid-type extension. No per-bucket PNG, mirroring the shared-texture-plus-tint
+        // approach the molten fluids themselves use.
         for (MoltenFluidSet set : SmelteryFluids.ALL) {
-            registerSpriteItem(set.bucket());
+            registerMoltenBucket(set);
         }
 
         // SMTCON-143: Phase-6 gadget items + block-items.
@@ -214,6 +221,17 @@ public final class TinkerItemModelProvider extends ItemModelProvider {
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(textureItemId.getNamespace(), "item/" + textureItemId.getPath());
         existingFileHelper.trackGenerated(texture, PackType.CLIENT_RESOURCES, ".png", "textures");
         singleTexture(itemId.getPath(), ResourceLocation.parse("item/generated"), "layer0", texture);
+    }
+
+    /**
+     * Emit a {@code neoforge:fluid_container} dynamic model for one molten-metal bucket. The
+     * model composites the vanilla empty-bucket sprite ({@code minecraft:item/bucket}, the
+     * {@code base} layer) with the fluid's own still texture, tinted by the fluid-type
+     * extension — so a single shared fluid sprite covers all 20 buckets with no per-bucket PNG.
+     */
+    private void registerMoltenBucket(MoltenFluidSet set) {
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(set.bucket().get());
+        getBuilder(itemId.getPath()).texture("base", BUCKET_BASE_TEXTURE).customLoader(DynamicFluidContainerModelBuilder::begin).fluid(set.source().get()).applyTint(true).flipGas(false).end();
     }
 
     private void registerBlockItemFromBlockModel(DeferredBlock<? extends Block> blockHolder) {
