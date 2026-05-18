@@ -13,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -97,7 +96,7 @@ public final class GadgetTests {
 
     @GameTest(template = TEMPLATE)
     public static void slimeslingLaunchesThePlayer(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestHelpers.setupFakePlayer(helper);
         // Aim straight up so a full-charge launch is a purely vertical velocity.
         player.setXRot(-90.0F);
         player.setYRot(0.0F);

@@ -16,7 +16,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -130,7 +129,7 @@ public final class SmelteryTests {
     public static void meltIron(GameTestHelper helper) {
         buildSmeltery(helper, true);
         // Lava in the seared tank is the smeltery's fuel — without it drawFuel pauses the melt.
-        SearedTankBE tank = blockEntityAt(helper, TANK, SearedTankBE.class, "seared tank");
+        SearedTankBE tank = GameTestHelpers.blockEntityAt(helper, TANK, SearedTankBE.class, "seared tank");
         int lavaFilled = tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, LAVA_FUEL_MB), IFluidHandler.FluidAction.EXECUTE);
         helper.assertValueEqual(lavaFilled, LAVA_FUEL_MB, "the seared tank accepts the full lava fuel load");
 
@@ -163,7 +162,7 @@ public final class SmelteryTests {
     public static void castIngot(GameTestHelper helper) {
         BlockPos tablePos = new BlockPos(1, BASE_Y, 1);
         helper.setBlock(tablePos, CastingBlocks.CASTING_TABLE.get());
-        AbstractCastingBlockEntity table = blockEntityAt(helper, tablePos, AbstractCastingBlockEntity.class, "casting table");
+        AbstractCastingBlockEntity table = GameTestHelpers.blockEntityAt(helper, tablePos, AbstractCastingBlockEntity.class, "casting table");
 
         // Pour molten copper into the empty-cast table — casting_copper_ingot is a no-cast
         // SMTCON-128 recipe, so the bare table casts a copper ingot once the metal cools.
@@ -258,18 +257,7 @@ public final class SmelteryTests {
 
     /** Fetches the controller block entity, failing the test if it did not attach. */
     private static SmelteryControllerBlockEntity controllerAt(GameTestHelper helper) {
-        return blockEntityAt(helper, CONTROLLER, SmelteryControllerBlockEntity.class, "smeltery controller");
-    }
-
-    /**
-     * Fetches the block entity at {@code pos}, asserting it is of the expected type before
-     * downcasting — a wiring change then fails with a clear assertion message rather than a
-     * {@link ClassCastException}.
-     */
-    private static <T extends BlockEntity> T blockEntityAt(GameTestHelper helper, BlockPos pos, Class<T> type, String description) {
-        BlockEntity be = helper.getBlockEntity(pos);
-        helper.assertTrue(type.isInstance(be), description + " block entity attaches");
-        return type.cast(be);
+        return GameTestHelpers.blockEntityAt(helper, CONTROLLER, SmelteryControllerBlockEntity.class, "smeltery controller");
     }
 
     /** Resolves the melting recipe for {@code stack}, failing the test when none is registered. */
