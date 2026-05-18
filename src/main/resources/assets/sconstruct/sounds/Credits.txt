@@ -20,5 +20,5 @@ spark(fm_tri-90_sin-110).wav by FreqMan
 https://www.freesound.org/people/FreqMan/sounds/24726/
 
 discharge:
-ELECTRIC_ZAP_001.wav by JoelAUdio
+ELECTRIC_ZAP_001.wav by JoelAudio
 https://www.freesound.org/people/JoelAudio/sounds/136542/
