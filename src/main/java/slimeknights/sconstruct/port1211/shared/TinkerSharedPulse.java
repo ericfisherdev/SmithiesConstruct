@@ -7,6 +7,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 
+import slimeknights.sconstruct.port1211.common.SmithiesSounds;
 import slimeknights.sconstruct.port1211.common.pulse.Pulse;
 import slimeknights.sconstruct.port1211.shared.client.SharedClientFluidTypes;
 
@@ -49,6 +50,10 @@ public final class TinkerSharedPulse implements Pulse {
         SharedItems.init();
         SharedTabs.init();
         SharedTabs.registerCreativeTabContents(modBus);
+
+        // SMTCON-166: custom sound events. Touched here so the SOUND_EVENTS DeferredRegister
+        // sees every entry before the registry freezes during mod construction.
+        SmithiesSounds.init();
 
         // Client-side fluid rendering metadata (textures, tint, fog) must subscribe before the
         // common-setup phase, so it goes in register() guarded by dist. Routing through a

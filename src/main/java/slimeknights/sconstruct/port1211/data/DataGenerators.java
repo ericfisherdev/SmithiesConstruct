@@ -94,6 +94,10 @@ public final class DataGenerators {
         DataProvider.Factory<TinkerLanguageProvider> languageFactory = TinkerLanguageProvider::new;
         generator.addProvider(client, languageFactory);
 
+        // SMTCON-166: emits assets/sconstruct/sounds.json for the custom sound events.
+        DataProvider.Factory<SmithiesSoundProvider> soundFactory = out -> new SmithiesSoundProvider(out, existingFileHelper);
+        generator.addProvider(client, soundFactory);
+
         // SMTCON-106: emits the blocks-atlas PalettedPermutations source that materialises one
         // sprite per (part × material) pair at runtime. Client-side only — the atlas JSON is
         // written to assets/minecraft/atlases/blocks.json (the vanilla blocks atlas path on the

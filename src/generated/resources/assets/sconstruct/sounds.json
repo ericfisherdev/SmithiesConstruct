@@ -1,0 +1,62 @@
+{
+  "charged": {
+    "sounds": [
+      "sconstruct:charged"
+    ],
+    "subtitle": "subtitles.sconstruct.charged"
+  },
+  "crossbow_reload": {
+    "sounds": [
+      "sconstruct:crossbow_reload"
+    ],
+    "subtitle": "subtitles.sconstruct.crossbow_reload"
+  },
+  "discharge": {
+    "sounds": [
+      "sconstruct:discharge"
+    ],
+    "subtitle": "subtitles.sconstruct.discharge"
+  },
+  "frypan_hit": {
+    "sounds": [
+      "sconstruct:frypan_hit"
+    ],
+    "subtitle": "subtitles.sconstruct.frypan_hit"
+  },
+  "little_saw": {
+    "sounds": [
+      "sconstruct:little_saw"
+    ],
+    "subtitle": "subtitles.sconstruct.little_saw"
+  },
+  "slimesling": {
+    "sounds": [
+      "sconstruct:slimesling"
+    ],
+    "subtitle": "subtitles.sconstruct.slimesling"
+  },
+  "stone_hit": {
+    "sounds": [
+      "sconstruct:stone_hit1",
+      "sconstruct:stone_hit2",
+      "sconstruct:stone_hit3"
+    ],
+    "subtitle": "subtitles.sconstruct.stone_hit"
+  },
+  "toy_squeak": {
+    "sounds": [
+      "sconstruct:toy_squeak"
+    ],
+    "subtitle": "subtitles.sconstruct.toy_squeak"
+  },
+  "wood_hit": {
+    "sounds": [
+      "sconstruct:wood_hit1",
+      "sconstruct:wood_hit2",
+      "sconstruct:wood_hit3",
+      "sconstruct:wood_hit4",
+      "sconstruct:wood_hit5"
+    ],
+    "subtitle": "subtitles.sconstruct.wood_hit"
+  }
+}

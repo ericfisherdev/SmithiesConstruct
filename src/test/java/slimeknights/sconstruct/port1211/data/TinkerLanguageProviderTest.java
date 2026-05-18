@@ -246,7 +246,9 @@ class TinkerLanguageProviderTest {
         //
         // SMTCON-164 adds the Jade look-at tooltip lines (temperature, tank, tank empty) = 3
         // more, for 314 total.
-        assertEquals(314, lang().entrySet().size());
+        //
+        // SMTCON-166 adds nine custom sound-event subtitles = 9 more, for 323 total.
+        assertEquals(323, lang().entrySet().size());
     }
 
     @Test
@@ -303,6 +305,17 @@ class TinkerLanguageProviderTest {
         assertAll(() -> assertEquals("Temperature: %1$s K", lang.get("gui.sconstruct.jade.temperature").getAsString()),
                 () -> assertEquals("Tank: %1$s / %2$s mB %3$s", lang.get("gui.sconstruct.jade.tank").getAsString()),
                 () -> assertEquals("Tank: empty", lang.get("gui.sconstruct.jade.tank_empty").getAsString()));
+    }
+
+    @Test
+    void smtcon166SoundSubtitlesArePinned() {
+        // Pin a representative spread of the custom sound-event subtitle keys so a mistyped key
+        // fails here rather than showing raw key-text when sound subtitles are enabled.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Frying pan clangs", lang.get("subtitles.sconstruct.frypan_hit").getAsString()),
+                () -> assertEquals("Slimesling launches", lang.get("subtitles.sconstruct.slimesling").getAsString()),
+                () -> assertEquals("Wood thuds", lang.get("subtitles.sconstruct.wood_hit").getAsString()),
+                () -> assertEquals("Crossbow fires", lang.get("subtitles.sconstruct.discharge").getAsString()));
     }
 
     @Test
