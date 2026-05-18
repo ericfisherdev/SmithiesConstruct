@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Fill a tank with a fuel such as lava, then drop ore or ingots into the smeltery's melting slots. Once the structure is hot enough they melt into molten metal."
+      "text": "Fill a tank with a fuel such as lava, then drop ore or ingots into the smeltery's melting slots. The controller's interface shows the current temperature; once the structure is hot enough, the items melt into molten metal."
     },
     {
       "type": "patchouli:text",
