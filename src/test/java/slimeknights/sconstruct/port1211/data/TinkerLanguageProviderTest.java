@@ -243,7 +243,10 @@ class TinkerLanguageProviderTest {
         // SMTCON-163 adds six labels for the custom modifier and tool-stats Patchouli pages
         // (modifier row, unknown tool, materials, parts, modifier slots, not-a-tool) = 6 more,
         // for 311 total.
-        assertEquals(311, lang().entrySet().size());
+        //
+        // SMTCON-164 adds the Jade look-at tooltip lines (temperature, tank, tank empty) = 3
+        // more, for 314 total.
+        assertEquals(314, lang().entrySet().size());
     }
 
     @Test
@@ -290,6 +293,16 @@ class TinkerLanguageProviderTest {
                 () -> assertEquals("Materials:", lang.get("gui.sconstruct.book.materials").getAsString()), () -> assertEquals("Parts: %1$s", lang.get("gui.sconstruct.book.parts").getAsString()),
                 () -> assertEquals("Modifier slots: %1$s", lang.get("gui.sconstruct.book.modifier_slots").getAsString()),
                 () -> assertEquals("This item is not a buildable tool.", lang.get("gui.sconstruct.book.not_a_tool").getAsString()));
+    }
+
+    @Test
+    void smtcon164JadeTooltipKeysArePinned() {
+        // Pin the Jade look-at tooltip keys and their argument placeholders so a mistyped key
+        // fails here rather than rendering raw key-text on the in-game Jade tooltip.
+        JsonObject lang = lang();
+        assertAll(() -> assertEquals("Temperature: %1$s K", lang.get("gui.sconstruct.jade.temperature").getAsString()),
+                () -> assertEquals("Tank: %1$s / %2$s mB %3$s", lang.get("gui.sconstruct.jade.tank").getAsString()),
+                () -> assertEquals("Tank: empty", lang.get("gui.sconstruct.jade.tank_empty").getAsString()));
     }
 
     @Test

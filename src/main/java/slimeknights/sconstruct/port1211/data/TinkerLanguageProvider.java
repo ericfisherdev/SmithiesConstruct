@@ -471,6 +471,10 @@ public final class TinkerLanguageProvider extends LanguageProvider {
         add("gui.sconstruct.book.parts", "Parts: %1$s");
         add("gui.sconstruct.book.modifier_slots", "Modifier slots: %1$s");
         add("gui.sconstruct.book.not_a_tool", "This item is not a buildable tool.");
+        // SMTCON-164: Jade look-at tooltip lines for the smeltery controller and seared tanks.
+        add("gui.sconstruct.jade.temperature", "Temperature: %1$s K");
+        add("gui.sconstruct.jade.tank", "Tank: %1$s / %2$s mB %3$s");
+        add("gui.sconstruct.jade.tank_empty", "Tank: empty");
     }
 
     private static String slimeColorId(SlimeFluidSet fluid) {
