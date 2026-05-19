@@ -5,6 +5,13 @@
   "sortnum": 19,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:crossbow"
+      },
+      "title": "Crossbow"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Crossbow is a strong ranged weapon that must be loaded beforehand. Its bolts deal heavy damage and partially pierce armor, and it gains extra benefit from bonus damage."
     },

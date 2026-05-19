@@ -5,6 +5,13 @@
   "sortnum": 20,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:tinker_arrow"
+      },
+      "title": "Arrow"
+    },
+    {
       "type": "patchouli:text",
       "text": "Arrows are deadly projectiles fired from bows. A crafted stack holds many shots and can be picked back up. Damage depends on both the bow and the arrow's own materials."
     },

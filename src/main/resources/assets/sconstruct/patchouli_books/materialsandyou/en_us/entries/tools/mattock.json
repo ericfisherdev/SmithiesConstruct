@@ -5,6 +5,13 @@
   "sortnum": 8,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:mattock"
+      },
+      "title": "Mattock"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Mattock is a versatile farming tool. It is effective on wood, dirt, and plants, can till soil, and deals respectable damage in combat."
     },

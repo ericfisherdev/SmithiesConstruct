@@ -15,6 +15,43 @@
     {
       "type": "patchouli:text",
       "text": "Place the smeltery controller in one of the walls. Once the structure is valid, right-click the controller to open the smeltery interface."
+    },
+    {
+      "type": "patchouli:multiblock",
+      "name": "Example Smeltery",
+      "multiblock": {
+        "pattern": [
+          [
+            "BBBBB",
+            "B   B",
+            "B   B",
+            "B   B",
+            "BBBBB"
+          ],
+          [
+            "BBBBB",
+            "B   B",
+            "B   B",
+            "B   B",
+            "BTCDB"
+          ],
+          [
+            "     ",
+            " BBB ",
+            " B0B ",
+            " BBB ",
+            "     "
+          ]
+        ],
+        "mapping": {
+          "B": "sconstruct:seared_brick",
+          "T": "sconstruct:seared_tank_in",
+          "C": "sconstruct:smeltery_controller",
+          "D": "sconstruct:seared_drain",
+          "0": "sconstruct:seared_brick"
+        }
+      },
+      "text": "The smallest smeltery: a 3x3 seared-brick floor, walls two blocks tall, and a controller, tank, and drain set into the front wall."
     }
   ]
 }

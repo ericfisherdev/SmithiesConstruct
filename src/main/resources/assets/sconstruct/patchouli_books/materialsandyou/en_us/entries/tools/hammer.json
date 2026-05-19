@@ -5,6 +5,13 @@
   "sortnum": 10,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:hammer"
+      },
+      "title": "Hammer"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Hammer is a broad mining tool. It harvests blocks in a wide range and is effective against the undead, making it ideal for clearing large areas."
     },

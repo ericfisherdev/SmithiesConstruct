@@ -5,6 +5,13 @@
   "sortnum": 17,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:shortbow"
+      },
+      "title": "Shortbow"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Shortbow is a fast and nimble option for ranged combat. It fires faster than a vanilla bow and allows quicker movement, at the cost of reduced damage."
     },

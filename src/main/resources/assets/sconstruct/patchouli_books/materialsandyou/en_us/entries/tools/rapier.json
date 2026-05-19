@@ -5,6 +5,13 @@
   "sortnum": 15,
   "pages": [
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:rapier"
+      },
+      "title": "Rapier"
+    },
+    {
       "type": "patchouli:text",
       "text": "The Rapier relies on quick strikes to defeat armored foes \u2014 each hit partially bypasses the target's armor. Right-click performs a short backpedal to dodge incoming damage."
     },

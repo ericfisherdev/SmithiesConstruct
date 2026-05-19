@@ -9,6 +9,48 @@
       "text": "$(l)Tanks$() store the fuel and the molten fluids. The smeltery needs at least one tank for fuel; adding more increases both the fuel reserve and the fluid capacity."
     },
     {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:smeltery_controller"
+      },
+      "title": "Smeltery Controller"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:seared_tank_io"
+      },
+      "title": "Seared Tank IO"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:seared_tank_in"
+      },
+      "title": "Seared Tank In"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:seared_tank_gauge"
+      },
+      "title": "Seared Tank Gauge"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:seared_drain"
+      },
+      "title": "Seared Drain"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": {
+        "item": "sconstruct:seared_chute"
+      },
+      "title": "Seared Chute"
+    },
+    {
       "type": "patchouli:text",
       "text": "$(l)Drains$() let fluid move in and out of the structure. Attach a $(l)faucet$() to a drain to pour fluid into casting tables and basins, or connect fluid pipes from other mods to pump fluid through the drain."
     },
