@@ -19,6 +19,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -63,8 +64,8 @@ import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
  * <p><strong>Structure and sizing.</strong> The fluid tank and melting-slot inventory are
  * created at fixed initial sizes ({@link #INITIAL_TANK_CAPACITY} / {@link #INITIAL_MELTING_SLOTS})
  * so the controller is a complete, usable BE on its own. On assembly {@link #bindStructure}
- * resizes the tank capacity to the bowl volume (SMTCON-215); the melting-slot resize is tracked
- * separately as SMTCON-216.
+ * resizes the tank capacity (SMTCON-215) and the melting-slot count (SMTCON-216) to the bowl
+ * volume; {@link #unbindStructure} restores both initial sizes.
  *
  * <p><strong>Ticking.</strong> {@link #serverTick} is registered as the block's server-side
  * {@code BlockEntityTicker}. Each tick {@link #tickMelts()} advances every active melt by one
@@ -83,7 +84,7 @@ import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
  */
 public class SmelteryControllerBlockEntity extends BlockEntity implements MenuProvider {
 
-    /** Initial melting-slot count before the slot resize (SMTCON-216) sizes it to the interior. */
+    /** Melting-slot count before {@link #bindStructure} resizes it to the assembled interior. */
     public static final int INITIAL_MELTING_SLOTS = 9;
 
     /** Molten-metal capacity in millibuckets contributed by each interior block of the bowl. */
@@ -124,9 +125,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     };
 
     /**
-     * Item input slots -- items dropped here are matched to melting recipes; the resize to the
-     * interior volume is tracked as SMTCON-216. A slot whose item is mid-melt is <em>reserved</em>:
-     * the overrides below reject
+     * Item input slots -- items dropped here are matched to melting recipes; {@link #bindStructure}
+     * resizes this inventory to the interior volume. A slot whose item is mid-melt is
+     * <em>reserved</em>: the overrides below reject
      * both extraction and insertion for it (see {@link #isSlotReserved(int)}) so a hopper or
      * player cannot pull the input back out — or stack onto it — while the melt is running, which
      * would otherwise let the completion in {@link #tickMelts()} duplicate or destroy items.
@@ -661,9 +662,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 component.setControllerPos(getBlockPos());
             }
         }
-        // Scale the tank to the bowl: a bigger smeltery holds more metal. setCapacity keeps the
-        // held fluid and is idempotent, so re-running it on every re-validation is harmless.
+        // Scale the tank and the melting inventory to the bowl: a bigger smeltery holds more
+        // metal and melts more at once. setCapacity keeps the held fluid and is idempotent, so
+        // re-running it on every re-validation is harmless.
         fluidTank.setCapacity(assembled.bowlVolume() * MB_PER_INTERIOR_CELL);
+        resizeMeltingSlots(assembled.bowlVolume());
         setLit(true);
     }
 
@@ -672,7 +675,42 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         clearComponentStamps();
         structure = Optional.empty();
         fluidTank.setCapacity(INITIAL_TANK_CAPACITY);
+        resizeMeltingSlots(INITIAL_MELTING_SLOTS);
         setLit(false);
+    }
+
+    /**
+     * Resizes the melting inventory to {@code newSize}, preserving the contents
+     * {@link ItemStackHandler#setSize} would otherwise discard. A shrink strands the slots past
+     * the new end: their items are dropped into the world and any melt reserving them is
+     * discarded, so a smaller smeltery keeps no phantom reservations. The change is pushed to
+     * tracking clients with a block update so their inventory copy and the screen resize too.
+     * Runs server-side only — its sole callers, {@link #bindStructure} / {@link #unbindStructure},
+     * are reached only through the server-side {@link #tryAssemble}.
+     */
+    private void resizeMeltingSlots(int newSize) {
+        int oldSize = meltingSlots.getSlots();
+        if (oldSize == newSize || level == null) {
+            return;
+        }
+        List<ItemStack> kept = new ArrayList<>(oldSize);
+        for (int slot = 0; slot < oldSize; slot++) {
+            kept.add(meltingSlots.getStackInSlot(slot));
+        }
+        meltingSlots.setSize(newSize);
+        for (int slot = 0; slot < newSize && slot < kept.size(); slot++) {
+            meltingSlots.setStackInSlot(slot, kept.get(slot));
+        }
+        if (newSize < oldSize) {
+            activeMelts.removeIf(melt -> melt.slot() >= newSize);
+            for (int slot = newSize; slot < kept.size(); slot++) {
+                if (!kept.get(slot).isEmpty()) {
+                    Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, kept.get(slot));
+                }
+            }
+        }
+        setChanged();
+        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
     }
 
     /**

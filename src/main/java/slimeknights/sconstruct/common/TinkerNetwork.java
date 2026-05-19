@@ -15,6 +15,7 @@ import slimeknights.sconstruct.common.network.ToolStationActionPayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryFluidUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryFuelUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryMeltingUpdatePayload;
+import slimeknights.sconstruct.smeltery.network.SmelteryScrollPayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryStructureUpdatePayload;
 
 /**
@@ -75,5 +76,7 @@ public final class TinkerNetwork {
         registrar.playToClient(SmelteryFuelUpdatePayload.TYPE, SmelteryFuelUpdatePayload.STREAM_CODEC, SmelteryFuelUpdatePayload::handleClient);
         registrar.playToClient(SmelteryStructureUpdatePayload.TYPE, SmelteryStructureUpdatePayload.STREAM_CODEC, SmelteryStructureUpdatePayload::handleClient);
         registrar.playToClient(SmelteryMeltingUpdatePayload.TYPE, SmelteryMeltingUpdatePayload.STREAM_CODEC, SmelteryMeltingUpdatePayload::handleClient);
+        // SMTCON-216: client→server scroll packet for the controller's melting-slot window.
+        registrar.playToServer(SmelteryScrollPayload.TYPE, SmelteryScrollPayload.STREAM_CODEC, SmelteryScrollPayload::handleServer);
     }
 }

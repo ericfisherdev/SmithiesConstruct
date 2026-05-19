@@ -122,6 +122,7 @@ public final class SmelteryTests {
         helper.assertValueEqual(structure.floor().size(), 1, "floor is the single seared slab under the interior");
         helper.assertTrue(structure.components().get(helper.absolutePos(CONTROLLER)) == ComponentType.CONTROLLER, "controller is catalogued as the CONTROLLER component");
         helper.assertValueEqual(controller.getFluidHandler().getTankCapacity(0), SmelteryControllerBlockEntity.MB_PER_INTERIOR_CELL, "the tank capacity scales to the 1x1x1 interior volume");
+        helper.assertValueEqual(controller.getItemHandler().getSlots(), 1, "the melting inventory scales to the 1x1x1 interior volume");
         helper.succeed();
     }
 
