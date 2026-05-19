@@ -14,6 +14,7 @@ import slimeknights.sconstruct.common.network.StencilTablePartPayload;
 import slimeknights.sconstruct.common.network.ToolStationActionPayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryFluidUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryFuelUpdatePayload;
+import slimeknights.sconstruct.smeltery.network.SmelteryMeltingUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryStructureUpdatePayload;
 
 /**
@@ -73,5 +74,6 @@ public final class TinkerNetwork {
         registrar.playToClient(SmelteryFluidUpdatePayload.TYPE, SmelteryFluidUpdatePayload.STREAM_CODEC, SmelteryFluidUpdatePayload::handleClient);
         registrar.playToClient(SmelteryFuelUpdatePayload.TYPE, SmelteryFuelUpdatePayload.STREAM_CODEC, SmelteryFuelUpdatePayload::handleClient);
         registrar.playToClient(SmelteryStructureUpdatePayload.TYPE, SmelteryStructureUpdatePayload.STREAM_CODEC, SmelteryStructureUpdatePayload::handleClient);
+        registrar.playToClient(SmelteryMeltingUpdatePayload.TYPE, SmelteryMeltingUpdatePayload.STREAM_CODEC, SmelteryMeltingUpdatePayload::handleClient);
     }
 }
