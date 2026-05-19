@@ -84,8 +84,11 @@ public final class SmelteryEdgeCaseTests {
     /** The molten-brass yield of the SMTCON-128 brass alloy recipe — 432 + 144 mB combined. */
     private static final int BRASS_YIELD_MB = 576;
 
-    /** A copper amount large enough to overflow the 1x1x1 interior on a disassembly release. */
-    private static final int COPPER_FILL_MB = 3000;
+    /**
+     * A copper amount that fills a 1x1x1 smeltery's tank to capacity — still well over the
+     * 1000 mB its single interior cell can hold, so a disassembly release still overflows.
+     */
+    private static final int COPPER_FILL_MB = SmelteryControllerBlockEntity.MB_PER_INTERIOR_CELL;
 
     /** Lava loaded into the seared fuel tank — comfortably more than any melt these tests run. */
     private static final int LAVA_FUEL_MB = 2000;

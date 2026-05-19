@@ -61,11 +61,9 @@ import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
  *
  * <p><strong>Structure and sizing.</strong> The fluid tank and melting-slot inventory are
  * created at fixed initial sizes ({@link #INITIAL_TANK_CAPACITY} / {@link #INITIAL_MELTING_SLOTS})
- * so the controller is a complete, usable BE on its own. The structure-validation pass that
- * scans the seared shell and <em>resizes</em> both to the assembled smeltery's interior volume
- * lands in SMTCON-115 -- it will call {@link FluidTank#setCapacity(int)} and
- * {@link ItemStackHandler#setSize(int)}; the persisted contents survive a resize because both
- * are round-tripped verbatim here.
+ * so the controller is a complete, usable BE on its own. On assembly {@link #bindStructure}
+ * resizes the tank capacity to the bowl volume (SMTCON-215); the melting-slot resize is tracked
+ * separately as SMTCON-216.
  *
  * <p><strong>Ticking.</strong> {@link #serverTick} is registered as the block's server-side
  * {@code BlockEntityTicker}. Each tick {@link #tickMelts()} advances every active melt by one
@@ -84,11 +82,14 @@ import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
  */
 public class SmelteryControllerBlockEntity extends BlockEntity implements MenuProvider {
 
-    /** Initial melting-slot count before SMTCON-115 resizes it to the assembled interior. */
+    /** Initial melting-slot count before the slot resize (SMTCON-216) sizes it to the interior. */
     public static final int INITIAL_MELTING_SLOTS = 9;
 
-    /** Initial tank capacity in mB before SMTCON-115 resizes it to the assembled interior. */
-    public static final int INITIAL_TANK_CAPACITY = 9 * 2592;
+    /** Molten-metal capacity in millibuckets contributed by each interior block of the bowl. */
+    public static final int MB_PER_INTERIOR_CELL = 2592;
+
+    /** Tank capacity in mB before {@link #bindStructure} resizes it to the assembled interior. */
+    public static final int INITIAL_TANK_CAPACITY = INITIAL_MELTING_SLOTS * MB_PER_INTERIOR_CELL;
 
     /** Millibuckets of fuel drawn from the active fuel tank per in-flight melt, per server tick. */
     private static final int FUEL_DRAW_PER_MELT = 10;
@@ -113,7 +114,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     /** Server-tick interval between ambient smoke emissions — keeps the effect subtle. */
     private static final int SMOKE_EMIT_INTERVAL = 10;
 
-    /** The smeltery's molten-metal tank; resized to the interior volume by SMTCON-115. */
+    /** The smeltery's molten-metal tank; {@link #bindStructure} resizes it to the bowl volume. */
     private final FluidTank fluidTank = new FluidTank(INITIAL_TANK_CAPACITY) {
         @Override
         protected void onContentsChanged() {
@@ -122,8 +123,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     };
 
     /**
-     * Item input slots -- items dropped here are matched to melting recipes; resized by
-     * SMTCON-115. A slot whose item is mid-melt is <em>reserved</em>: the overrides below reject
+     * Item input slots -- items dropped here are matched to melting recipes; the resize to the
+     * interior volume is tracked as SMTCON-216. A slot whose item is mid-melt is <em>reserved</em>:
+     * the overrides below reject
      * both extraction and insertion for it (see {@link #isSlotReserved(int)}) so a hopper or
      * player cannot pull the input back out — or stack onto it — while the melt is running, which
      * would otherwise let the completion in {@link #tickMelts()} duplicate or destroy items.
@@ -454,9 +456,16 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         targetTemperature = target;
     }
 
-    /** Applies a {@code SmelteryStructureUpdatePayload} to this client-side controller's render bounds. */
+    /**
+     * Applies a {@code SmelteryStructureUpdatePayload} to this client-side controller. Sets the
+     * render bounds, and re-derives the tank capacity from the interior volume — the capacity is
+     * absent from the tank's synced NBT, so without this the GUI gauge would size every fill
+     * against the unassembled default.
+     */
     public void applyStructureUpdate(Optional<BoundingBox> bounds) {
         renderBounds = bounds;
+        int volume = bounds.map(box -> box.getXSpan() * box.getYSpan() * box.getZSpan()).orElse(INITIAL_MELTING_SLOTS);
+        fluidTank.setCapacity(volume * MB_PER_INTERIOR_CELL);
     }
 
     /** The temperature in kelvin the active fuel source can sustain. */
@@ -598,6 +607,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 component.setControllerPos(getBlockPos());
             }
         }
+        // Scale the tank to the bowl: a bigger smeltery holds more metal. setCapacity keeps the
+        // held fluid and is idempotent, so re-running it on every re-validation is harmless.
+        fluidTank.setCapacity(assembled.bowlVolume() * MB_PER_INTERIOR_CELL);
         setLit(true);
     }
 
@@ -605,6 +617,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     private void unbindStructure() {
         clearComponentStamps();
         structure = Optional.empty();
+        fluidTank.setCapacity(INITIAL_TANK_CAPACITY);
         setLit(false);
     }
 
@@ -700,7 +713,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         super.handleUpdateTag(tag, provider);
         targetTemperature = tag.getInt(TAG_TARGET_TEMPERATURE);
         int[] bounds = tag.getIntArray(TAG_RENDER_BOUNDS);
-        renderBounds = bounds.length == RENDER_BOUNDS_LENGTH ? Optional.of(new BoundingBox(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])) : Optional.empty();
+        // Route through applyStructureUpdate so the tank capacity is re-derived from the bounds,
+        // exactly as the SMTCON-124 delta payload does — the initial sync must not skip it.
+        applyStructureUpdate(bounds.length == RENDER_BOUNDS_LENGTH ? Optional.of(new BoundingBox(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])) : Optional.empty());
     }
 
     @Override
