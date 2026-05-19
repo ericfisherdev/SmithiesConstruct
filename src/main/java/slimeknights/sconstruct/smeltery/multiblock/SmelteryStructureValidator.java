@@ -389,8 +389,20 @@ public final class SmelteryStructureValidator {
         if (bounds.isInside(pos)) {
             return newRole != BlockRole.INTERIOR;
         }
-        if (pos.getY() == bounds.maxY() + 1 && pos.getX() >= bounds.minX() - 1 && pos.getX() <= bounds.maxX() + 1 && pos.getZ() >= bounds.minZ() - 1 && pos.getZ() <= bounds.maxZ() + 1) {
-            return newRole.isWall();
+        if (pos.getY() == bounds.maxY() + 1) {
+            boolean overInterior = pos.getX() >= bounds.minX() && pos.getX() <= bounds.maxX() && pos.getZ() >= bounds.minZ() && pos.getZ() <= bounds.maxZ();
+            if (overInterior) {
+                // The validator requires the layer above the top wall to be clear (INTERIOR), so
+                // *anything* placed in the interior footprint at maxY+1 — wall material or not —
+                // breaks the open-top invariant and warrants a re-validation.
+                return newRole != BlockRole.INTERIOR;
+            }
+            boolean inExpansionRing = pos.getX() >= bounds.minX() - 1 && pos.getX() <= bounds.maxX() + 1 && pos.getZ() >= bounds.minZ() - 1 && pos.getZ() <= bounds.maxZ() + 1;
+            if (inExpansionRing) {
+                // Wall material in the perimeter ring one layer above the top wall may complete a
+                // new ring — re-validate so SMTCON-228's expansion poll picks it up immediately.
+                return newRole.isWall();
+            }
         }
         return false;
     }
