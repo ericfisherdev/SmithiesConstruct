@@ -50,6 +50,7 @@ import slimeknights.sconstruct.smeltery.multiblock.SmelteryStructure;
 import slimeknights.sconstruct.smeltery.multiblock.SmelteryStructureValidator;
 import slimeknights.sconstruct.smeltery.network.SmelteryFluidUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryFuelUpdatePayload;
+import slimeknights.sconstruct.smeltery.network.SmelteryMeltingUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryStructureUpdatePayload;
 import slimeknights.sconstruct.smeltery.recipe.MeltingRecipe;
 import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
@@ -172,6 +173,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
 
     /** Interior bounds last pushed to chunk trackers, so an unchanged structure is not re-synced. */
     private Optional<BoundingBox> lastSyncedBounds = Optional.empty();
+
+    /** Melting-slot contents last pushed to chunk trackers, so unchanged slots are not re-synced. */
+    private List<ItemStack> lastSyncedMeltingItems = List.of();
 
     /**
      * The validated multiblock shape this controller currently drives, or
@@ -438,6 +442,33 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             lastSyncedBounds = bounds;
             PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryStructureUpdatePayload(getBlockPos(), bounds));
         }
+        List<ItemStack> meltingItems = meltingSlotContents();
+        if (!meltingItemsMatch(meltingItems, lastSyncedMeltingItems)) {
+            lastSyncedMeltingItems = meltingItems;
+            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryMeltingUpdatePayload(getBlockPos(), meltingItems));
+        }
+    }
+
+    /** A slot-indexed snapshot of the melting-slot contents — each stack copied so it is immutable. */
+    private List<ItemStack> meltingSlotContents() {
+        List<ItemStack> contents = new ArrayList<>(meltingSlots.getSlots());
+        for (int slot = 0; slot < meltingSlots.getSlots(); slot++) {
+            contents.add(meltingSlots.getStackInSlot(slot).copy());
+        }
+        return contents;
+    }
+
+    /** Whether two slot-indexed melting-item snapshots hold the same stacks in the same order. */
+    private static boolean meltingItemsMatch(List<ItemStack> a, List<ItemStack> b) {
+        if (a.size() != b.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.size(); i++) {
+            if (!ItemStack.matches(a.get(i), b.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -446,6 +477,16 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      */
     public void applyFluidUpdate(List<FluidStack> contents) {
         fluidTank.setFluid(contents.isEmpty() ? FluidStack.EMPTY : contents.get(0));
+    }
+
+    /**
+     * Applies a {@code SmelteryMeltingUpdatePayload} to this client-side controller — the
+     * melting slots are set to the synced stacks so the renderer draws the items being melted.
+     */
+    public void applyMeltingUpdate(List<ItemStack> items) {
+        for (int slot = 0; slot < meltingSlots.getSlots() && slot < items.size(); slot++) {
+            meltingSlots.setStackInSlot(slot, items.get(slot));
+        }
     }
 
     /** Applies a {@code SmelteryFuelUpdatePayload} to this client-side controller's heat gauge. */
