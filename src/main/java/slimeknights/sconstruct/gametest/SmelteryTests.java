@@ -157,6 +157,36 @@ public final class SmelteryTests {
         helper.succeed();
     }
 
+    /**
+     * A melting slot stacked deeper than one item melts every item, not just one — each
+     * completed melt shrinks the stack by a single item and {@code startMelts} queues the next,
+     * so a stack of two iron ingots yields two recipe pours and leaves the slot empty.
+     */
+    @GameTest(template = TEMPLATE)
+    public static void meltIronStack(GameTestHelper helper) {
+        buildSmeltery(helper, true);
+        SearedTankBE tank = GameTestHelpers.blockEntityAt(helper, TANK, SearedTankBE.class, "seared tank");
+        tank.getFluidHandler().fill(new FluidStack(Fluids.LAVA, LAVA_FUEL_MB), IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity controller = controllerAt(helper);
+        controller.tryAssemble();
+        helper.assertTrue(controller.isAssembled(), "controller assembles before melting");
+
+        // Two iron ingots in one slot. startMelts must melt both, one at a time.
+        ItemStack remainder = controller.getItemHandler().insertItem(0, new ItemStack(Items.IRON_INGOT, 2), false);
+        helper.assertTrue(remainder.isEmpty(), "melting slot 0 accepts both iron ingots");
+        int expectedYield = meltingRecipeFor(helper, new ItemStack(Items.IRON_INGOT)).output().getAmount() * 2;
+
+        BlockState controllerState = controller.getBlockState();
+        for (int tick = 0; tick < TICK_BUDGET && controller.getFluidHandler().getFluidInTank(0).getAmount() < expectedYield; tick++) {
+            SmelteryControllerBlockEntity.serverTick(helper.getLevel(), controller.getBlockPos(), controllerState, controller);
+        }
+
+        helper.assertValueEqual(controller.getFluidHandler().getFluidInTank(0).getAmount(), expectedYield, "both ingots melted — the tank holds two recipe pours of molten iron");
+        helper.assertTrue(controller.getItemHandler().getStackInSlot(0).isEmpty(), "both ingots were consumed from the slot");
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE)
     public static void castIngot(GameTestHelper helper) {
         BlockPos tablePos = new BlockPos(1, BASE_Y, 1);

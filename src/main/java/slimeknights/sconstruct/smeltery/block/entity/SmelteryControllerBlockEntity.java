@@ -315,7 +315,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 if (fluidTank.fill(result, IFluidHandler.FluidAction.SIMULATE) == result.getAmount()) {
                     fluidTank.fill(result, IFluidHandler.FluidAction.EXECUTE);
                     if (melt.slot() < meltingSlots.getSlots()) {
-                        meltingSlots.setStackInSlot(melt.slot(), ItemStack.EMPTY);
+                        // Consume exactly the one item this melt processed — shrinking the stack
+                        // rather than emptying the slot. A slot stacked deeper keeps its
+                        // remaining items, which startMelts picks up as the next melt.
+                        ItemStack input = meltingSlots.getStackInSlot(melt.slot());
+                        if (!input.isEmpty()) {
+                            ItemStack remaining = input.copy();
+                            remaining.shrink(1);
+                            meltingSlots.setStackInSlot(melt.slot(), remaining);
+                        }
                     }
                     iterator.remove();
                     changed = true;
