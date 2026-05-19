@@ -54,6 +54,26 @@ public record SmelteryStructure(BoundingBox bounds, Set<BlockPos> floor, Set<Blo
         components = Map.copyOf(components);
     }
 
+    /**
+     * The interior cell at sequence position {@code index} in row-major (x, then z, then y) order.
+     * Used by the controller's streaming interior validity check (SMTCON-219) to walk one cell per
+     * sweep tick without re-scanning the whole bowl. {@code index} must be in
+     * {@code [0, bowlVolume())}; the caller is expected to wrap modulo {@link #bowlVolume()}.
+     */
+    public BlockPos interiorCell(int index) {
+        if (index < 0 || index >= bowlVolume) {
+            throw new IndexOutOfBoundsException("index " + index + " not in [0, " + bowlVolume + ")");
+        }
+        int width = bounds.maxX() - bounds.minX() + 1;
+        int depth = bounds.maxZ() - bounds.minZ() + 1;
+        int layer = width * depth;
+        int y = index / layer;
+        int layerIndex = index % layer;
+        int x = layerIndex % width;
+        int z = layerIndex / width;
+        return new BlockPos(bounds.minX() + x, bounds.minY() + y, bounds.minZ() + z);
+    }
+
     /** Six-int extents of the interior bounding box — keyed at the persisted top level. */
     private static final String TAG_BOUNDS = "Bounds";
     private static final String TAG_FLOOR = "Floor";

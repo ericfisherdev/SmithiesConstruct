@@ -214,6 +214,23 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      */
     private boolean needsComponentRestamp;
 
+    /**
+     * Rolling cursor into the assembled structure's interior cells — incremented every time the
+     * streaming interior validity check (SMTCON-219) sweeps a cell, wrapping modulo
+     * {@link SmelteryStructure#bowlVolume()}. Reset to {@code 0} on {@link #bindStructure} and
+     * {@link #unbindStructure} so a re-bind always starts from the floor's first cell; not
+     * persisted because the sweep order does not affect correctness.
+     */
+    private int interiorCheckCursor;
+
+    /**
+     * Ticks between two consecutive cells of the streaming interior validity check (SMTCON-219).
+     * Matches upstream Tinkers' Construct 1.18.2 — a sweep of one cell per four server ticks
+     * gives a 100-cell interior a 20-second cycle for negligible CPU cost, and catches a
+     * piston-placed or worldgen-replaced interior block within that window without an event hook.
+     */
+    private static final int INTERIOR_CHECK_INTERVAL = 4;
+
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state) {
         super(SmelteryComponents.SMELTERY_CONTROLLER_BE.get(), pos, state);
     }
@@ -374,10 +391,38 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         else if (controller.needsComponentRestamp) {
             controller.restampRestoredComponents();
         }
+        // Streaming interior validity check (SMTCON-219): one cell per four ticks, rotating
+        // through the bowl. Catches placements the SMTCON-117 break-event listener misses — pistons,
+        // water/lava flows, foreign-mod block setters — without paying the cost of a full rescan.
+        if (controller.isAssembled() && level.getGameTime() % INTERIOR_CHECK_INTERVAL == 0L) {
+            controller.streamInteriorCheck();
+        }
         controller.startMelts();
         controller.tickSmeltery();
         controller.syncToTrackers();
         controller.emitSmoke(level);
+    }
+
+    /**
+     * Classifies the interior cell the cursor currently points at and, if the cell is no longer a
+     * valid {@link SmelteryStructureValidator.BlockRole#INTERIOR}, flags the controller to
+     * re-validate on its next tick. Advances the cursor every sweep, whether or not the cell was
+     * valid, so a persistently-bad cell does not stop the rest of the sweep.
+     */
+    private void streamInteriorCheck() {
+        if (level == null || !structure.isPresent()) {
+            return;
+        }
+        SmelteryStructure assembled = structure.get();
+        // The cursor can outrun the bowl after a resize; wrap defensively before indexing so the
+        // first sweep after a shrink does not throw an IndexOutOfBoundsException.
+        interiorCheckCursor = Math.floorMod(interiorCheckCursor, assembled.bowlVolume());
+        BlockPos cell = assembled.interiorCell(interiorCheckCursor);
+        interiorCheckCursor = (interiorCheckCursor + 1) % assembled.bowlVolume();
+        SmelteryStructureValidator.BlockRole role = SmelteryStructureValidator.classifierFor(level).classify(cell);
+        if (role != SmelteryStructureValidator.BlockRole.INTERIOR) {
+            needsValidation = true;
+        }
     }
 
     /**
@@ -699,6 +744,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         // re-running it on every re-validation is harmless.
         fluidTank.setCapacity(assembled.bowlVolume() * MB_PER_INTERIOR_CELL);
         resizeMeltingSlots(assembled.bowlVolume());
+        // Restart the streaming interior check (SMTCON-219) from the bowl's first cell so a
+        // re-bind does not leave the cursor pointing past the new bounds.
+        interiorCheckCursor = 0;
         setLit(true);
     }
 
@@ -708,6 +756,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         structure = Optional.empty();
         fluidTank.setCapacity(INITIAL_TANK_CAPACITY);
         resizeMeltingSlots(INITIAL_MELTING_SLOTS);
+        interiorCheckCursor = 0;
         setLit(false);
     }
 
