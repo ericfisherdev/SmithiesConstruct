@@ -60,18 +60,25 @@ public final class SmelteryEvents {
         if (!SmelteryStructureValidator.isSmelteryShellBlock(event.getState())) {
             return;
         }
-        invalidateControllersNear(level, event.getPos());
+        notifyControllersNear(level, event.getPos());
     }
 
-    /** Flags every {@link SmelteryControllerBlockEntity} within the search cube for re-validation. */
-    private static void invalidateControllersNear(Level level, BlockPos broken) {
+    /**
+     * Notifies every {@link SmelteryControllerBlockEntity} within the search cube of a shell-block
+     * break — the controller's own structure decides whether the change warrants re-validation
+     * (SMTCON-227) via {@link SmelteryStructureValidator#shouldUpdate}. The block has not been
+     * removed yet (the event fires pre-removal), so the post-change role is the air-equivalent
+     * {@link SmelteryStructureValidator.BlockRole#INTERIOR}.
+     */
+    private static void notifyControllersNear(Level level, BlockPos broken) {
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        BlockPos brokenImmutable = broken.immutable();
         for (int dx = -CONTROLLER_SEARCH_RADIUS; dx <= CONTROLLER_SEARCH_RADIUS; dx++) {
             for (int dy = -CONTROLLER_SEARCH_RADIUS; dy <= CONTROLLER_SEARCH_RADIUS; dy++) {
                 for (int dz = -CONTROLLER_SEARCH_RADIUS; dz <= CONTROLLER_SEARCH_RADIUS; dz++) {
                     cursor.set(broken.getX() + dx, broken.getY() + dy, broken.getZ() + dz);
                     if (level.getBlockEntity(cursor) instanceof SmelteryControllerBlockEntity controller) {
-                        controller.invalidate();
+                        controller.notifyChange(brokenImmutable, SmelteryStructureValidator.BlockRole.INTERIOR);
                     }
                 }
             }
