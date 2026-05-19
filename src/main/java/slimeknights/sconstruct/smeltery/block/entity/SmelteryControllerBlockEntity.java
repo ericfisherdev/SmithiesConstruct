@@ -100,6 +100,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     private static final String TAG_MELTING_SLOTS = "MeltingSlots";
     private static final String TAG_TEMPERATURE = "Temperature";
     private static final String TAG_ACTIVE_MELTS = "ActiveMelts";
+    private static final String TAG_STRUCTURE = "Structure";
 
     /** Update-tag key for the target temperature — sync-only, not part of the saved state. */
     private static final String TAG_TARGET_TEMPERATURE = "TargetTemperature";
@@ -204,6 +205,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * or component block is broken (SMTCON-117).
      */
     private boolean needsValidation = true;
+
+    /**
+     * Whether the controller restored its multiblock from NBT (SMTCON-218) and still owes its
+     * components a controller-stamp refresh on the first server tick. The disk path bypasses
+     * {@link #bindStructure}, so component BEs in newly-loaded chunks may not yet know which
+     * controller commands them; this flag triggers a stamp pass once chunks are reachable.
+     */
+    private boolean needsComponentRestamp;
 
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state) {
         super(SmelteryComponents.SMELTERY_CONTROLLER_BE.get(), pos, state);
@@ -362,10 +371,33 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         if (controller.needsValidation) {
             controller.tryAssemble();
         }
+        else if (controller.needsComponentRestamp) {
+            controller.restampRestoredComponents();
+        }
         controller.startMelts();
         controller.tickSmeltery();
         controller.syncToTrackers();
         controller.emitSmoke(level);
+    }
+
+    /**
+     * Re-stamps the controller's position onto every component of an NBT-restored structure
+     * (SMTCON-218). Component BEs persist their own {@code controllerPos}, so a stamp is normally
+     * unnecessary — but a chunk edit, a partial save, or a component BE loaded from a different
+     * chunk that lost its tag is harmless to refresh defensively. Runs once after the structure
+     * is restored, on the first server tick when the world is fully attached and the component
+     * positions are reachable; the flag is cleared whether or not every component resolved.
+     */
+    private void restampRestoredComponents() {
+        needsComponentRestamp = false;
+        if (level == null || !isAssembled()) {
+            return;
+        }
+        for (BlockPos componentPos : structure.get().components().keySet()) {
+            if (level.getBlockEntity(componentPos) instanceof SmelteryComponentBlockEntity component) {
+                component.setControllerPos(getBlockPos());
+            }
+        }
     }
 
     /**
@@ -785,6 +817,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
         CompoundTag tag = saveWithoutMetadata(provider);
+        // The full persisted structure (SMTCON-218) is disk-only — the client only renders the
+        // bounds, which travel separately under TAG_RENDER_BOUNDS, so stripping it keeps the
+        // chunk-tracking packet small.
+        tag.remove(TAG_STRUCTURE);
         tag.putInt(TAG_TARGET_TEMPERATURE, targetTemperature);
         structure.map(SmelteryStructure::bounds)
                 .ifPresent(bounds -> tag.putIntArray(TAG_RENDER_BOUNDS, new int[] { bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ() }));
@@ -821,6 +857,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             melts.add(melt.save(provider));
         }
         tag.put(TAG_ACTIVE_MELTS, melts);
+        // Persist the assembled multiblock (SMTCON-218) so a reload restores it without re-running
+        // the validator from scratch. Stripped from the client sync tag in getUpdateTag — disk only.
+        structure.ifPresent(assembled -> tag.put(TAG_STRUCTURE, assembled.writeToTag()));
     }
 
     @Override
@@ -846,9 +885,32 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 }
             });
         }
-        // The structure is never persisted — flag a re-validation so the first post-load tick
-        // rebuilds it from the blocks actually in the world (which may have changed while the
-        // chunk was unloaded).
-        needsValidation = true;
+        // Restore the persisted multiblock (SMTCON-218) so a reloaded controller is immediately
+        // assembled without re-running the validator. Tank capacity and melting-slot sizing are
+        // derived from the structure here — chunk save NBT for those does not include the larger
+        // sizes assigned at bind time, only the items/contents, so a missing rebind would leave
+        // the controller running at INITIAL_* sizes and stranding the loaded slot data.
+        //
+        // A missing or malformed TAG_STRUCTURE (pre-SMTCON-218 saves, or a corrupted compound)
+        // falls back to the legacy needsValidation flag — the first server tick will run the
+        // validator and either re-assemble or release tank contents via the normal disassembly
+        // path.
+        Optional<SmelteryStructure> restored = tag.contains(TAG_STRUCTURE, Tag.TAG_COMPOUND) ? SmelteryStructure.readFromTag(tag.getCompound(TAG_STRUCTURE)) : Optional.empty();
+        if (restored.isPresent() && meltingSlots.getSlots() == restored.get().bowlVolume()) {
+            structure = restored;
+            fluidTank.setCapacity(restored.get().bowlVolume() * MB_PER_INTERIOR_CELL);
+            // Component BEs persist their own controllerPos so they normally rehydrate without
+            // help, but the disk restore path bypasses bindStructure; schedule a stamp refresh on
+            // the first server tick (when the world and component chunks are guaranteed loaded)
+            // so a partial save or a chunk-edited component still gets reconnected.
+            needsValidation = false;
+            needsComponentRestamp = true;
+        }
+        else {
+            // A missing tag (pre-SMTCON-218 save), a malformed compound, or a mismatch between
+            // the restored bowl volume and the loaded slot count all fall back to the legacy
+            // validator path — the first post-load tick will re-assemble or release contents.
+            needsValidation = true;
+        }
     }
 }
