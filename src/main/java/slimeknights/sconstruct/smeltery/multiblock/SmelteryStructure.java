@@ -108,7 +108,10 @@ public record SmelteryStructure(BoundingBox bounds, Set<BlockPos> floor, Set<Blo
         BoundingBox bounds = new BoundingBox(boundsArr[0], boundsArr[1], boundsArr[2], boundsArr[3], boundsArr[4], boundsArr[5]);
         Optional<Set<BlockPos>> floor = readBlockPosSet(tag, TAG_FLOOR);
         Optional<Set<BlockPos>> walls = readBlockPosSet(tag, TAG_WALLS);
-        if (floor.isEmpty() || walls.isEmpty()) {
+        // A missing tag or a non-int-array of the wrong type both decode as an empty {@code int[]}
+        // and parse as {@code Optional.of(emptySet)} — reject that here so a malformed save cannot
+        // restore a structure with no floor or walls.
+        if (floor.isEmpty() || walls.isEmpty() || floor.get().isEmpty() || walls.get().isEmpty()) {
             return Optional.empty();
         }
         Map<BlockPos, ComponentType> components = new HashMap<>();
