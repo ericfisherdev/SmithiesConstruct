@@ -133,6 +133,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            meltingItemsDirty = true;
         }
 
         @Override
@@ -176,6 +177,13 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
 
     /** Melting-slot contents last pushed to chunk trackers, so unchanged slots are not re-synced. */
     private List<ItemStack> lastSyncedMeltingItems = List.of();
+
+    /**
+     * Set whenever a melting slot mutates; gates the per-tick snapshot in {@link #syncToTrackers}
+     * so an idle smeltery does not copy the whole inventory every tick. Starts {@code true} so
+     * the first sync always runs.
+     */
+    private boolean meltingItemsDirty = true;
 
     /**
      * The validated multiblock shape this controller currently drives, or
@@ -442,10 +450,13 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             lastSyncedBounds = bounds;
             PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryStructureUpdatePayload(getBlockPos(), bounds));
         }
-        List<ItemStack> meltingItems = meltingSlotContents();
-        if (!meltingItemsMatch(meltingItems, lastSyncedMeltingItems)) {
-            lastSyncedMeltingItems = meltingItems;
-            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryMeltingUpdatePayload(getBlockPos(), meltingItems));
+        if (meltingItemsDirty) {
+            meltingItemsDirty = false;
+            List<ItemStack> meltingItems = meltingSlotContents();
+            if (!meltingItemsMatch(meltingItems, lastSyncedMeltingItems)) {
+                lastSyncedMeltingItems = meltingItems;
+                PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryMeltingUpdatePayload(getBlockPos(), meltingItems));
+            }
         }
     }
 
@@ -480,12 +491,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     }
 
     /**
-     * Applies a {@code SmelteryMeltingUpdatePayload} to this client-side controller — the
-     * melting slots are set to the synced stacks so the renderer draws the items being melted.
+     * Applies a {@code SmelteryMeltingUpdatePayload} to this client-side controller — every
+     * melting slot is set to the synced stack so the renderer draws the items being melted. A
+     * slot past the end of the payload is cleared, so a shrunk update leaves no stale stack
+     * rendering as a phantom melt; each inbound stack is copied to avoid aliasing the payload.
      */
     public void applyMeltingUpdate(List<ItemStack> items) {
-        for (int slot = 0; slot < meltingSlots.getSlots() && slot < items.size(); slot++) {
-            meltingSlots.setStackInSlot(slot, items.get(slot));
+        for (int slot = 0; slot < meltingSlots.getSlots(); slot++) {
+            meltingSlots.setStackInSlot(slot, slot < items.size() ? items.get(slot).copy() : ItemStack.EMPTY);
         }
     }
 
