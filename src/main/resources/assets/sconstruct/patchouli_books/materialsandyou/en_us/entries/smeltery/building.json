@@ -22,18 +22,18 @@
       "multiblock": {
         "pattern": [
           [
-            " BBB ",
+            "BBBBB",
             "B   B",
             "B   B",
             "B   B",
-            " BBB "
+            "BBBBB"
           ],
           [
-            " BBB ",
+            "BBBBB",
             "B   B",
             "B   B",
             "B   B",
-            " TCD "
+            "BTCDB"
           ],
           [
             "     ",
