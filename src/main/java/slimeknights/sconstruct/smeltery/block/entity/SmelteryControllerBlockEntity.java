@@ -706,6 +706,24 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     }
 
     /**
+     * Asks the validator whether a block change at {@code pos} with post-change role
+     * {@code newRole} could affect this controller's assembled structure (SMTCON-227), and only
+     * flags re-validation when the answer is yes. A loose controller (no cached structure) has
+     * no structure to compare against and so falls back to the eager {@link #invalidate()} path
+     * — the validator will quickly bail if no smeltery has formed near the change.
+     */
+    public void notifyChange(BlockPos pos, SmelteryStructureValidator.BlockRole newRole) {
+        if (structure.isPresent()) {
+            if (SmelteryStructureValidator.shouldUpdate(structure.get(), pos, newRole)) {
+                needsValidation = true;
+            }
+        }
+        else {
+            needsValidation = true;
+        }
+    }
+
+    /**
      * Re-runs structure validation and reconciles the controller's assembly state with the
      * blocks now in the world. On success the controller binds the new {@link SmelteryStructure}
      * and stamps every component block with its position; on failure it unbinds, and — if it

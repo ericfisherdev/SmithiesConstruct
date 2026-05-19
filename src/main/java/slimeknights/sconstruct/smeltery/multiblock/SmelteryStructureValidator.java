@@ -94,7 +94,7 @@ public final class SmelteryStructureValidator {
         }
 
         /** Whether a block of this role may form part of the smeltery wall ring. */
-        boolean isWall() {
+        public boolean isWall() {
             return this == STRUCTURE || component;
         }
 
@@ -351,8 +351,52 @@ public final class SmelteryStructureValidator {
         return role == BlockRole.STRUCTURE || role.isComponent();
     }
 
+    /**
+     * Whether a block change at {@code pos} — replacing the previous block with one of
+     * {@code newRole} — could invalidate {@code structure}, so the controller owning that
+     * structure should re-run the validator (SMTCON-227). Cheap to evaluate (pure geometry plus
+     * a role enum read) and runs once per controller per nearby block change, so it gates
+     * eager full-rescans on whether the change is actually relevant.
+     *
+     * <p>Decision tree:
+     * <ul>
+     *     <li>If {@code pos} is one of the structure's wall or floor blocks and the new role is
+     *         no longer wall material, the shell is breaking — re-validate.</li>
+     *     <li>If {@code pos} is inside the interior bounds and the new role is no longer
+     *         {@link BlockRole#INTERIOR}, something is being placed inside — re-validate.</li>
+     *     <li>If {@code pos} sits in the wall-ring footprint one layer above the top of the
+     *         shell and the new role is wall material, the smeltery may be growing —
+     *         re-validate (covered by the SMTCON-228 expansion poll, but the predicate path
+     *         catches placement events too).</li>
+     *     <li>Otherwise the change does not affect the structure — return {@code false}.</li>
+     * </ul>
+     *
+     * @param structure the currently-assembled structure to test against
+     * @param pos       the position of the changed block
+     * @param newRole   the role of the block <em>after</em> the change — for a break event this
+     *                  is {@link BlockRole#INTERIOR} (air); for a placement it is the placed
+     *                  block's classification via {@link #roleOf(BlockState)}
+     * @return whether the controller owning {@code structure} should re-validate
+     */
+    public static boolean shouldUpdate(SmelteryStructure structure, BlockPos pos, BlockRole newRole) {
+        Objects.requireNonNull(structure, "structure");
+        Objects.requireNonNull(pos, "pos");
+        Objects.requireNonNull(newRole, "newRole");
+        if (structure.walls().contains(pos) || structure.floor().contains(pos)) {
+            return !newRole.isWall();
+        }
+        BoundingBox bounds = structure.bounds();
+        if (bounds.isInside(pos)) {
+            return newRole != BlockRole.INTERIOR;
+        }
+        if (pos.getY() == bounds.maxY() + 1 && pos.getX() >= bounds.minX() - 1 && pos.getX() <= bounds.maxX() + 1 && pos.getZ() >= bounds.minZ() - 1 && pos.getZ() <= bounds.maxZ() + 1) {
+            return newRole.isWall();
+        }
+        return false;
+    }
+
     /** Classify a world block state into the {@link BlockRole} the geometry walk consumes. */
-    private static BlockRole roleOf(BlockState state) {
+    public static BlockRole roleOf(BlockState state) {
         if (state.is(SmelteryComponents.SMELTERY_CONTROLLER.get())) {
             return BlockRole.CONTROLLER;
         }
