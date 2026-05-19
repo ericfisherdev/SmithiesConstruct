@@ -382,8 +382,23 @@ public final class SmelteryStructureValidator {
         Objects.requireNonNull(structure, "structure");
         Objects.requireNonNull(pos, "pos");
         Objects.requireNonNull(newRole, "newRole");
-        if (structure.walls().contains(pos) || structure.floor().contains(pos)) {
-            return !newRole.isWall();
+        if (structure.floor().contains(pos)) {
+            // Floor cells must remain plain seared construction blocks — the validator rejects
+            // a component block (tank, drain, chute, controller) on the floor outright, so a
+            // floor swap to anything other than STRUCTURE warrants a re-validation.
+            return newRole != BlockRole.STRUCTURE;
+        }
+        if (structure.walls().contains(pos)) {
+            // Any wall position losing its wall material breaks the shell.
+            if (!newRole.isWall()) {
+                return true;
+            }
+            // A controller-count change — the controller is replaced by another wall block, or
+            // a non-controller wall is replaced by a second controller — also breaks the shell:
+            // the validator requires exactly one CONTROLLER block (REQUIRED_CONTROLLER_COUNT).
+            boolean oldWasController = structure.components().get(pos) == ComponentType.CONTROLLER;
+            boolean newIsController = newRole == BlockRole.CONTROLLER;
+            return oldWasController != newIsController;
         }
         BoundingBox bounds = structure.bounds();
         if (bounds.isInside(pos)) {
