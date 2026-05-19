@@ -24,6 +24,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -49,6 +51,8 @@ import slimeknights.sconstruct.smeltery.multiblock.SmelteryStructureValidator;
 import slimeknights.sconstruct.smeltery.network.SmelteryFluidUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryFuelUpdatePayload;
 import slimeknights.sconstruct.smeltery.network.SmelteryStructureUpdatePayload;
+import slimeknights.sconstruct.smeltery.recipe.MeltingRecipe;
+import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
 
 /**
  * Block entity for the smeltery controller (SMTCON-114) -- the brain of the multiblock. It owns
@@ -311,7 +315,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 if (fluidTank.fill(result, IFluidHandler.FluidAction.SIMULATE) == result.getAmount()) {
                     fluidTank.fill(result, IFluidHandler.FluidAction.EXECUTE);
                     if (melt.slot() < meltingSlots.getSlots()) {
-                        meltingSlots.setStackInSlot(melt.slot(), ItemStack.EMPTY);
+                        // Consume exactly the one item this melt processed — shrinking the stack
+                        // rather than emptying the slot. A slot stacked deeper keeps its
+                        // remaining items, which startMelts picks up as the next melt.
+                        ItemStack input = meltingSlots.getStackInSlot(melt.slot());
+                        if (!input.isEmpty()) {
+                            ItemStack remaining = input.copy();
+                            remaining.shrink(1);
+                            meltingSlots.setStackInSlot(melt.slot(), remaining);
+                        }
                     }
                     iterator.remove();
                     changed = true;
@@ -335,9 +347,41 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         if (controller.needsValidation) {
             controller.tryAssemble();
         }
+        controller.startMelts();
         controller.tickSmeltery();
         controller.syncToTrackers();
         controller.emitSmoke(level);
+    }
+
+    /**
+     * Scans the melting slots and queues a {@link MeltingProgress} for every slot whose item
+     * matches a {@link MeltingRecipe}, as long as the smeltery has a working fuel source. This
+     * is the trigger that turns a loaded melting slot into an in-flight melt (SMTCON-213) —
+     * without it the controller holds items but never melts them.
+     *
+     * <p>Server-side, assembled smelteries only. A slot already backing a melt is skipped via
+     * {@link #isSlotReserved(int)}, so an item melts once and is not re-queued every tick.
+     * Following 1.12 Tinkers' Construct, any fuel melts any recipe — the recipe temperature is
+     * not a gate. A melt that outpaces its fuel is paused by {@link #drawFuel()}, not here.
+     */
+    private void startMelts() {
+        if (level == null || level.isClientSide() || !isAssembled() || hottestFuelSource() == null) {
+            return;
+        }
+        for (int slot = 0; slot < meltingSlots.getSlots(); slot++) {
+            if (isSlotReserved(slot)) {
+                continue;
+            }
+            ItemStack stack = meltingSlots.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            Optional<RecipeHolder<MeltingRecipe>> recipe = level.getRecipeManager().getRecipeFor(SmelteryRecipes.MELTING_TYPE.get(), new SingleRecipeInput(stack), level);
+            if (recipe.isPresent()) {
+                MeltingRecipe melting = recipe.get().value();
+                addMelt(new MeltingProgress(slot, melting.time(), melting.output()));
+            }
+        }
     }
 
     /**
@@ -447,17 +491,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * {@code 0} and returns {@code false} so {@link #tickSmeltery()} pauses the melts.
      */
     private boolean drawFuel() {
-        SmelteryFuelSource hottest = null;
-        int hottestTemperature = 0;
-        if (level != null && structure.isPresent()) {
-            for (Map.Entry<BlockPos, ComponentType> component : structure.get().components().entrySet()) {
-                if (component.getValue() == ComponentType.TANK && level.getBlockEntity(component.getKey()) instanceof SmelteryFuelSource fuel && fuel.canProvideFuel()
-                        && fuel.getTemperature() > hottestTemperature) {
-                    hottest = fuel;
-                    hottestTemperature = fuel.getTemperature();
-                }
-            }
-        }
+        SmelteryFuelSource hottest = hottestFuelSource();
         if (hottest == null) {
             setTemperature(0);
             return false;
@@ -469,8 +503,26 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             setTemperature(0);
             return false;
         }
-        setTemperature(hottestTemperature);
+        setTemperature(hottest.getTemperature());
         return true;
+    }
+
+    /**
+     * The hottest seared tank bound to this structure that can currently provide fuel, or
+     * {@code null} when no tank can. Shared by {@link #drawFuel()}, which consumes from it, and
+     * {@link #peekFuelTemperature()}, which only reads its temperature.
+     */
+    private SmelteryFuelSource hottestFuelSource() {
+        SmelteryFuelSource hottest = null;
+        if (level != null && structure.isPresent()) {
+            for (Map.Entry<BlockPos, ComponentType> component : structure.get().components().entrySet()) {
+                if (component.getValue() == ComponentType.TANK && level.getBlockEntity(component.getKey()) instanceof SmelteryFuelSource fuel && fuel.canProvideFuel()
+                        && (hottest == null || fuel.getTemperature() > hottest.getTemperature())) {
+                    hottest = fuel;
+                }
+            }
+        }
+        return hottest;
     }
 
     /**
