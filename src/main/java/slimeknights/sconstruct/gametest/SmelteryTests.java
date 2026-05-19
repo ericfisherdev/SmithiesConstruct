@@ -53,13 +53,12 @@ import slimeknights.sconstruct.smeltery.recipe.SmelteryRecipes;
  * entity's tick machinery — fuel draw and {@link SmelteryControllerBlockEntity#tickMelts()
  * melt advancement} — and SMTCON-115 the structure validator. SMTCON-123 ships the casting
  * block entity's full recipe-driven tick. The recipe types and the SMTCON-128 recipe datapack
- * are registered. What is <em>not</em> yet wired is the slot-change trigger that turns an item
- * dropped into a melting slot into a {@link MeltingProgress} (the controller exposes
- * {@link SmelteryControllerBlockEntity#addMelt} for that future layer) and any controller-side
+ * are registered. SMTCON-213 wires the melt trigger — {@code startMelts} matches a melting-slot
+ * item to a {@link MeltingRecipe} and queues a {@link MeltingProgress} each tick — so the melt
+ * tests exercise it end-to-end. What is still <em>not</em> wired is any controller-side
  * execution of {@link AlloyRecipe} — the multi-fluid tank an alloy needs does not exist on the
- * controller. These tests therefore drive {@code addMelt} directly and exercise the alloy
- * recipe through the recipe manager, the same way {@link ToolForgeTests} drives the forge's
- * handler directly rather than through a menu. Each gap is called out on the test it affects.
+ * controller — so the alloy tests drive the recipe through the recipe manager directly, the
+ * same way {@link ToolForgeTests} drives the forge's handler rather than a menu.
  *
  * <p>Every test builds its smeltery by placing blocks programmatically inside the shared empty
  * {@code gametest_7x7x7} template and advances the relevant block entity's {@code serverTick}
@@ -137,12 +136,12 @@ public final class SmelteryTests {
         controller.tryAssemble();
         helper.assertTrue(controller.isAssembled(), "controller assembles before melting");
 
-        // Drop an iron ingot into melting slot 0 and resolve its melting recipe. The slot-change
-        // trigger that does this automatically is a later ticket, so the test plays that role.
+        // Drop an iron ingot into melting slot 0. The SMTCON-213 startMelts trigger, run from
+        // serverTick below, matches it to a melting recipe and queues the melt — no manual
+        // addMelt. meltingRecipeFor only resolves the recipe so the test knows the expected yield.
         ItemStack remainder = controller.getItemHandler().insertItem(0, new ItemStack(Items.IRON_INGOT), false);
         helper.assertTrue(remainder.isEmpty(), "melting slot 0 accepts the whole iron ingot");
         MeltingRecipe recipe = meltingRecipeFor(helper, new ItemStack(Items.IRON_INGOT));
-        controller.addMelt(new MeltingProgress(0, recipe.time(), recipe.output()));
 
         BlockState controllerState = controller.getBlockState();
         FluidStack expected = recipe.output();

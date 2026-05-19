@@ -24,10 +24,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * It melts a single item ingredient into a fluid: an iron ore becomes molten iron, a sand block
  * becomes molten glass, and so on.
  *
- * <p>The recipe carries a {@code temperature} threshold in kelvin. {@link #matches} only checks
- * the ingredient — the smeltery controller is responsible for comparing its current internal
- * temperature against {@link #temperature()} before it actually starts a melt, so a recipe that
- * matches an item still will not run in a smeltery that is not hot enough.
+ * <p>The recipe carries a {@code temperature} in kelvin. Following 1.12 Tinkers' Construct this
+ * is <em>not</em> a fuel gate — any fuelled smeltery melts any recipe (see
+ * {@code SmelteryControllerBlockEntity#startMelts}). The value is descriptive metadata, surfaced
+ * by the JEI melting category and the guidebook melting page so players can compare how hot
+ * different materials run. {@link #matches} checks only the ingredient.
  *
  * <p>Implemented as a record so the datapack {@link #CODEC} and network {@link #STREAM_CODEC}
  * are a direct mechanical mapping of the four fields. A melting recipe produces a fluid, not an
@@ -36,7 +37,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  *
  * @param input       the item ingredient that melts
  * @param output      the fluid produced, with its amount in millibuckets
- * @param temperature the minimum smeltery temperature in kelvin required to run this melt
+ * @param temperature descriptive melt temperature in kelvin, shown in JEI and the guidebook
  * @param time        the number of server ticks the melt takes to complete
  */
 public record MeltingRecipe(Ingredient input, FluidStack output, int temperature, int time) implements Recipe<SingleRecipeInput> {
