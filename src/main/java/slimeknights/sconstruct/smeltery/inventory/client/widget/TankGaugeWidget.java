@@ -1,0 +1,95 @@
+package slimeknights.sconstruct.smeltery.inventory.client.widget;
+
+import java.util.Objects;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
+
+/**
+ * Vertical tank gauge widget (SMTCON-223) — draws an empty frame filled from the bottom with the
+ * supplied fluid's tint, scaled to the fluid's amount over the tank's capacity. Extracted from
+ * {@code SmelteryControllerScreen} so a future single-block melter or alloy-furnace screen can
+ * reuse the same gauge without copy-pasting the fill math, the long-overflow guard, or the
+ * tooltip.
+ *
+ * <p>Positions are screen-relative — the host screen passes its {@code leftPos}/{@code topPos}
+ * to {@link #render} and {@link #renderTooltip} every frame so the widget can compose against
+ * the {@code AbstractContainerScreen} background without owning a position state.
+ */
+public final class TankGaugeWidget {
+
+    /** Tint applied to the empty-frame fill — opaque dark grey, matches the legacy screen colour. */
+    private static final int FRAME_COLOR = 0xFF3A3A3A;
+
+    /** Alpha bits OR-ed into the fluid's tint so a colour with no alpha channel still draws. */
+    private static final int OPAQUE_ALPHA = 0xFF000000;
+
+    private final int x;
+    private final int y;
+    private final int width;
+    private final int height;
+    private final Supplier<FluidStack> fluidSupplier;
+    private final IntSupplier capacitySupplier;
+
+    /**
+     * @param x                screen-relative left edge of the gauge in GUI pixels
+     * @param y                screen-relative top edge of the gauge in GUI pixels
+     * @param width            gauge width in GUI pixels
+     * @param height           gauge height in GUI pixels — fluid fills from {@code y+height} upward
+     * @param fluidSupplier    returns the fluid to display this frame; empty draws frame only
+     * @param capacitySupplier returns the tank capacity in mB; non-positive draws frame only
+     */
+    public TankGaugeWidget(int x, int y, int width, int height, Supplier<FluidStack> fluidSupplier, IntSupplier capacitySupplier) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.fluidSupplier = Objects.requireNonNull(fluidSupplier, "fluidSupplier");
+        this.capacitySupplier = Objects.requireNonNull(capacitySupplier, "capacitySupplier");
+    }
+
+    /** Draws the gauge frame and its fluid fill, translated by the host screen's origin. */
+    public void render(GuiGraphics guiGraphics, int screenLeft, int screenTop) {
+        int left = screenLeft + x;
+        int top = screenTop + y;
+        guiGraphics.fill(left, top, left + width, top + height, FRAME_COLOR);
+        FluidStack fluid = fluidSupplier.get();
+        if (fluid.isEmpty()) {
+            return;
+        }
+        int capacity = capacitySupplier.getAsInt();
+        if (capacity <= 0) {
+            return;
+        }
+        // Long math — a large tank capacity times the gauge height could overflow a plain int.
+        int fillHeight = (int) Math.min(height, (long) fluid.getAmount() * height / capacity);
+        int tint = OPAQUE_ALPHA | IClientFluidTypeExtensions.of(fluid.getFluid()).getTintColor(fluid);
+        guiGraphics.fill(left, top + height - fillHeight, left + width, top + height, tint);
+    }
+
+    /** Whether {@code (mouseX, mouseY)} sits inside the gauge's screen-relative bounds. */
+    public boolean isMouseOver(double mouseX, double mouseY, int screenLeft, int screenTop) {
+        int left = screenLeft + x;
+        int top = screenTop + y;
+        return mouseX >= left && mouseX < left + width && mouseY >= top && mouseY < top + height;
+    }
+
+    /**
+     * Renders a one-line tooltip describing the fluid currently in the tank. The host screen is
+     * responsible for guarding the call on {@link #isMouseOver}; the widget does no bounds check
+     * here so a caller that wants to fold this into a larger tooltip can always emit the line.
+     *
+     * @param emptyLabel  the label to show when the tank is empty
+     * @param fluidLabel  the format key for a non-empty fluid; receives {@code (name, amountMb)}
+     */
+    public void renderTooltip(GuiGraphics guiGraphics, Font font, int mouseX, int mouseY, String emptyLabel, String fluidLabel) {
+        FluidStack fluid = fluidSupplier.get();
+        Component line = fluid.isEmpty() ? Component.translatable(emptyLabel) : Component.translatable(fluidLabel, fluid.getHoverName(), fluid.getAmount());
+        guiGraphics.renderTooltip(font, line, mouseX, mouseY);
+    }
+}
