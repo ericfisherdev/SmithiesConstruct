@@ -43,6 +43,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import slimeknights.sconstruct.common.SmithiesParticles;
 import slimeknights.sconstruct.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.smeltery.SmelteryFuelSource;
+import slimeknights.sconstruct.smeltery.block.SmelteryComponentBlock;
 import slimeknights.sconstruct.smeltery.block.SmelteryControllerBlock;
 import slimeknights.sconstruct.smeltery.block.entity.inventory.SmelteryFluidTank;
 import slimeknights.sconstruct.smeltery.block.entity.module.SmelteryFuelModule;
@@ -773,6 +774,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             if (level.getBlockEntity(componentPos) instanceof SmelteryComponentBlockEntity component) {
                 component.setControllerPos(getBlockPos());
             }
+            // Mirror the binding into a blockstate property (SMTCON-226) so tooltips, JEI/Jade,
+            // and block-render layers can ask "is this seared block part of an assembled
+            // smeltery?" without a block-entity lookup.
+            setInStructureProperty(componentPos, true);
         }
         // Scale the tank and the melting inventory to the bowl: a bigger smeltery holds more
         // metal and melts more at once. setCapacity keeps the held fluid and is idempotent, so
@@ -851,8 +856,32 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 if (level.getBlockEntity(componentPos) instanceof SmelteryComponentBlockEntity component) {
                     component.setControllerPos(null);
                 }
+                // Also clear the IN_STRUCTURE blockstate property (SMTCON-226) so a component
+                // released by this controller no longer claims to belong to an assembled smeltery.
+                setInStructureProperty(componentPos, false);
             }
         });
+    }
+
+    /**
+     * Toggles the {@code in_structure} blockstate property on the component block at {@code pos}
+     * (SMTCON-226). The property lives on {@link SmelteryComponentBlock#IN_STRUCTURE} for the
+     * five seared component blocks and on {@link SmelteryControllerBlock#IN_STRUCTURE} for the
+     * controller itself; both blocks declare it independently so the property check is keyed by
+     * blockstate, not by class hierarchy. A no-op when the block at {@code pos} has neither
+     * property (e.g. it was replaced before the unbind ran), or when the property already matches.
+     */
+    private void setInStructureProperty(BlockPos pos, boolean inStructure) {
+        if (level == null) {
+            return;
+        }
+        BlockState state = level.getBlockState(pos);
+        if (state.hasProperty(SmelteryComponentBlock.IN_STRUCTURE) && state.getValue(SmelteryComponentBlock.IN_STRUCTURE) != inStructure) {
+            level.setBlock(pos, state.setValue(SmelteryComponentBlock.IN_STRUCTURE, inStructure), Block.UPDATE_ALL);
+        }
+        else if (state.hasProperty(SmelteryControllerBlock.IN_STRUCTURE) && state.getValue(SmelteryControllerBlock.IN_STRUCTURE) != inStructure) {
+            level.setBlock(pos, state.setValue(SmelteryControllerBlock.IN_STRUCTURE, inStructure), Block.UPDATE_ALL);
+        }
     }
 
     /**

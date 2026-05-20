@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import slimeknights.sconstruct.smeltery.block.entity.SmelteryComponentBlockEntity;
@@ -50,9 +51,20 @@ public abstract class SmelteryComponentBlock extends BaseEntityBlock {
      */
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
+    /**
+     * Whether this component currently belongs to an assembled smeltery's structure (SMTCON-226).
+     * Set to {@code true} by {@code SmelteryControllerBlockEntity.bindStructure} when the
+     * multiblock catalogues this block as one of its components, and back to {@code false} by
+     * {@code unbindStructure} / {@code clearComponentStamps} when the structure breaks. Mirroring
+     * the binding state into a blockstate property lets tooltips (JEI, Jade), block-render layers,
+     * and tooling queries ask "is this seared tank wired into a smeltery?" without a block-entity
+     * lookup. Defaults to {@code false} so a freshly placed component is unbound.
+     */
+    public static final BooleanProperty IN_STRUCTURE = BooleanProperty.create("in_structure");
+
     protected SmelteryComponentBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(IN_STRUCTURE, Boolean.FALSE));
     }
 
     /**
@@ -65,7 +77,7 @@ public abstract class SmelteryComponentBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, IN_STRUCTURE);
     }
 
     @Nullable
