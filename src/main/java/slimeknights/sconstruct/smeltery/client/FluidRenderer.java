@@ -66,17 +66,44 @@ public final class FluidRenderer {
         if (fluid.isEmpty() || fillFraction <= 0.0F) {
             return;
         }
+        float fraction = Math.clamp(fillFraction, 0.0F, 1.0F);
+        float minY = (float) box.minY + INSET;
+        float topY = minY + (float) (box.maxY - box.minY - 2 * INSET) * fraction;
+        renderLayer(poseStack, buffers, box, fluid, minY, topY, light);
+    }
+
+    /**
+     * Submits one explicit-Y-range fluid layer (SMTCON-221) — the multi-alloy primitive the
+     * smeltery renderer stacks to visualise several molten metals at once. Unlike
+     * {@link #renderInsideBox} this caller controls both the bottom and top of the layer
+     * directly, so consecutive layers can share a Y boundary without the bottom-and-top
+     * {@link #INSET} that {@code renderInsideBox} bakes in (which would otherwise leave a
+     * visible seam between layers).
+     *
+     * <p>The X/Z inset still applies — the layer is drawn flush against the bowl interior on
+     * the horizontal faces, then inset away from the seared walls to avoid z-fighting.
+     *
+     * @param poseStack the current pose, already translated to the block-entity origin
+     * @param buffers   the buffer source to draw into
+     * @param box       the bowl bounds, in block-entity-relative coordinates — supplies the X/Z
+     *                  extents only; the Y range comes from {@code minY}/{@code topY}
+     * @param fluid     the fluid to draw; an empty stack draws nothing
+     * @param minY      the bottom of the layer in block-entity-relative coordinates
+     * @param topY      the top of the layer in block-entity-relative coordinates
+     * @param light     the packed light value to render the quads at
+     */
+    public static void renderLayer(PoseStack poseStack, MultiBufferSource buffers, AABB box, FluidStack fluid, float minY, float topY, int light) {
+        if (fluid.isEmpty() || topY <= minY) {
+            return;
+        }
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(extensions.getStillTexture(fluid));
         int color = OPAQUE_ALPHA | extensions.getTintColor(fluid);
 
-        float fraction = Math.clamp(fillFraction, 0.0F, 1.0F);
         float minX = (float) box.minX + INSET;
         float minZ = (float) box.minZ + INSET;
         float maxX = (float) box.maxX - INSET;
         float maxZ = (float) box.maxZ - INSET;
-        float minY = (float) box.minY + INSET;
-        float topY = minY + (float) (box.maxY - box.minY - 2 * INSET) * fraction;
 
         QuadContext ctx = new QuadContext(buffers.getBuffer(RenderType.translucent()), poseStack.last().pose(), light, color, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1());
 
