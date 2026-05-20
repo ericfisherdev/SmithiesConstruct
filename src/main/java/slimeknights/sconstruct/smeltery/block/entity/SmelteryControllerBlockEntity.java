@@ -96,10 +96,18 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     /** Tank capacity in mB before {@link #bindStructure} resizes it to the assembled interior. */
     public static final int INITIAL_TANK_CAPACITY = INITIAL_MELTING_SLOTS * MB_PER_INTERIOR_CELL;
 
+    /**
+     * Wall blocks each {@code fuelDrawPerTick} step represents (SMTCON-217). Matches upstream
+     * Tinkers' Construct 1.20.1's {@code BLOCKS_PER_FUEL}: at 15 walls per step a small smeltery
+     * burns at the base rate, a max-size smeltery burns several times faster.
+     */
+    private static final int WALLS_PER_FUEL_DRAW_STEP = 15;
+
     private static final String TAG_TANK = "Tank";
     private static final String TAG_MELTING_SLOTS = "MeltingSlots";
     private static final String TAG_TEMPERATURE = "Temperature";
     private static final String TAG_ACTIVE_MELTS = "ActiveMelts";
+    private static final String TAG_FUEL_MODULE = "FuelModule";
     private static final String TAG_STRUCTURE = "Structure";
 
     /** Update-tag key for the target temperature — sync-only, not part of the saved state. */
@@ -169,12 +177,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     private final Map<Integer, MeltingProgress> meltsBySlot = new HashMap<>();
 
     /**
-     * Burner module (SMTCON-222) — owns the per-tick fuel-draw policy so the single-block melter
-     * and alloy furnace variants can reuse the same burn logic without copy-pasting it. Wired to
-     * resolve the hottest bound tank via {@link #hottestFuelSource}, the active load via the size
-     * of {@link #activeMelts}, and the resulting temperature through {@link #setTemperature}.
+     * Burner module (SMTCON-222 / SMTCON-217) — owns the per-tick fuel-draw policy so the
+     * single-block melter and alloy furnace variants can reuse the same burn logic without
+     * copy-pasting it. Wired to resolve the hottest bound tank via {@link #hottestFuelSource}
+     * and to emit temperature through {@link #setTemperature}. The per-tick burn rate scales
+     * with shell size (set in {@link #bindStructure}) and the burn cycle is independent of
+     * active melt count — a smeltery full of items costs no more to heat than one with a
+     * single melt, matching every Tinkers' Construct release since 1.16.
      */
-    private final SmelteryFuelModule fuelModule = new SmelteryFuelModule(this::hottestFuelSource, activeMelts::size, this::setTemperature);
+    private final SmelteryFuelModule fuelModule = new SmelteryFuelModule(this::hottestFuelSource, this::setTemperature);
 
     /**
      * The assembled smeltery's interior bounding box as last synced to clients (SMTCON-124).
@@ -847,6 +858,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         // Restart the streaming interior check (SMTCON-219) from the bowl's first cell so a
         // re-bind does not leave the cursor pointing past the new bounds.
         interiorCheckCursor = 0;
+        // SMTCON-217: a bigger smeltery burns fuel faster — derive the per-tick charge-progress
+        // rate from the wall count, matching upstream TC 1.20.1's 1 + walls/15 formula.
+        fuelModule.setFuelDrawPerTick(1 + assembled.walls().size() / WALLS_PER_FUEL_DRAW_STEP);
         setLit(true);
     }
 
@@ -857,6 +871,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         fluidTank.setCapacity(INITIAL_TANK_CAPACITY);
         resizeMeltingSlots(INITIAL_MELTING_SLOTS);
         interiorCheckCursor = 0;
+        // Reset the fuel rate to the minimum-size default (SMTCON-217) so a loose controller
+        // does not keep burning at the higher rate of its former shell.
+        fuelModule.setFuelDrawPerTick(1);
         setLit(false);
     }
 
@@ -1047,6 +1064,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         // Persist the assembled multiblock (SMTCON-218) so a reload restores it without re-running
         // the validator from scratch. Stripped from the client sync tag in getUpdateTag — disk only.
         structure.ifPresent(assembled -> tag.put(TAG_STRUCTURE, assembled.writeToTag()));
+        // Persist the SMTCON-217 fuel charge so a smeltery reloaded mid-burn resumes from the
+        // remaining-tick count it had at save time, rather than losing the charge and re-paying
+        // the per-charge mB cost. Disk only — clients receive temperature via SmelteryFuelUpdatePayload.
+        CompoundTag fuelTag = new CompoundTag();
+        fuelModule.writeToNBT(fuelTag);
+        tag.put(TAG_FUEL_MODULE, fuelTag);
     }
 
     @Override
@@ -1089,6 +1112,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         if (restored.isPresent() && meltingSlots.getSlots() == restored.get().bowlVolume()) {
             structure = restored;
             fluidTank.setCapacity(restored.get().bowlVolume() * MB_PER_INTERIOR_CELL);
+            // Restore the SMTCON-217 fuelDrawPerTick from the same shell-size formula bindStructure
+            // uses — the rate itself is not persisted because the structure is, and the rate is a
+            // pure function of the wall count.
+            fuelModule.setFuelDrawPerTick(1 + restored.get().walls().size() / WALLS_PER_FUEL_DRAW_STEP);
             // Component BEs persist their own controllerPos so they normally rehydrate without
             // help, but the disk restore path bypasses bindStructure; schedule a stamp refresh on
             // the first server tick (when the world and component chunks are guaranteed loaded)
@@ -1101,6 +1128,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             // the restored bowl volume and the loaded slot count all fall back to the legacy
             // validator path — the first post-load tick will re-assemble or release contents.
             needsValidation = true;
+        }
+        // Restore the SMTCON-217 fuel charge (ticks remaining + cached temperature) so a smeltery
+        // reloaded mid-burn resumes from where it left off, no fresh charge required.
+        if (tag.contains(TAG_FUEL_MODULE, Tag.TAG_COMPOUND)) {
+            fuelModule.readFromNBT(tag.getCompound(TAG_FUEL_MODULE));
         }
     }
 }
