@@ -10,6 +10,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import slimeknights.sconstruct.SConstruct;
 import slimeknights.sconstruct.smeltery.block.entity.SmelteryControllerBlockEntity;
 import slimeknights.sconstruct.smeltery.inventory.SmelteryControllerMenu;
 import slimeknights.sconstruct.smeltery.inventory.client.widget.FuelGaugeWidget;
@@ -30,22 +31,14 @@ import slimeknights.sconstruct.smeltery.network.SmelteryScrollPayload;
  * single-block melter and alloy-furnace screens can compose them without copy-paste. This screen
  * is now a thin assembly of those widgets plus the container background and tooltip routing.
  *
- * <p>TODO(SMTCON-125 follow-up): the bespoke {@code sconstruct:textures/gui/smeltery.png}
- * background has not been authored yet. Until the artist drops it in, {@link #BACKGROUND} points
- * at the vanilla generic 54-slot container sprite so the screen renders a real background rather
- * than the missing-texture sprite — the same temporary-art rationale as {@code ToolStationScreen}.
+ * <p>Background sprite is the Smithies-branded {@code sconstruct:textures/gui/smeltery.png}
+ * (SMTCON-230) — a 176×166 sheet authored to host the tank gauge well, the 3×3 melting-slot
+ * grid, the scrollbar track, and the player-inventory + hotbar wells in one continuous blit.
  */
 public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryControllerMenu> {
 
-    /** Temporary background sprite — replaced when bespoke art lands. */
-    private static final ResourceLocation BACKGROUND = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
-
-    /** Top border + slot-area height blitted from the source sprite's top. */
-    private static final int TOP_SECTION_H = 70;
-    /** Player-inventory band height. */
-    private static final int BOTTOM_SECTION_H = 96;
-    /** Source y of the player-inventory band in the vanilla generic_54 sprite. */
-    private static final int SOURCE_PLAYER_INV_Y = 126;
+    /** Smithies-branded smeltery GUI background (SMTCON-230). */
+    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(SConstruct.MOD_ID, "textures/gui/smeltery.png");
 
     /** Tank gauge geometry, relative to the screen's top-left. */
     private static final int TANK_X = 8;
@@ -95,9 +88,9 @@ public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryCo
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        // Two-pass blit of the taller generic_54 sprite — see ToolStationScreen for the rationale.
-        guiGraphics.blit(BACKGROUND, x, y, 0, 0, this.imageWidth, TOP_SECTION_H);
-        guiGraphics.blit(BACKGROUND, x, y + TOP_SECTION_H, 0, SOURCE_PLAYER_INV_Y, this.imageWidth, BOTTOM_SECTION_H);
+        // Single-pass blit of the Smithies smeltery sheet (SMTCON-230) — the sprite is laid out
+        // to match the imageWidth/imageHeight container size, so no two-pass slice is needed.
+        guiGraphics.blit(BACKGROUND, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
         tankGauge.render(guiGraphics, x, y);
         meltProgress.render(guiGraphics, x, y);
         scrollbar.render(guiGraphics, x, y);
