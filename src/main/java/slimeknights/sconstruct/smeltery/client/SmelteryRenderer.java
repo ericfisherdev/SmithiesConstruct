@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -56,19 +57,60 @@ public class SmelteryRenderer implements BlockEntityRenderer<SmelteryControllerB
         renderMeltingItems(controller, bounds.get(), partialTick, poseStack, buffers, packedLight, packedOverlay);
     }
 
-    /** Draws the molten metal pooled in the bowl, scaled to the tank's fill fraction. */
+    /**
+     * Draws the molten metal pooled in the bowl as stacked horizontal layers — one per fluid in
+     * the multi-fluid tank (SMTCON-221). Layers are emitted bottom-up in tank insertion order so
+     * the visual stack matches the in-game intuition that the first fluid in is the deepest.
+     * Each layer's height is proportional to its share of the tank capacity; the running Y
+     * offset is shared across consecutive layers so no horizontal seam is rendered between them.
+     */
     private static void renderFluid(SmelteryControllerBlockEntity controller, BoundingBox bounds, PoseStack poseStack, MultiBufferSource buffers, int packedLight) {
-        FluidStack fluid = controller.getFluidHandler().getFluidInTank(0);
-        if (fluid.isEmpty()) {
-            return;
-        }
-        int capacity = controller.getFluidHandler().getTankCapacity(0);
+        // The smeltery's SmelteryFluidTank exposes a single shared capacity across every virtual
+        // tank slot (all entries share the bowl's total pool), so reading tank 0's capacity is
+        // sufficient here; the iteration below uses that same value for every layer's fraction.
+        IFluidHandler handler = controller.getFluidHandler();
+        int capacity = handler.getTankCapacity(0);
         if (capacity <= 0) {
             return;
         }
-        float fill = Math.clamp((float) fluid.getAmount() / capacity, 0.0F, 1.0F);
-        FluidRenderer.renderInsideBox(poseStack, buffers, interiorBox(controller, bounds), fluid, fill, packedLight);
+        int tankCount = handler.getTanks();
+        AABB box = interiorBox(controller, bounds);
+        float minY = (float) box.minY + LAYER_INSET;
+        float maxY = (float) box.maxY - LAYER_INSET;
+        float usableHeight = maxY - minY;
+        if (usableHeight <= MIN_RENDERABLE_HEIGHT) {
+            return;
+        }
+        float runningY = minY;
+        for (int tank = 0; tank < tankCount; tank++) {
+            FluidStack fluid = handler.getFluidInTank(tank);
+            if (fluid.isEmpty()) {
+                continue;
+            }
+            float fillFraction = Math.clamp((float) fluid.getAmount() / capacity, 0.0F, 1.0F);
+            float layerHeight = usableHeight * fillFraction;
+            if (layerHeight <= MIN_RENDERABLE_HEIGHT) {
+                continue;
+            }
+            float layerTop = Math.min(runningY + layerHeight, maxY);
+            FluidRenderer.renderLayer(poseStack, buffers, box, fluid, runningY, layerTop, packedLight);
+            runningY = layerTop;
+            if (runningY >= maxY) {
+                break;
+            }
+        }
     }
+
+    /**
+     * Vertical inset applied at the very bottom and very top of the fluid stack — keeps the
+     * deepest layer's floor and the topmost layer's surface from z-fighting against the bowl's
+     * seared blocks. The inset is <em>not</em> applied between layers, so consecutive fluids
+     * share their Y boundary cleanly without a visible seam.
+     */
+    private static final float LAYER_INSET = 0.01F;
+
+    /** Layers thinner than this contribute no visible pixels and are skipped entirely. */
+    private static final float MIN_RENDERABLE_HEIGHT = 0.0F;
 
     /**
      * Draws each non-empty melting slot as an item floating at the centre of its interior cell.
