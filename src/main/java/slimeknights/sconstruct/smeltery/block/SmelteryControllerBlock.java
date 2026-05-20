@@ -67,9 +67,18 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
      */
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
+    /**
+     * Whether the controller currently drives an assembled smeltery (SMTCON-226). Mirrors the
+     * controller block-entity's {@code structure.isPresent()} state into a blockstate property so
+     * tooltips, JEI/Jade integrations, and block-render layers can answer "is this controller
+     * part of an assembled smeltery?" without a block-entity lookup. Set alongside {@link #LIT}
+     * by {@code SmelteryControllerBlockEntity.bindStructure} / {@code unbindStructure}.
+     */
+    public static final BooleanProperty IN_STRUCTURE = BooleanProperty.create("in_structure");
+
     public SmelteryControllerBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, Boolean.FALSE));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, Boolean.FALSE).setValue(IN_STRUCTURE, Boolean.FALSE));
     }
 
     @Override
@@ -79,7 +88,7 @@ public class SmelteryControllerBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LIT);
+        builder.add(FACING, LIT, IN_STRUCTURE);
     }
 
     @Nullable

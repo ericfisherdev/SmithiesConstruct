@@ -1,17 +1,32 @@
 {
   "variants": {
-    "facing=east": {
+    "facing=east,in_structure=false": {
       "model": "sconstruct:block/seared_tank_in",
       "y": 90
     },
-    "facing=north": {
+    "facing=east,in_structure=true": {
+      "model": "sconstruct:block/seared_tank_in",
+      "y": 90
+    },
+    "facing=north,in_structure=false": {
       "model": "sconstruct:block/seared_tank_in"
     },
-    "facing=south": {
+    "facing=north,in_structure=true": {
+      "model": "sconstruct:block/seared_tank_in"
+    },
+    "facing=south,in_structure=false": {
       "model": "sconstruct:block/seared_tank_in",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,in_structure=true": {
+      "model": "sconstruct:block/seared_tank_in",
+      "y": 180
+    },
+    "facing=west,in_structure=false": {
+      "model": "sconstruct:block/seared_tank_in",
+      "y": 270
+    },
+    "facing=west,in_structure=true": {
       "model": "sconstruct:block/seared_tank_in",
       "y": 270
     }
