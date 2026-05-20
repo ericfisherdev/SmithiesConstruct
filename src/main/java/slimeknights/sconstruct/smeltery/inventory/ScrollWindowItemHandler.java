@@ -2,6 +2,7 @@ package slimeknights.sconstruct.smeltery.inventory;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 /**
  * A fixed-size sliding window over a larger {@link IItemHandler} (SMTCON-216). The smeltery
@@ -14,8 +15,14 @@ import net.neoforged.neoforge.items.IItemHandler;
  * <p>A window slot whose mapped delegate index runs past the delegate's end (a partly-filled
  * final row, or an inventory smaller than the window) is inert: it reads empty and rejects every
  * insertion. {@link #isRealSlot(int)} lets the menu mark such a slot inactive.
+ *
+ * <p>The window implements {@link IItemHandlerModifiable} because vanilla's
+ * {@link net.neoforged.neoforge.items.SlotItemHandler#set} unconditionally casts its handler to
+ * that interface when applying {@code ClientboundContainerSetContentPacket} — a plain
+ * {@link IItemHandler} would crash the menu sync as soon as the server pushed the initial slot
+ * contents on GUI open.
  */
-public final class ScrollWindowItemHandler implements IItemHandler {
+public final class ScrollWindowItemHandler implements IItemHandlerModifiable {
 
     private final IItemHandler delegate;
     private final int windowSize;
@@ -45,6 +52,19 @@ public final class ScrollWindowItemHandler implements IItemHandler {
     @Override
     public ItemStack getStackInSlot(int slot) {
         return isRealSlot(slot) ? delegate.getStackInSlot(offset + slot) : ItemStack.EMPTY;
+    }
+
+    /**
+     * Forwarded to the delegate when it is modifiable; window slots without a real backing slot
+     * ignore the write. Vanilla's {@code SlotItemHandler.set} routes container-sync writes
+     * through this method, so it must succeed in the common case even though external code never
+     * calls it directly.
+     */
+    @Override
+    public void setStackInSlot(int slot, ItemStack stack) {
+        if (isRealSlot(slot) && delegate instanceof IItemHandlerModifiable modifiable) {
+            modifiable.setStackInSlot(offset + slot, stack);
+        }
     }
 
     @Override
