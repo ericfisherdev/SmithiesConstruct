@@ -38,4 +38,20 @@ public interface SmelteryFuelSource {
      * @return the millibuckets actually consumed, always {@code 0} or greater
      */
     int consumeFuel(int desiredMb);
+
+    /**
+     * The temperature {@link #consumeFuel} <em>would</em> set if called right now — without
+     * actually draining any fuel. The controller uses this to decide whether the next charge is
+     * worth burning (SMTCON-224): preview first, commit only if the recipes loaded would benefit
+     * from that heat. Returns {@code 0} when the source cannot currently provide fuel, matching
+     * {@link #canProvideFuel}'s contract.
+     *
+     * <p>The default implementation returns {@link #getTemperature} when {@link #canProvideFuel}
+     * is true, which is the right answer for every present source whose temperature is
+     * independent of how much fuel is left. A source whose burn-rate or temperature would change
+     * during a draw should override this for the more precise answer.
+     */
+    default int previewFuelTemperature() {
+        return canProvideFuel() ? getTemperature() : 0;
+    }
 }
