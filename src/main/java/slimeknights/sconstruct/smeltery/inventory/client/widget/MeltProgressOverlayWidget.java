@@ -44,6 +44,17 @@ public final class MeltProgressOverlayWidget {
      *                         {@code 0} skips the slot
      */
     public MeltProgressOverlayWidget(int gridX, int gridY, int slotPitch, int slotInner, int barHeight, int columns, int visibleSlots, IntUnaryOperator progressSupplier) {
+        // Fail-fast on bad geometry — columns is the divisor in the slot-index math (col = visible
+        // % columns) and a non-positive slotInner/barHeight produces zero-area or inverted bars.
+        if (columns <= 0) {
+            throw new IllegalArgumentException("columns must be > 0, was " + columns);
+        }
+        if (slotPitch <= 0 || slotInner <= 0 || barHeight <= 0) {
+            throw new IllegalArgumentException("slotPitch / slotInner / barHeight must all be > 0");
+        }
+        if (visibleSlots < 0) {
+            throw new IllegalArgumentException("visibleSlots must be >= 0, was " + visibleSlots);
+        }
         this.gridX = gridX;
         this.gridY = gridY;
         this.slotPitch = slotPitch;
