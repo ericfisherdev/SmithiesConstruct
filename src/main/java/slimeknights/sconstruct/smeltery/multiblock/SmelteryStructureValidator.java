@@ -104,7 +104,7 @@ public final class SmelteryStructureValidator {
         }
 
         /** The component type to catalogue this block as, or {@code null} when {@link #isComponent()} is false. */
-        ComponentType componentType() {
+        public ComponentType componentType() {
             return componentType;
         }
     }
@@ -393,12 +393,13 @@ public final class SmelteryStructureValidator {
             if (!newRole.isWall()) {
                 return true;
             }
-            // A controller-count change — the controller is replaced by another wall block, or
-            // a non-controller wall is replaced by a second controller — also breaks the shell:
-            // the validator requires exactly one CONTROLLER block (REQUIRED_CONTROLLER_COUNT).
-            boolean oldWasController = structure.components().get(pos) == ComponentType.CONTROLLER;
-            boolean newIsController = newRole == BlockRole.CONTROLLER;
-            return oldWasController != newIsController;
+            // Any component-type swap warrants a refresh — even when the shell still stands
+            // (DRAIN→TANK, STRUCTURE→CHUTE, CONTROLLER→STRUCTURE, etc.) — so the cached
+            // components() catalogue does not drift from the world state. {@code null} on
+            // either side represents a plain STRUCTURE block at that position.
+            ComponentType oldComponent = structure.components().get(pos);
+            ComponentType newComponent = newRole.isComponent() ? newRole.componentType() : null;
+            return oldComponent != newComponent;
         }
         BoundingBox bounds = structure.bounds();
         if (bounds.isInside(pos)) {
