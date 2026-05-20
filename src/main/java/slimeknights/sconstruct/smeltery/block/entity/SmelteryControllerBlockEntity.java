@@ -448,6 +448,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             if (level.getBlockEntity(componentPos) instanceof SmelteryComponentBlockEntity component) {
                 component.setControllerPos(getBlockPos());
             }
+            // Also re-apply the IN_STRUCTURE blockstate property (SMTCON-226). A pre-SMTCON-226
+            // save will load with in_structure=false and bypass bindStructure, so JEI/Jade and
+            // any block-render layer keyed on the property would read stale data without this
+            // refresh.
+            setInStructureProperty(componentPos, true);
         }
     }
 
