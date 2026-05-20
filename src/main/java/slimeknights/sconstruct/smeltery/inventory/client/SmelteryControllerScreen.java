@@ -71,6 +71,9 @@ public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryCo
     private static final int TEMPERATURE_LABEL_X = MELTING_X;
     private static final int TEMPERATURE_LABEL_Y = 6;
 
+    /** Vanilla's left-mouse-button code — matches {@code InputConstants.MOUSE_BUTTON_LEFT}. */
+    private static final int LEFT_MOUSE_BUTTON = 0;
+
     private final TankGaugeWidget tankGauge;
     private final MeltProgressOverlayWidget meltProgress;
     private final SmelteryScrollWidget scrollbar;
@@ -102,7 +105,9 @@ public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryCo
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (scrollbar.mouseScrolled(scrollY)) {
+        // Only consume the wheel when the cursor is actually over the scrollbar — otherwise we
+        // trample legitimate scroll targets (JEI overlay, chat) that the screen does not own.
+        if (scrollbar.isMouseOver(mouseX, mouseY, this.leftPos, this.topPos) && scrollbar.mouseScrolled(scrollY)) {
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
@@ -110,7 +115,9 @@ public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryCo
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (scrollbar.mouseClicked(mouseX, mouseY, this.leftPos, this.topPos)) {
+        // Only left-click should seize the scrollbar drag — right and middle have other meanings
+        // in container screens (pick-half / pick-stack, mouse-bound features) we must not eat.
+        if (button == LEFT_MOUSE_BUTTON && scrollbar.mouseClicked(mouseX, mouseY, this.leftPos, this.topPos)) {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
