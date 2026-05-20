@@ -334,7 +334,23 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         }
         activeMelts.add(melt);
         meltsBySlot.put(melt.slot(), melt);
+        assertMeltIndexInvariant();
         setChanged();
+    }
+
+    /**
+     * Runtime check that the {@link #activeMelts} list and the {@link #meltsBySlot} index agree
+     * on size (SMTCON-225). The two collections are mutated through {@link #addMelt},
+     * {@link #tickMelts}'s completion path, {@link #resizeMeltingSlots}, and
+     * {@link #loadAdditional}; a missed mirror on any of those would let the index silently lie
+     * to {@link #isSlotReserved} and {@link #getMeltProgress}. Failing fast at the commit point
+     * makes the desync visible at the moment it happens rather than as a phantom reservation
+     * later. Throws {@link IllegalStateException} on mismatch so callers cannot ignore it.
+     */
+    private void assertMeltIndexInvariant() {
+        if (activeMelts.size() != meltsBySlot.size()) {
+            throw new IllegalStateException("activeMelts (" + activeMelts.size() + ") and meltsBySlot (" + meltsBySlot.size() + ") out of sync");
+        }
     }
 
     /**
@@ -388,6 +404,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                     }
                     iterator.remove();
                     meltsBySlot.remove(melt.slot(), melt);
+                    assertMeltIndexInvariant();
                     changed = true;
                 }
             }
@@ -871,6 +888,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             // would keep dead entries for slots that no longer exist, breaking the lockstep
             // invariant tickMelts and isSlotReserved rely on.
             meltsBySlot.keySet().removeIf(slot -> slot >= newSize);
+            assertMeltIndexInvariant();
             for (int slot = newSize; slot < kept.size(); slot++) {
                 if (!kept.get(slot).isEmpty()) {
                     Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, kept.get(slot));
@@ -1056,6 +1074,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                 }
             });
         }
+        assertMeltIndexInvariant();
         // Restore the persisted multiblock (SMTCON-218) so a reloaded controller is immediately
         // assembled without re-running the validator. Tank capacity and melting-slot sizing are
         // derived from the structure here — chunk save NBT for those does not include the larger
