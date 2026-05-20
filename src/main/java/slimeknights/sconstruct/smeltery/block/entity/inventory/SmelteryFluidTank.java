@@ -68,7 +68,7 @@ public final class SmelteryFluidTank implements IFluidHandler {
         }
     }
 
-    /** An unmodifiable snapshot of the fluid entries, in insertion order. */
+    /** An unmodifiable live view of the fluid entries in insertion order — not a snapshot; callers that need a stable copy must deep-copy themselves. */
     public List<FluidStack> getFluids() {
         return Collections.unmodifiableList(fluids);
     }
