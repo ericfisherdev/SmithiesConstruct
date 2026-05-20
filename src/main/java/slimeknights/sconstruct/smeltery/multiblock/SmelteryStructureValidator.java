@@ -415,8 +415,11 @@ public final class SmelteryStructureValidator {
             }
             boolean inExpansionRing = pos.getX() >= bounds.minX() - 1 && pos.getX() <= bounds.maxX() + 1 && pos.getZ() >= bounds.minZ() - 1 && pos.getZ() <= bounds.maxZ() + 1;
             if (inExpansionRing) {
-                // Wall material in the perimeter ring one layer above the top wall may complete a
-                // new ring — re-validate so SMTCON-228's expansion poll picks it up immediately.
+                // Forward-looking stub for SMTCON-228: a placement at the perimeter ring one
+                // layer above the top wall may complete a new wall ring (expansion). This branch
+                // is dormant today because the SMTCON-117 break-event listener is the only caller
+                // and a break cannot place wall material — it goes live once a block-placement
+                // event hook is wired in SMTCON-228's expansion poll.
                 return newRole.isWall();
             }
         }
