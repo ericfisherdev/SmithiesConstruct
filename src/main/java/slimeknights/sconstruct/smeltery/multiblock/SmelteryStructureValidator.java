@@ -444,14 +444,18 @@ public final class SmelteryStructureValidator {
         Objects.requireNonNull(classifier, "classifier");
         Objects.requireNonNull(structure, "structure");
         BoundingBox bounds = structure.bounds();
-        int currentHeight = bounds.maxY() - bounds.minY() + 1;
-        if (currentHeight >= MAX_WALL_HEIGHT) {
-            return false;
-        }
         Bounds footprint = new Bounds(bounds.minX(), bounds.maxX(), bounds.minZ(), bounds.maxZ());
         int newY = bounds.maxY() + 1;
         if (!ringIsWall(classifier, ringAt(footprint, newY))) {
+            // No complete ring above the current top — nothing to absorb.
             return false;
+        }
+        int currentHeight = bounds.maxY() - bounds.minY() + 1;
+        if (currentHeight >= MAX_WALL_HEIGHT) {
+            // A complete ring above a max-tall smeltery is exactly the over-cap shell {@link
+            // #validate} rejects at line 252 — flag a re-validation so the controller disassembles
+            // rather than silently keeping the cached structure.
+            return true;
         }
         Set<BlockPos> interiorFootprint = interiorFootprintFor(footprint, bounds.minY());
         return interiorLayerIsClear(classifier, interiorFootprint, newY);
