@@ -6,7 +6,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,6 +22,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
+import slimeknights.sconstruct.common.config.ClientConfig;
 import slimeknights.sconstruct.smeltery.block.entity.SmelteryControllerBlockEntity;
 
 /**
@@ -124,13 +128,27 @@ public class SmelteryRenderer implements BlockEntityRenderer<SmelteryControllerB
     private void renderMeltingItems(SmelteryControllerBlockEntity controller, BoundingBox bounds, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int packedLight,
             int packedOverlay) {
         IItemHandler meltingSlots = controller.getItemHandler();
+        int slotCount = meltingSlots.getSlots();
+        if (slotCount <= 0) {
+            return;
+        }
         BlockPos origin = controller.getBlockPos();
         Level level = controller.getLevel();
         int width = bounds.maxX() - bounds.minX() + 1;
         int depth = bounds.maxZ() - bounds.minZ() + 1;
         int layerArea = width * depth;
-        float spin = ((level == null ? 0L : level.getGameTime()) + partialTick) * SPIN_DEGREES_PER_TICK;
-        for (int slot = 0; slot < meltingSlots.getSlots(); slot++) {
+        long gameTime = level == null ? 0L : level.getGameTime();
+        float spin = (gameTime + partialTick) * SPIN_DEGREES_PER_TICK;
+        // Rotate the loop's starting index per frame (SMTCON-229) so a smeltery whose contents
+        // exceed the quad budget cycles which items it shows rather than always rendering the
+        // first N. The rotation uses gameTime directly — a per-frame nudge would shimmer too
+        // fast to be readable; once per game tick (20 Hz) is the same cadence TC's renderer uses.
+        int startOffset = (int) Math.floorMod(gameTime, slotCount);
+        int quadBudget = ClientConfig.MAX_SMELTERY_ITEM_QUADS.get();
+        int quadsRendered = 0;
+        RandomSource quadRandom = RandomSource.create(SLOT_QUAD_COUNT_SEED);
+        for (int step = 0; step < slotCount; step++) {
+            int slot = (startOffset + step) % slotCount;
             ItemStack stack = meltingSlots.getStackInSlot(slot);
             if (stack.isEmpty()) {
                 continue;
@@ -139,8 +157,16 @@ public class SmelteryRenderer implements BlockEntityRenderer<SmelteryControllerB
             if (cellY > bounds.maxY()) {
                 // More items than interior cells — should not happen once the inventory is sized
                 // to the bowl, but guard so a stray slot is not drawn outside the structure.
+                continue;
+            }
+            int stackQuads = quadCountFor(stack, level, quadRandom);
+            if (quadsRendered > 0 && quadsRendered + stackQuads > quadBudget) {
+                // Budget exhausted for this frame. Subsequent slots will get their turn on later
+                // frames thanks to the rotation cursor; render at least the first item so a bowl
+                // with one over-budget model still shows something.
                 break;
             }
+            quadsRendered += stackQuads;
             int cellX = bounds.minX() + slot % width;
             int cellZ = bounds.minZ() + slot / width % depth;
             poseStack.pushPose();
@@ -151,6 +177,38 @@ public class SmelteryRenderer implements BlockEntityRenderer<SmelteryControllerB
             poseStack.popPose();
         }
     }
+
+    /**
+     * Approximate quad count for {@code stack}'s baked model — summed over the six face buckets
+     * plus the no-direction bucket. Used by the SMTCON-229 budget check to decide whether the
+     * next item fits before submitting it to the buffer source. A model that throws on quad
+     * resolution (mod-broken asset, missing texture) falls back to a per-item conservative
+     * estimate so one bad model does not starve the rest of the budget.
+     */
+    private int quadCountFor(ItemStack stack, Level level, RandomSource random) {
+        try {
+            BakedModel model = itemRenderer.getModel(stack, level, null, 0);
+            int total = model.getQuads(null, null, random).size();
+            for (Direction direction : Direction.values()) {
+                total += model.getQuads(null, direction, random).size();
+            }
+            return Math.max(1, total);
+        }
+        catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException broken) {
+            // A mod-side model throwing during quad resolution must not kill the whole render
+            // pass — these three are the realistic failure modes (malformed quad lists, registry
+            // race conditions, bad face-bucket lookups). Fall back to a fixed estimate so the
+            // budget arithmetic stays sane. NPE is intentionally not caught — that's a Smithies'
+            // bug to fix at source, not to paper over here.
+            return FALLBACK_ITEM_QUADS;
+        }
+    }
+
+    /** Deterministic seed for the {@link RandomSource} fed into {@code BakedModel.getQuads}. */
+    private static final long SLOT_QUAD_COUNT_SEED = 42L;
+
+    /** Per-item quad estimate used when a model's {@code getQuads} call throws. */
+    private static final int FALLBACK_ITEM_QUADS = 12;
 
     /**
      * Reports the assembled interior as the renderer's bounding box so the fluid and items are

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import slimeknights.sconstruct.common.TinkerRegistries;
+import slimeknights.sconstruct.common.config.ClientConfig;
 import slimeknights.sconstruct.common.config.Config;
 import slimeknights.sconstruct.common.data.TinkerDataComponents;
 import slimeknights.sconstruct.common.pulse.Pulse;
@@ -54,6 +55,9 @@ public final class SConstruct {
         // between client and server; a mismatched pulse roster is a deliberate config choice
         // by the operator and outside this layer's contract.
         container.registerConfig(ModConfig.Type.STARTUP, Config.SPEC);
+        // Client-only render knobs (SMTCON-229's smeltery quad budget) live in a separate spec
+        // so they reload mid-session — a dedicated server registers but never queries them.
+        container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
 
         // Attach every DeferredRegister the mod owns to the bus before any pulse runs — pulses
         // pull from these and need them to have already subscribed their registry listeners.
