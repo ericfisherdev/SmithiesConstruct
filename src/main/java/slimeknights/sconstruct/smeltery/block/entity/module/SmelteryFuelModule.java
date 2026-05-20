@@ -107,7 +107,10 @@ public final class SmelteryFuelModule {
             temperatureSink.accept(0);
             return false;
         }
-        temperatureSink.accept(hottest.getTemperature());
+        // Report the previewed temperature the predicate accepted, not a fresh getTemperature()
+        // read — a source that overrides previewFuelTemperature for draw-dependent heat may now
+        // return a different value, and we must commit the contract the gate was judged against.
+        temperatureSink.accept(previewed);
         return true;
     }
 
