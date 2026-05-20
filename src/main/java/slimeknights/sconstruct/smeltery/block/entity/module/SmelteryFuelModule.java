@@ -178,10 +178,21 @@ public final class SmelteryFuelModule {
             temperatureSink.accept(0);
             return false;
         }
-        // A tank that holds less than a full charge cannot start a new burn — drain nothing and
-        // report no heat so the host pauses cleanly rather than partial-charging.
+        // A tank that holds less than a full charge cannot start a new burn — preview first via
+        // simulateConsume so the destructive consumeFuel only runs when the source can supply
+        // the full charge. SmelteryFuelSource.consumeFuel is destructive even when it returns
+        // less than requested, so consuming first and rejecting after would silently bleed the
+        // tank's remaining few mB into a partial burn that fails the threshold check.
+        int available = hottest.simulateConsume(FUEL_CHARGE_AMOUNT_MB);
+        if (available < FUEL_CHARGE_AMOUNT_MB) {
+            temperatureSink.accept(0);
+            return false;
+        }
         int consumed = hottest.consumeFuel(FUEL_CHARGE_AMOUNT_MB);
         if (consumed < FUEL_CHARGE_AMOUNT_MB) {
+            // simulateConsume said yes but consumeFuel under-delivered — a race against another
+            // caller that drained the source in between. Treat as out-of-fuel for this tick; the
+            // partial draw is unfortunate but unavoidable without a transactional drain.
             temperatureSink.accept(0);
             return false;
         }

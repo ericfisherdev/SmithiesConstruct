@@ -118,6 +118,20 @@ public class SearedTankBE extends SmelteryComponentBlockEntity implements Smelte
     }
 
     /**
+     * Non-destructive preview of {@link #consumeFuel} — returns the amount the next destructive
+     * call would actually drain (SMTCON-217) without touching the tank. The smeltery's charge
+     * model uses this to gate the consume so a tank holding less than a full charge does not
+     * silently bleed its remaining few mB into a partial burn that fails the threshold check.
+     */
+    @Override
+    public int simulateConsume(int desiredMb) {
+        if (desiredMb <= 0 || !canProvideFuel()) {
+            return 0;
+        }
+        return fluidTank.drain(desiredMb, IFluidHandler.FluidAction.SIMULATE).getAmount();
+    }
+
+    /**
      * Persists the controller binding (via {@link SmelteryComponentBlockEntity}) and this tank's
      * own contents, so a stored tank reloads with its fluid intact.
      */
