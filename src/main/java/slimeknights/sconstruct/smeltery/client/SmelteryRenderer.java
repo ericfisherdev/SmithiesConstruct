@@ -185,6 +185,10 @@ public class SmelteryRenderer implements BlockEntityRenderer<SmelteryControllerB
      * resolution (mod-broken asset, missing texture) falls back to a per-item conservative
      * estimate so one bad model does not starve the rest of the budget.
      */
+    // PMD flags catching NullPointerException as a generic-exception smell, but a mod-side
+    // BakedModel that throws NPE on a missing texture or null face-bucket entry is exactly the
+    // case the fallback is here to cover — let the suppression stand for that catch.
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private int quadCountFor(ItemStack stack, Level level, RandomSource random) {
         try {
             BakedModel model = itemRenderer.getModel(stack, level, null, 0);
@@ -194,12 +198,11 @@ public class SmelteryRenderer implements BlockEntityRenderer<SmelteryControllerB
             }
             return Math.max(1, total);
         }
-        catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException broken) {
+        catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException | NullPointerException broken) {
             // A mod-side model throwing during quad resolution must not kill the whole render
-            // pass — these three are the realistic failure modes (malformed quad lists, registry
-            // race conditions, bad face-bucket lookups). Fall back to a fixed estimate so the
-            // budget arithmetic stays sane. NPE is intentionally not caught — that's a Smithies'
-            // bug to fix at source, not to paper over here.
+            // pass — these four are the realistic failure modes (malformed quad lists, registry
+            // race conditions, bad face-bucket lookups, missing texture references). Fall back
+            // to a fixed estimate so the budget arithmetic stays sane.
             return FALLBACK_ITEM_QUADS;
         }
     }
