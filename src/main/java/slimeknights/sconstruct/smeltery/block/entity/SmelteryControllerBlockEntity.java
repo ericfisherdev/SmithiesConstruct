@@ -45,6 +45,7 @@ import slimeknights.sconstruct.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.smeltery.SmelteryFuelSource;
 import slimeknights.sconstruct.smeltery.block.SmelteryControllerBlock;
 import slimeknights.sconstruct.smeltery.block.entity.inventory.SmelteryFluidTank;
+import slimeknights.sconstruct.smeltery.block.entity.module.SmelteryFuelModule;
 import slimeknights.sconstruct.smeltery.inventory.SmelteryControllerMenu;
 import slimeknights.sconstruct.smeltery.multiblock.ComponentType;
 import slimeknights.sconstruct.smeltery.multiblock.SmelteryStructure;
@@ -92,9 +93,6 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
 
     /** Tank capacity in mB before {@link #bindStructure} resizes it to the assembled interior. */
     public static final int INITIAL_TANK_CAPACITY = INITIAL_MELTING_SLOTS * MB_PER_INTERIOR_CELL;
-
-    /** Millibuckets of fuel drawn from the active fuel tank per in-flight melt, per server tick. */
-    private static final int FUEL_DRAW_PER_MELT = 10;
 
     private static final String TAG_TANK = "Tank";
     private static final String TAG_MELTING_SLOTS = "MeltingSlots";
@@ -158,6 +156,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
 
     /** Melts currently in progress, advanced one tick at a time by {@link #tickMelts()}. */
     private final List<MeltingProgress> activeMelts = new ArrayList<>();
+
+    /**
+     * Burner module (SMTCON-222) — owns the per-tick fuel-draw policy so the single-block melter
+     * and alloy furnace variants can reuse the same burn logic without copy-pasting it. Wired to
+     * resolve the hottest bound tank via {@link #hottestFuelSource}, the active load via the size
+     * of {@link #activeMelts}, and the resulting temperature through {@link #setTemperature}.
+     */
+    private final SmelteryFuelModule fuelModule = new SmelteryFuelModule(this::hottestFuelSource, activeMelts::size, this::setTemperature);
 
     /**
      * The assembled smeltery's interior bounding box as last synced to clients (SMTCON-124).
@@ -650,26 +656,13 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     }
 
     /**
-     * Polls every seared tank bound to the assembled structure, picks the hottest one that can
-     * provide fuel, and consumes from it. Sets {@link #currentTemperature} to that tank's
-     * temperature and returns {@code true}; with no fuel available it sets the temperature to
-     * {@code 0} and returns {@code false} so {@link #tickSmeltery()} pauses the melts.
+     * Wraps {@link SmelteryFuelModule#tickBurn} for one server tick of fuel-draw work — the
+     * module decides how much to consume against the active melt count and reports back the
+     * resulting temperature via {@link #setTemperature}. Kept as a method on the controller so
+     * the call site in {@link #tickSmeltery} stays self-documenting.
      */
     private boolean drawFuel() {
-        SmelteryFuelSource hottest = hottestFuelSource();
-        if (hottest == null) {
-            setTemperature(0);
-            return false;
-        }
-        // Fuel draw scales with the number of melts in progress — a busier smeltery burns hotter.
-        // Treat a zero-consumption draw as out-of-fuel so the melts pause rather than run cold.
-        int consumed = hottest.consumeFuel(FUEL_DRAW_PER_MELT * activeMelts.size());
-        if (consumed <= 0) {
-            setTemperature(0);
-            return false;
-        }
-        setTemperature(hottest.getTemperature());
-        return true;
+        return fuelModule.tickBurn();
     }
 
     /**
