@@ -36,7 +36,6 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -45,6 +44,7 @@ import slimeknights.sconstruct.common.SmithiesParticles;
 import slimeknights.sconstruct.smeltery.SmelteryComponents;
 import slimeknights.sconstruct.smeltery.SmelteryFuelSource;
 import slimeknights.sconstruct.smeltery.block.SmelteryControllerBlock;
+import slimeknights.sconstruct.smeltery.block.entity.inventory.SmelteryFluidTank;
 import slimeknights.sconstruct.smeltery.inventory.SmelteryControllerMenu;
 import slimeknights.sconstruct.smeltery.multiblock.ComponentType;
 import slimeknights.sconstruct.smeltery.multiblock.SmelteryStructure;
@@ -117,13 +117,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     /** Server-tick interval between ambient smoke emissions — keeps the effect subtle. */
     private static final int SMOKE_EMIT_INTERVAL = 10;
 
-    /** The smeltery's molten-metal tank; {@link #bindStructure} resizes it to the bowl volume. */
-    private final FluidTank fluidTank = new FluidTank(INITIAL_TANK_CAPACITY) {
-        @Override
-        protected void onContentsChanged() {
-            setChanged();
-        }
-    };
+    /**
+     * The smeltery's molten-metal tank (SMTCON-220) — a multi-fluid reservoir so iron, gold, and
+     * tin can coexist in the bowl for alloying. {@link #bindStructure} resizes its capacity to
+     * the assembled bowl volume.
+     */
+    private final SmelteryFluidTank fluidTank = new SmelteryFluidTank(INITIAL_TANK_CAPACITY, this::setChanged);
 
     /**
      * Item input slots -- items dropped here are matched to melting recipes; {@link #bindStructure}
@@ -174,7 +173,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     private int lastSyncedTargetTemperature = Integer.MIN_VALUE;
 
     /** Tank contents last pushed to chunk trackers, so an unchanged tank is not re-synced. */
-    private FluidStack lastSyncedFluid = FluidStack.EMPTY;
+    private List<FluidStack> lastSyncedFluids = List.of();
 
     /** Interior bounds last pushed to chunk trackers, so an unchanged structure is not re-synced. */
     private Optional<BoundingBox> lastSyncedBounds = Optional.empty();
@@ -519,11 +518,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             lastSyncedTargetTemperature = targetTemperature;
             PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryFuelUpdatePayload(getBlockPos(), currentTemperature, targetTemperature));
         }
-        FluidStack fluid = fluidTank.getFluid();
-        if (!FluidStack.matches(fluid, lastSyncedFluid)) {
-            lastSyncedFluid = fluid.copy();
-            List<FluidStack> contents = fluid.isEmpty() ? List.of() : List.of(fluid.copy());
-            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryFluidUpdatePayload(getBlockPos(), contents));
+        List<FluidStack> fluids = fluidTank.getFluids();
+        if (!fluidListsMatch(fluids, lastSyncedFluids)) {
+            // A single deep-copy serves both the snapshot-for-equality-checks and the network
+            // payload — neither callsite mutates the list downstream, so sharing the copy is
+            // safe and spares an extra allocation per change.
+            List<FluidStack> snapshot = copyFluidList(fluids);
+            lastSyncedFluids = snapshot;
+            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, chunk, new SmelteryFluidUpdatePayload(getBlockPos(), snapshot));
         }
         Optional<BoundingBox> bounds = structure.map(SmelteryStructure::bounds);
         if (!bounds.equals(lastSyncedBounds)) {
@@ -549,6 +551,28 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         return contents;
     }
 
+    /** Defensive deep copy of a fluid list — every entry is {@link FluidStack#copy() copied} so the snapshot does not alias the live tank. */
+    private static List<FluidStack> copyFluidList(List<FluidStack> source) {
+        List<FluidStack> copy = new ArrayList<>(source.size());
+        for (FluidStack stack : source) {
+            copy.add(stack.copy());
+        }
+        return copy;
+    }
+
+    /** Whether two fluid-list snapshots hold the same stacks in the same order. */
+    private static boolean fluidListsMatch(List<FluidStack> a, List<FluidStack> b) {
+        if (a.size() != b.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.size(); i++) {
+            if (!FluidStack.matches(a.get(i), b.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Whether two slot-indexed melting-item snapshots hold the same stacks in the same order. */
     private static boolean meltingItemsMatch(List<ItemStack> a, List<ItemStack> b) {
         if (a.size() != b.size()) {
@@ -567,7 +591,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * set to the synced contents so the next frame renders the smeltery's fill.
      */
     public void applyFluidUpdate(List<FluidStack> contents) {
-        fluidTank.setFluid(contents.isEmpty() ? FluidStack.EMPTY : contents.get(0));
+        fluidTank.setFluids(contents);
     }
 
     /**
@@ -845,33 +869,42 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * has no room the unplaced metal stays in the tank — disassembly never loses fluid.
      */
     private void releaseTankContents(SmelteryStructure previous) {
-        FluidStack contents = fluidTank.getFluid();
-        if (contents.isEmpty()) {
+        if (fluidTank.isEmpty()) {
             return;
         }
-        BlockState liquid = contents.getFluid().defaultFluidState().createLegacyBlock();
-        if (liquid.isAir()) {
-            // The fluid has no in-world block form — leave it in the tank rather than vanish it.
-            return;
-        }
-        int placeable = contents.getAmount() / FluidType.BUCKET_VOLUME;
-        int placed = 0;
         BoundingBox interior = previous.bounds();
-        for (int y = interior.minY(); y <= interior.maxY() && placed < placeable; y++) {
-            for (int x = interior.minX(); x <= interior.maxX() && placed < placeable; x++) {
-                for (int z = interior.minZ(); z <= interior.maxZ() && placed < placeable; z++) {
-                    BlockPos target = new BlockPos(x, y, z);
-                    // Only count a release the world actually accepted — setBlock returns false
-                    // if the placement did not take, and crediting it would drain fluid that was
-                    // never poured out.
-                    if (level.getBlockState(target).isAir() && level.setBlock(target, liquid, Block.UPDATE_ALL)) {
-                        placed++;
+        // Snapshot the list up front — drain() mutates it, and iterating a live list while it
+        // shrinks would skip entries. Each fluid is then released into the world in turn until
+        // either the fluid is exhausted or the interior runs out of empty cells.
+        List<FluidStack> snapshot = copyFluidList(fluidTank.getFluids());
+        BlockPos.MutableBlockPos target = new BlockPos.MutableBlockPos();
+        for (FluidStack contents : snapshot) {
+            if (contents.isEmpty()) {
+                continue;
+            }
+            BlockState liquid = contents.getFluid().defaultFluidState().createLegacyBlock();
+            if (liquid.isAir()) {
+                // The fluid has no in-world block form — leave it in the tank rather than vanish it.
+                continue;
+            }
+            int placeable = contents.getAmount() / FluidType.BUCKET_VOLUME;
+            int placed = 0;
+            for (int y = interior.minY(); y <= interior.maxY() && placed < placeable; y++) {
+                for (int x = interior.minX(); x <= interior.maxX() && placed < placeable; x++) {
+                    for (int z = interior.minZ(); z <= interior.maxZ() && placed < placeable; z++) {
+                        target.set(x, y, z);
+                        // Only count a release the world actually accepted — setBlock returns false
+                        // if the placement did not take, and crediting it would drain fluid that
+                        // was never poured out.
+                        if (level.getBlockState(target).isAir() && level.setBlock(target, liquid, Block.UPDATE_ALL)) {
+                            placed++;
+                        }
                     }
                 }
             }
-        }
-        if (placed > 0) {
-            fluidTank.drain(placed * FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.EXECUTE);
+            if (placed > 0) {
+                fluidTank.drain(contents.copyWithAmount(placed * FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
+            }
         }
     }
 
