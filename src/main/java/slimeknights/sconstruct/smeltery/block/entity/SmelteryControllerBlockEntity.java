@@ -2,6 +2,7 @@ package slimeknights.sconstruct.smeltery.block.entity;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -159,6 +160,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
     private final List<MeltingProgress> activeMelts = new ArrayList<>();
 
     /**
+     * Slot-indexed lookup over {@link #activeMelts} (SMTCON-225) — every entry in {@code
+     * activeMelts} also lives here keyed by its slot, so {@link #getMeltProgress} and
+     * {@link #isSlotReserved} are O(1) instead of O(n). Mutations to {@code activeMelts} must
+     * mirror through this map in lockstep; the invariant is asserted by the size equality of
+     * the two collections at every commit point.
+     */
+    private final Map<Integer, MeltingProgress> meltsBySlot = new HashMap<>();
+
+    /**
      * Burner module (SMTCON-222) — owns the per-tick fuel-draw policy so the single-block melter
      * and alloy furnace variants can reuse the same burn logic without copy-pasting it. Wired to
      * resolve the hottest bound tank via {@link #hottestFuelSource}, the active load via the size
@@ -284,12 +294,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * to drive the per-slot progress bars.
      */
     public int getMeltProgress(int slot) {
-        for (MeltingProgress melt : activeMelts) {
-            if (melt.slot() == slot) {
-                return Math.min(100, melt.elapsedTicks() * 100 / melt.requiredTicks());
-            }
-        }
-        return 0;
+        // O(1) lookup via the SMTCON-225 slot index — the underlying list is still walked once
+        // per server tick by tickMelts, but the menu's per-frame query no longer pays that cost.
+        MeltingProgress melt = meltsBySlot.get(slot);
+        return melt == null ? 0 : Math.min(100, melt.elapsedTicks() * 100 / melt.requiredTicks());
     }
 
     /** The smeltery controller's menu title. */
@@ -325,6 +333,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             throw new IllegalStateException("slot already has an active melt: " + melt.slot());
         }
         activeMelts.add(melt);
+        meltsBySlot.put(melt.slot(), melt);
         setChanged();
     }
 
@@ -335,12 +344,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * implied by the melts themselves and is restored for free when they load.
      */
     boolean isSlotReserved(int slot) {
-        for (MeltingProgress melt : activeMelts) {
-            if (melt.slot() == slot) {
-                return true;
-            }
-        }
-        return false;
+        // O(1) via the slot index (SMTCON-225); the index is kept in lockstep with activeMelts
+        // through addMelt / tickMelts / resizeMeltingSlots / loadAdditional.
+        return meltsBySlot.containsKey(slot);
     }
 
     /**
@@ -381,6 +387,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
                         }
                     }
                     iterator.remove();
+                    meltsBySlot.remove(melt.slot(), melt);
                     changed = true;
                 }
             }
@@ -860,6 +867,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         }
         if (newSize < oldSize) {
             activeMelts.removeIf(melt -> melt.slot() >= newSize);
+            // Mirror the shrink into the slot-indexed map (SMTCON-225) — without this the index
+            // would keep dead entries for slots that no longer exist, breaking the lockstep
+            // invariant tickMelts and isSlotReserved rely on.
+            meltsBySlot.keySet().removeIf(slot -> slot >= newSize);
             for (int slot = newSize; slot < kept.size(); slot++) {
                 if (!kept.get(slot).isEmpty()) {
                     Containers.dropItemStack(level, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, kept.get(slot));
@@ -1031,6 +1042,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         }
         currentTemperature = tag.getInt(TAG_TEMPERATURE);
         activeMelts.clear();
+        meltsBySlot.clear();
         ListTag melts = tag.getList(TAG_ACTIVE_MELTS, Tag.TAG_COMPOUND);
         for (int i = 0; i < melts.size(); i++) {
             // A melt whose result fluid no longer parses (mod removed) is dropped rather than
@@ -1040,6 +1052,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
             MeltingProgress.load(provider, melts.getCompound(i)).ifPresent(melt -> {
                 if (melt.slot() >= 0 && melt.slot() < meltingSlots.getSlots() && !isSlotReserved(melt.slot())) {
                     activeMelts.add(melt);
+                    meltsBySlot.put(melt.slot(), melt);
                 }
             });
         }
