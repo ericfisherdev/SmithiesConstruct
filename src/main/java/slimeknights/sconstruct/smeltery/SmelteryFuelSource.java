@@ -62,16 +62,19 @@ public interface SmelteryFuelSource {
      * waste a partial-charge mB count if it consumed first and then noticed the shortfall) use
      * this to gate the destructive {@link #consumeFuel} call.
      *
-     * <p>The default returns {@code 0} for non-positive requests and the minimum of
-     * {@code desiredMb} and {@link Integer#MAX_VALUE} otherwise — implementations should
-     * override with the actual available amount; a fuel source that overrides
-     * {@link #consumeFuel} should override this in lockstep so the preview and the consume
-     * agree.
+     * <p>The default is intentionally conservative: it returns {@code 0} for every input. A
+     * source that does not know how much fuel it actually has must not falsely claim a full
+     * charge is available; implementations <em>must</em> override this in lockstep with
+     * {@link #consumeFuel} so the preview and the destructive consume agree on capacity
+     * (e.g. {@code SearedTankBE.simulateConsume} drains its {@code FluidTank} via the standard
+     * {@code FluidAction.SIMULATE} flag).
+     *
+     * @param desiredMb the millibuckets the caller would pass to {@link #consumeFuel}; a
+     *                  non-positive value previews nothing
+     * @return the millibuckets the next call to {@link #consumeFuel} would consume, always
+     *         {@code 0} or greater
      */
     default int simulateConsume(int desiredMb) {
-        if (desiredMb <= 0 || !canProvideFuel()) {
-            return 0;
-        }
-        return desiredMb;
+        return 0;
     }
 }
