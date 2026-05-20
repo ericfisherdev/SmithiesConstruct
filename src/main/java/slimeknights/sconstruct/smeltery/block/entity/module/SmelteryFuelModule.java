@@ -2,6 +2,7 @@ package slimeknights.sconstruct.smeltery.block.entity.module;
 
 import java.util.Objects;
 import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -62,6 +63,23 @@ public final class SmelteryFuelModule {
      * active loads rather than running them cold).
      */
     public boolean tickBurn() {
+        return tickBurnGated(temperature -> true);
+    }
+
+    /**
+     * Like {@link #tickBurn()} but the burn is gated by {@code temperaturePredicate}, which sees
+     * the temperature the next charge <em>would</em> sustain (via
+     * {@link SmelteryFuelSource#previewFuelTemperature()}). When the predicate rejects the
+     * previewed temperature, no fuel is consumed and the burner reports zero heat — so a host
+     * with active loads that require less heat than this fuel provides can refuse to burn an
+     * expensive source on a cheap recipe (SMTCON-224).
+     *
+     * <p>The pre-existing {@link #tickBurn()} entry point passes a predicate that accepts every
+     * positive temperature, preserving the burn-on-any-fuel behaviour the controller has today
+     * — recipe-temperature gating is opt-in for callers that pass a tighter predicate.
+     */
+    public boolean tickBurnGated(IntPredicate temperaturePredicate) {
+        Objects.requireNonNull(temperaturePredicate, "temperaturePredicate");
         SmelteryFuelSource hottest = fuelSourceSupplier.get();
         if (hottest == null) {
             temperatureSink.accept(0);
@@ -75,12 +93,32 @@ public final class SmelteryFuelModule {
             temperatureSink.accept(0);
             return false;
         }
+        int previewed = hottest.previewFuelTemperature();
+        if (previewed <= 0 || !temperaturePredicate.test(previewed)) {
+            // Either the source cannot provide fuel right now, or the caller decided the previewed
+            // temperature is not worth a charge. Either way, do not consume and report no heat.
+            temperatureSink.accept(0);
+            return false;
+        }
         int consumed = hottest.consumeFuel(FUEL_DRAW_PER_LOAD * loads);
         if (consumed <= 0) {
+            // Preview said yes but the consume returned zero — the source's state changed between
+            // the two reads (another caller drained it). Treat as out-of-fuel for this tick.
             temperatureSink.accept(0);
             return false;
         }
         temperatureSink.accept(hottest.getTemperature());
         return true;
+    }
+
+    /**
+     * Reads the temperature the burner would heat to on its next charge — without drawing any
+     * fuel. {@code 0} when no source can currently provide fuel. Callers can use this to power a
+     * UI panel ("you'll get N K next charge") or to feed a recipe-temperature gate to
+     * {@link #tickBurnGated} without re-resolving the source themselves.
+     */
+    public int previewTemperature() {
+        SmelteryFuelSource hottest = fuelSourceSupplier.get();
+        return hottest == null ? 0 : hottest.previewFuelTemperature();
     }
 }
