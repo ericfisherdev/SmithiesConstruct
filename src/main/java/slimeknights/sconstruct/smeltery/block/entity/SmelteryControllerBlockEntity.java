@@ -237,6 +237,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      */
     private static final int INTERIOR_CHECK_INTERVAL = 4;
 
+    /**
+     * Ticks between consecutive expansion-poll checks (SMTCON-228). 200 ticks = 10 seconds —
+     * frequent enough that a player who stacks a new wall ring on a live smeltery sees it absorb
+     * within a few seconds, infrequent enough that the per-tick cost is negligible. Matches
+     * upstream Tinkers' Construct 1.18.2's expansion cadence.
+     */
+    private static final int EXPANSION_POLL_INTERVAL = 200;
+
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state) {
         super(SmelteryComponents.SMELTERY_CONTROLLER_BE.get(), pos, state);
     }
@@ -403,6 +411,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
         if (controller.isAssembled() && level.getGameTime() % INTERIOR_CHECK_INTERVAL == 0L) {
             controller.streamInteriorCheck();
         }
+        // Expansion poll (SMTCON-228): once every 200 ticks, ask whether a new wall ring has
+        // closed above the current top; flag a re-validation so the bowl absorbs it without the
+        // player having to break and re-place the controller.
+        if (controller.isAssembled() && level.getGameTime() % EXPANSION_POLL_INTERVAL == 0L) {
+            controller.pollExpansion();
+        }
         controller.startMelts();
         controller.tickSmeltery();
         controller.syncToTrackers();
@@ -415,6 +429,23 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
      * re-validate on its next tick. Advances the cursor every sweep, whether or not the cell was
      * valid, so a persistently-bad cell does not stop the rest of the sweep.
      */
+    /**
+     * Polls whether the assembled smeltery could now extend its shell one wall ring upward
+     * (SMTCON-228) and, when {@link SmelteryStructureValidator#canExpand} agrees, flags a
+     * re-validation so the next tick's {@code tryAssemble} pass absorbs the new layer. The
+     * check is cheap (one ring walk plus one interior-layer scan, both bounded by the v1
+     * {@link SmelteryStructureValidator#MAX_INTERIOR_SIZE}) and runs only once every
+     * {@link #EXPANSION_POLL_INTERVAL} ticks, so the per-tick cost stays negligible.
+     */
+    private void pollExpansion() {
+        if (level == null || !structure.isPresent()) {
+            return;
+        }
+        if (SmelteryStructureValidator.canExpand(level, structure.get())) {
+            needsValidation = true;
+        }
+    }
+
     private void streamInteriorCheck() {
         if (level == null || !structure.isPresent()) {
             return;

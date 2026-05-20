@@ -426,6 +426,53 @@ public final class SmelteryStructureValidator {
         return false;
     }
 
+    /**
+     * Whether the assembled {@code structure} could grow by one wall ring upward (SMTCON-228) —
+     * a complete wall ring at {@code maxY + 1}, an open ({@code INTERIOR}) interior column at
+     * that level, and the existing shell short of {@link #MAX_WALL_HEIGHT}. The controller's
+     * expansion poll asks this every 200 ticks and flags a re-validation when it returns true;
+     * the validator's standard {@link #validate} pass then absorbs the new ring naturally.
+     */
+    public static boolean canExpand(LevelReader level, SmelteryStructure structure) {
+        Objects.requireNonNull(level, "level");
+        Objects.requireNonNull(structure, "structure");
+        return canExpand(classifierFor(level), structure);
+    }
+
+    /** Pure-classifier overload of {@link #canExpand(LevelReader, SmelteryStructure)} for unit testing. */
+    public static boolean canExpand(BlockClassifier classifier, SmelteryStructure structure) {
+        Objects.requireNonNull(classifier, "classifier");
+        Objects.requireNonNull(structure, "structure");
+        BoundingBox bounds = structure.bounds();
+        int currentHeight = bounds.maxY() - bounds.minY() + 1;
+        if (currentHeight >= MAX_WALL_HEIGHT) {
+            return false;
+        }
+        Bounds footprint = new Bounds(bounds.minX(), bounds.maxX(), bounds.minZ(), bounds.maxZ());
+        int newY = bounds.maxY() + 1;
+        if (!ringIsWall(classifier, ringAt(footprint, newY))) {
+            return false;
+        }
+        Set<BlockPos> interiorFootprint = interiorFootprintFor(footprint, bounds.minY());
+        return interiorLayerIsClear(classifier, interiorFootprint, newY);
+    }
+
+    /**
+     * Reconstructs the interior-base footprint set used by {@link #interiorLayerIsClear} from a
+     * stored structure's bounds — the validator's standard {@link #validate} pass builds this on
+     * the fly during the flood-fill, but the expansion check has only the persisted bounds and
+     * must rebuild the set explicitly.
+     */
+    private static Set<BlockPos> interiorFootprintFor(Bounds footprint, int interiorBaseY) {
+        Set<BlockPos> set = new HashSet<>(footprint.width() * footprint.depth());
+        for (int x = footprint.minX; x <= footprint.maxX; x++) {
+            for (int z = footprint.minZ; z <= footprint.maxZ; z++) {
+                set.add(new BlockPos(x, interiorBaseY, z));
+            }
+        }
+        return set;
+    }
+
     /** Classify a world block state into the {@link BlockRole} the geometry walk consumes. */
     public static BlockRole roleOf(BlockState state) {
         if (state.is(SmelteryComponents.SMELTERY_CONTROLLER.get())) {
