@@ -54,4 +54,24 @@ public interface SmelteryFuelSource {
     default int previewFuelTemperature() {
         return canProvideFuel() ? getTemperature() : 0;
     }
+
+    /**
+     * The millibuckets {@link #consumeFuel} <em>would</em> return if called with the same
+     * {@code desiredMb} — without actually draining (SMTCON-217). Callers that need to decide
+     * whether to commit to a charge (e.g. the smeltery's per-tick charge model, which would
+     * waste a partial-charge mB count if it consumed first and then noticed the shortfall) use
+     * this to gate the destructive {@link #consumeFuel} call.
+     *
+     * <p>The default returns {@code 0} for non-positive requests and the minimum of
+     * {@code desiredMb} and {@link Integer#MAX_VALUE} otherwise — implementations should
+     * override with the actual available amount; a fuel source that overrides
+     * {@link #consumeFuel} should override this in lockstep so the preview and the consume
+     * agree.
+     */
+    default int simulateConsume(int desiredMb) {
+        if (desiredMb <= 0 || !canProvideFuel()) {
+            return 0;
+        }
+        return desiredMb;
+    }
 }
