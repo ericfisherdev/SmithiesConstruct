@@ -4,6 +4,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -67,6 +71,13 @@ public class SearedTankBE extends SmelteryComponentBlockEntity implements Smelte
             @Override
             protected void onContentsChanged() {
                 setChanged();
+                // Push the new fluid level to tracking clients (SMTCON-233) so the tank renderer
+                // and the standalone capability view stay in step with the server. Guarded on a
+                // server level — the FluidTank also fires this during readFromNBT, when the BE
+                // may not yet be attached to a level.
+                if (level != null && !level.isClientSide()) {
+                    level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+                }
             }
         };
     }
@@ -151,5 +162,25 @@ public class SearedTankBE extends SmelteryComponentBlockEntity implements Smelte
         if (tag.contains(TAG_TANK, Tag.TAG_COMPOUND)) {
             fluidTank.readFromNBT(provider, tag.getCompound(TAG_TANK));
         }
+    }
+
+    /**
+     * Initial-sync tag sent to a client when the tank's chunk starts being tracked (SMTCON-233).
+     * {@code saveWithoutMetadata} routes through {@link #saveAdditional}, so the tank's fluid
+     * contents travel to the client and {@code SearedTankRenderer} can draw the fluid level.
+     */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        return saveWithoutMetadata(provider);
+    }
+
+    /**
+     * Per-change sync packet (SMTCON-233). Paired with the {@code sendBlockUpdated} call in the
+     * tank's {@code onContentsChanged}, this carries a fill or drain to every tracking client so
+     * the rendered fluid level follows the server in real time.
+     */
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }
