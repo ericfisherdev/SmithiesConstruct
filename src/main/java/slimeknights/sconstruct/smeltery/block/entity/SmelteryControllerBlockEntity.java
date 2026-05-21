@@ -134,17 +134,26 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements MenuPr
 
     /**
      * Item input slots -- items dropped here are matched to melting recipes; {@link #bindStructure}
-     * resizes this inventory to the interior volume. A slot whose item is mid-melt is
-     * <em>reserved</em>: the overrides below reject
-     * both extraction and insertion for it (see {@link #isSlotReserved(int)}) so a hopper or
-     * player cannot pull the input back out — or stack onto it — while the melt is running, which
-     * would otherwise let the completion in {@link #tickMelts()} duplicate or destroy items.
+     * resizes this inventory to the interior volume. Each slot holds at most a single item
+     * (SMTCON-232) — {@link #getSlotLimit} returns 1 so a dropped stack distributes one item per
+     * free slot rather than piling into one, matching upstream Tinkers' Construct. A slot whose
+     * item is mid-melt is <em>reserved</em>: the overrides below reject both extraction and
+     * insertion for it (see {@link #isSlotReserved(int)}) so a hopper or player cannot pull the
+     * input back out while the melt is running, which would otherwise let the completion in
+     * {@link #tickMelts()} duplicate or destroy items.
      */
     private final ItemStackHandler meltingSlots = new ItemStackHandler(INITIAL_MELTING_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
             meltingItemsDirty = true;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            // One item per melting slot — vanilla item rendering inside the bowl (SMTCON-214) and
+            // the per-slot melt model (SMTCON-213) both assume a single stack of count 1.
+            return 1;
         }
 
         @Override
