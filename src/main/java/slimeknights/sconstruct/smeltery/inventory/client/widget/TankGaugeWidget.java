@@ -68,22 +68,28 @@ public final class TankGaugeWidget {
         if (capacity <= 0) {
             return;
         }
-        // Walk the fluids bottom-up, tracking the running pixel offset from the gauge floor so
-        // consecutive layers stack flush — the same layering the interior renderer uses.
+        // Walk the fluids bottom-up. Each layer's top is the cumulative fill height — the pixel
+        // height of every fluid so far — rather than this layer's own height floored in
+        // isolation. Flooring per layer would let several layers' rounding losses accumulate and
+        // leave an empty seam at the top of a tank that is actually full; carving each layer from
+        // the running cumulative target keeps the topmost edge exact.
         int filledFromBottom = 0;
+        long cumulativeAmount = 0L;
         for (FluidStack fluid : fluidsSupplier.get()) {
             if (fluid.isEmpty()) {
                 continue;
             }
-            // Long math — a large tank capacity times the gauge height could overflow a plain int.
-            int layerHeight = (int) Math.min(height - filledFromBottom, (long) fluid.getAmount() * height / capacity);
+            cumulativeAmount += fluid.getAmount();
+            // Long math — a large cumulative amount times the gauge height could overflow a plain int.
+            int targetFilled = (int) Math.min(height, cumulativeAmount * (long) height / capacity);
+            int layerHeight = targetFilled - filledFromBottom;
             if (layerHeight <= 0) {
                 continue;
             }
             int tint = OPAQUE_ALPHA | IClientFluidTypeExtensions.of(fluid.getFluid()).getTintColor(fluid);
-            int layerTop = top + height - filledFromBottom - layerHeight;
+            int layerTop = top + height - targetFilled;
             guiGraphics.fill(left, layerTop, left + width, top + height - filledFromBottom, tint);
-            filledFromBottom += layerHeight;
+            filledFromBottom = targetFilled;
             if (filledFromBottom >= height) {
                 break;
             }
