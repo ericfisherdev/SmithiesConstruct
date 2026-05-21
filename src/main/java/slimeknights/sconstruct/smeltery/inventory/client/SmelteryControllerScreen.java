@@ -1,11 +1,15 @@
 package slimeknights.sconstruct.smeltery.inventory.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -76,7 +80,7 @@ public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryCo
         super(menu, playerInventory, title);
         this.imageWidth = 176;
         this.imageHeight = 166;
-        this.tankGauge = new TankGaugeWidget(TANK_X, TANK_Y, TANK_W, TANK_H, this::tankFluid, this::tankCapacity);
+        this.tankGauge = new TankGaugeWidget(TANK_X, TANK_Y, TANK_W, TANK_H, this::tankFluids, this::tankCapacity);
         this.meltProgress = new MeltProgressOverlayWidget(MELTING_X, MELTING_Y, SLOT_PITCH, SLOT_INNER, PROGRESS_BAR_H, SmelteryControllerMenu.MELTING_COLS, SmelteryControllerMenu.VISIBLE_SLOTS,
                 menu::getMeltProgress);
         this.scrollbar = new SmelteryScrollWidget(SCROLLBAR_X, SCROLLBAR_Y, SCROLLBAR_W, SCROLLBAR_H, THUMB_H, menu::maxScrollRow, menu::getScrollRow, this::applyScrollRow);
@@ -152,10 +156,25 @@ public class SmelteryControllerScreen extends AbstractContainerScreen<SmelteryCo
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    /** The fluid currently in the controller's tank, or {@link FluidStack#EMPTY} on a client stub. */
-    private FluidStack tankFluid() {
+    /**
+     * Every fluid currently in the controller's multi-fluid tank, bottom-up in tank order, or an
+     * empty list on a client stub with no block-entity. The smeltery tank can hold several
+     * molten metals at once (SMTCON-220), so the gauge needs the whole list, not just slot 0.
+     */
+    private List<FluidStack> tankFluids() {
         SmelteryControllerBlockEntity controller = menu.getController();
-        return controller == null ? FluidStack.EMPTY : controller.getFluidHandler().getFluidInTank(0);
+        if (controller == null) {
+            return List.of();
+        }
+        IFluidHandler handler = controller.getFluidHandler();
+        List<FluidStack> fluids = new ArrayList<>(handler.getTanks());
+        for (int tank = 0; tank < handler.getTanks(); tank++) {
+            FluidStack fluid = handler.getFluidInTank(tank);
+            if (!fluid.isEmpty()) {
+                fluids.add(fluid);
+            }
+        }
+        return fluids;
     }
 
     /** The tank capacity in mB, or the initial fallback on a client stub. */
